@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 
 import { Pool } from "pg";
 
+import {Displays} from './Display.Models';
 import { Users } from "./Users.Model";
 
 dotenv.config();
@@ -49,11 +50,13 @@ export async function RunSynchronisation() {
   await CreateDatabaseIfNotExists(process.env.DB_PROJ_NAME!);
   // Authenticate if Entered Information is correct
   await SequelizeSql.authenticate();
-  SequelizeSql.addModels([Users]);
+
+  SequelizeSql.addModels([Displays, Users]);
   // End up creating the Table
   // If it does not exist
   Users.sync({ force: false }).then(async () => {
     // Insert the Default Value for User if not already present
     await Users.InsertIfNotExists(Users.DefaultUser);
   });
+  await Displays.sync({ force: false });
 }

@@ -18,6 +18,10 @@ class App {
     this.app.use(bodyParser.json());
     // Route via this as Path to Users
     this.app.use("/user", Routes.Users);
+    // Route via this as Path for Display
+    this.app.use("/display", Routes.Displays);
+    // Route via this as Path for File Upload
+    // this.app.use("/upload", Routes.Files);
     Models.RunSynchronisation().then(() => {});
   }
 }

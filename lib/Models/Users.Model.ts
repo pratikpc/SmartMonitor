@@ -5,50 +5,48 @@ import {
   AllowNull,
   Default,
   Unique,
-  DataType,
-  Sequelize,
-  PrimaryKey
-} from "sequelize-typescript";
+  DataType
+} from 'sequelize-typescript';
 
-import * as bcrypt from "bcrypt";
+import * as bcrypt from 'bcrypt';
 
 // Set Authority Based Enummeration
-export type Authority = "NORMAL" | "ADMIN";
+export type Authority = 'NORMAL' | 'ADMIN';
 
 // Create the Table to Store Users Data
 @Table
 export class Users extends Model<Users> {
   @AllowNull(false)
   @Unique
-  @Column
-  name!: string;
+  @Column(DataType.TEXT)
+  Name!: string;
   @AllowNull(false)
-  @Column
+  @Column(DataType.TEXT)
   // Return the Password Value as it is
-  get password(): string {
-    return this.getDataValue("password");
+  get Password(): string {
+    return this.getDataValue('Password');
   }
   // Salt and Hash the Password Value before setting it to this
-  set password(value: string) {
+  set Password(value: string) {
     // Set Number of Salting Rounds as 10
-    const salt_rounds = 5;
+    const salt_rounds = 2;
     const hash = bcrypt.hashSync(value, salt_rounds);
-    this.setDataValue("password", hash);
+    this.setDataValue('Password', hash);
   }
-  @Default("NORMAL")
+  @Default('NORMAL')
   @AllowNull(false)
-  @Column(DataType.ENUM("NORMAL", "ADMIN"))
-  authority!: string;
+  @Column(DataType.ENUM('NORMAL', 'ADMIN'))
+  Authority!: string;
 
   public static async InsertIfNotExists(user: any) {
-    const count = await Users.count({ where: { name: user.name } });
-    if (count !== 0) return null;
-    return Users.create(user);
+    // Name is the only Parameter that is supposed to be unique among all of these
+    const count = await Users.count({ where: { Name: user.Name } });
+    if (count === 0) await Users.create(user);
   }
 
   public static DefaultUser = {
-    name: "universe",
-    password: "universe",
-    authority: "ADMIN"
+    Name: 'universe',
+    Password: 'universe',
+    Authority: 'ADMIN'
   };
 }
