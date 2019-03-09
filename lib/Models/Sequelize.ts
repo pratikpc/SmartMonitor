@@ -34,8 +34,8 @@ async function CreateDatabaseIfNotExists(db_name: string) {
     "'" +
     " AND datistemplate = false;";
   const res = await client.query(query);
-  const rowCount = res.rows[0].cnt;
-  if (rowCount == 0) {
+  const rowCount = Number(res.rows[0].cnt);
+  if (rowCount === 0) {
     // Create the Database Now
     await client.query("CREATE DATABASE " + db_name);
   }
@@ -52,7 +52,7 @@ export async function RunSynchronisation() {
   SequelizeSql.addModels([Users]);
   // End up creating the Table
   // If it does not exist
-  Users.sync({ force: false, logging: console.log }).then(async () => {
+  Users.sync({ force: false }).then(async () => {
     // Insert the Default Value for User if not already present
     await Users.InsertIfNotExists(Users.DefaultUser);
   });
