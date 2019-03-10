@@ -33,6 +33,5 @@ export class Displays extends Model<Displays> {
   @BeforeValidate
   static SetIdentifierKey(display: Displays): void {
     display.IdentifierKey = crypto.randomBytes(20).toString("hex");
-    console.log("Hello");
   }
 }

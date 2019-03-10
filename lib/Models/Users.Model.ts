@@ -13,9 +13,16 @@ import * as bcrypt from "bcrypt";
 // Set Authority Based Enummeration
 export type Authority = "NORMAL" | "ADMIN";
 
-export interface UserViewModel {
-  id: number;
-  Name: string;
+export class UserViewModel {
+  public id: number;
+  public Name: string;
+  public Authority: string;
+
+  public constructor(id: number, Name: string, Authority: string) {
+    this.id = id;
+    this.Name = Name;
+    this.Authority = Authority;
+  }
 }
 
 export interface UserAddModel {

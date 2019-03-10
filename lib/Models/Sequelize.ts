@@ -1,30 +1,29 @@
 import { Sequelize } from "sequelize-typescript";
-import * as dotenv from "dotenv";
+
+import * as Config from "../config/db";
 
 import { Pool } from "pg";
 
-import {Displays} from './Display.Models';
+import { Displays } from "./Display.Models";
 import { Users } from "./Users.Model";
-
-dotenv.config();
 
 // Create the Connection
 export const SequelizeSql = new Sequelize({
-  host: process.env.DB_HOST!,
-  username: process.env.DB_USER!,
-  password: process.env.DB_PASS!,
-  port: Number(process.env.DB_PORT!),
-  database: process.env.DB_PROJ_NAME!,
-  dialect: process.env.DB_DIALECT!
+  host: Config.DB.Host,
+  username: Config.DB.UserName,
+  password: Config.DB.Password,
+  port: Config.DB.Port,
+  database: Config.DB.AdminName,
+  dialect: Config.DB.Dialect,
 });
 
 async function CreateDatabaseIfNotExists(db_name: string) {
   const pool = new Pool({
-    host: process.env.DB_HOST!,
-    user: process.env.DB_USER!,
-    password: process.env.DB_PASS!,
-    port: Number(process.env.DB_PORT!),
-    database: process.env.DB_ADMIN_NAME!
+    host: Config.DB.Host,
+    user: Config.DB.UserName,
+    password: Config.DB.Password,
+    port: Config.DB.Port,
+    database: Config.DB.AdminName
   });
   const client = await pool.connect();
 

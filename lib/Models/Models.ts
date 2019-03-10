@@ -1,2 +1,3 @@
 export {Displays} from "./Display.Models";
-export {Users} from "./Users.Model";
+export {Users, UserAddModel, UserViewModel} from "./Users.Model";
+export {SequelizeSql} from "./Sequelize";
