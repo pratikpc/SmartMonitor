@@ -3,7 +3,7 @@ import { Router } from "express";
 
 export const Displays = Router();
 
-Displays.post("/register/", async (req, res, next) => {
+Displays.post("/", async (req, res, next) => {
   const displayName = req.query.displayname;
   const userId = Number(req.query.userid);
 
@@ -42,35 +42,28 @@ Displays.post("/register/", async (req, res, next) => {
   });
 });
 
-Displays.put("/register/", async (req, res, next) => {
+Displays.put("/", async (req, res, next) => {
   const displayId = Number(req.query.displayid);
   const displayKey = String(req.query.displaykey);
   const userId = Number(req.query.userid);
 
-  const displayName = String(req.query.displayname);
+  const newDisplayName = String(req.query.displayname);
 
   const user = await Model.Users.findOne({ where: { id: userId } });
 
   if (!user)
     return res.json({
-      success: false,
-      authentication: false,
-      authority: false,
-      id: null,
-      key: null
+      success: false
     });
 
   const authority = user!.Authority;
-  if (authority !== "ÁDMIN")
+  if (authority !== 'ADMIN')
     return res.json({
-      success: false,
-      authentication: true,
-      authority: false,
-      id: null
+      success: false
     });
 
-  const display = await Model.Displays.update(
-    { Name: displayName },
+  const [count, displays] = await Model.Displays.update(
+    { Name: newDisplayName },
     {
       where: {
         id: displayId,
@@ -79,6 +72,18 @@ Displays.put("/register/", async (req, res, next) => {
       }
     }
   );
+
+  // There should only be 1 Update
+  if(count !== 1)
+  return res.json({
+    success: false
+  });
+
+  return res.json({
+    success: true
+   });
+
+
 });
 
 Displays.get("/", async (req, res, next) => {
