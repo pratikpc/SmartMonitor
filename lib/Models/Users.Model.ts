@@ -31,23 +31,33 @@ export class Users extends Model<Users> {
   @Unique
   @Column(DataType.TEXT)
   Name!: string;
+
   @AllowNull(false)
   @Column(DataType.TEXT)
-  // Return the Password Value as it is
-  get Password(): string {
+  get Password() {
     return this.getDataValue("Password");
   }
-  // Salt and Hash the Password Value before setting it to this
   set Password(value: string) {
-    // Set Number of Salting Rounds as 10
-    const salt_rounds = 2;
-    const hash = bcrypt.hashSync(value, salt_rounds);
-    this.setDataValue("Password", hash);
+    this.EncryptPassword(value);
   }
+
   @Default("NORMAL")
   @AllowNull(false)
   @Column(DataType.ENUM("NORMAL", "ADMIN"))
   Authority!: string;
+
+  // Perform Password Encryption
+  private EncryptPassword(value: string) {
+    const salt_rounds = 2;
+    const hash = bcrypt.hashSync(value, salt_rounds);
+    this.setDataValue("Password", hash);
+  }
+
+  // Use this to Verify if the Entered Password is same as
+  // Encrypted password
+  public ComparePassword(password: string) {
+    return bcrypt.compare(password, this.Password);
+  }
 
   public static async InsertIfNotExists(user: UserAddModel) {
     // Name is the only Parameter that is supposed to be unique among all of these

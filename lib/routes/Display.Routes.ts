@@ -4,8 +4,8 @@ import { Router } from "express";
 export const Displays = Router();
 
 Displays.post("/", async (req, res, next) => {
-  const displayName = req.query.displayname;
-  const userId = Number(req.query.userid);
+  const displayName = req.body.displayname;
+  const userId = Number(req.body.userid);
 
   console.log(displayName, userId);
 
@@ -43,11 +43,11 @@ Displays.post("/", async (req, res, next) => {
 });
 
 Displays.put("/", async (req, res, next) => {
-  const displayId = Number(req.query.displayid);
-  const displayKey = String(req.query.displaykey);
-  const userId = Number(req.query.userid);
+  const displayId = Number(req.body.displayid);
+  const displayKey = String(req.body.displaykey);
+  const userId = Number(req.body.userid);
 
-  const newDisplayName = String(req.query.displayname);
+  const newDisplayName = String(req.body.displayname);
 
   const user = await Model.Users.findOne({ where: { id: userId } });
 
@@ -87,7 +87,7 @@ Displays.put("/", async (req, res, next) => {
 });
 
 Displays.get("/", async (req, res, next) => {
-  const displays = await Model.Displays.findAll({ attributes: ["id", "Name"] });
+  const displays = await Model.Displays.findAll({ attributes: ["id", "Name"] , order:[['id', 'ASC']]});
   const list: any[] = [];
   displays.forEach(display => {
     list.push({ id: display.id, name: display.Name });

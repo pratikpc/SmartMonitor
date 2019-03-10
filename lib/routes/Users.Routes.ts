@@ -1,9 +1,10 @@
 import { Router } from "express";
 import * as Model from "../Models/Users.Model";
-import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 
 export const Users = Router();
+
+Users.get('/login/', (req, res)=>{return res.redirect('/login.html');});
 // This is the Uri
 // By default when Post Request is Made
 // Authenticate if this is an actual user
@@ -23,7 +24,7 @@ Users.post("/login/", async (req, res) => {
 
   // Now Compare Passwords for Matching
   // Using bcrypt for Safety
-  const match = await bcrypt.compare(password, user.Password);
+  const match = await user.ComparePassword(password);
 
   if (!match) return res.json({ login: false });
 
@@ -41,7 +42,6 @@ Users.post("/add/", async (req, res) => {
   // Generate Random Pass Key
   const pass_key = crypto.randomBytes(10).toString("hex");
   const authority = "NORMAL";
-
   const new_user = await Model.Users.create({
     Name: name,
     Password: pass_key,
@@ -50,7 +50,32 @@ Users.post("/add/", async (req, res) => {
 
   if (!new_user) return res.json({ success: false, password: null });
 
-  return res.json({success: false, password: new_user.Password});
+  return res.json({ success: false, password: new_user.Password });
+});
+
+// This is the Uri for Updation of a User's details
+// Get Old Password
+// And Set Change to New Password
+Users.put("/update/", async (req, res) => {
+  const id = Number(req.body.id);
+  const old_pass = String(req.body.old);
+  const new_pass = String(req.body.new);
+
+  const user = await Model.Users.findOne({ where: { id: id } });
+
+  // Check if User Exists
+  if (!user) return res.json({ success: false });
+  // Check if Password Entered is Correct
+  const match = await user!.ComparePassword(old_pass);
+  if (!match) return res.json({ success: false });
+
+  const [count, users] = await Model.Users.update(
+    { Password: new_pass },
+    { where: { id: id } }
+  );
+
+  if (count !== 1) return res.json({ success: false });
+  return res.json({ success: true });
 });
 
 // This is Uri to access List of Non Admin Users

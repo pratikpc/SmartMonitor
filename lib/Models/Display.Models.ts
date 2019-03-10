@@ -3,12 +3,9 @@ import {
   Column,
   Model,
   AllowNull,
-  Default,
-  Unique,
   DataType,
   CreatedAt,
   ForeignKey,
-  BeforeCreate,
   BeforeValidate
 } from "sequelize-typescript";
 
@@ -32,10 +29,10 @@ export class Displays extends Model<Displays> {
   @CreatedAt
   @Column
   CreationDate!: Date;
-  
+
   @BeforeValidate
-  static SetIdentifierKey(display: Displays): void{
-    display.IdentifierKey = crypto.randomBytes(20).toString('hex');
-    console.log('Hello');
+  static SetIdentifierKey(display: Displays): void {
+    display.IdentifierKey = crypto.randomBytes(20).toString("hex");
+    console.log("Hello");
   }
 }
