@@ -22,6 +22,7 @@ export class Displays extends Model<Displays> {
   @Column(DataType.TEXT)
   IdentifierKey!: string;
 
+  @AllowNull(false)
   @ForeignKey(() => Users)
   @Column
   CreatingUserID!: number;

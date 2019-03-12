@@ -6,6 +6,7 @@ import { Pool } from "pg";
 
 import { Displays } from "./Display.Models";
 import { Users } from "./Users.Model";
+import { Files } from "./Files.Models";
 
 // Create the Connection
 export const SequelizeSql = new Sequelize({
@@ -14,7 +15,7 @@ export const SequelizeSql = new Sequelize({
   password: Config.DB.Password,
   port: Config.DB.Port,
   database: Config.DB.AdminName,
-  dialect: Config.DB.Dialect,
+  dialect: Config.DB.Dialect
 });
 
 async function CreateDatabaseIfNotExists(db_name: string) {
@@ -57,5 +58,6 @@ export async function RunSynchronisation() {
     // Insert the Default Value for User if not already present
     await Users.InsertIfNotExists(Users.DefaultUser);
   });
+  await Files.sync({ force: false });
   await Displays.sync({ force: false });
 }

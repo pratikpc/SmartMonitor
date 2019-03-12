@@ -1,11 +1,14 @@
 import * as Model from "../Models/Models";
 import { Router, Request, Response, NextFunction } from "express";
+import { RoutesCommon } from "./Common.Routes";
 
 export const Displays = Router();
 
 Displays.post("/", isAdmin, async (req, res, next) => {
-  const displayName = req.body.displayname;
   const userId = Number(req.user.id);
+
+  const params = RoutesCommon.GetParameters(req);
+  const displayName = params.displayname;
 
   if (!displayName || !userId)
     return res.json({
@@ -32,11 +35,13 @@ Displays.post("/", isAdmin, async (req, res, next) => {
 });
 
 Displays.put("/", isAdmin, async (req, res, next) => {
-  const displayId = Number(req.body.displayid);
-  const displayKey = String(req.body.displaykey);
   const userId = Number(req.user.id);
 
-  const newDisplayName = String(req.body.displayname);
+  const params = RoutesCommon.GetParameters(req);
+
+  const displayId = Number(params.displayid);
+  const displayKey = String(params.displaykey);
+  const newDisplayName = String(params.displayname);
 
   const [count, displays] = await Model.Displays.update(
     { Name: newDisplayName },
@@ -76,7 +81,8 @@ Displays.get(
   "/:id",
   isAuthenticated,
   async (req, res, next) => {
-    const id = Number(req.params.id);
+    const params = RoutesCommon.GetParameters(req);
+    const id = Number(params.id);
 
     const display = await Model.Displays.findById(id, {
       attributes: ["id", "Name"]

@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import * as Model from "../Models/Users.Model";
 import * as crypto from "crypto";
 import passport = require("passport");
+import { RoutesCommon } from "./Common.Routes";
 
 export const Users = Router();
 
@@ -25,15 +26,17 @@ Users.post(
 );
 
 // Uri for Logout
-Users.get("/logout/", isAuthenticated, async (req, res) => {
+Users.all("/logout/", isAuthenticated, (req, res) => {
   req.logout();
-  res.redirect("/user/login");
+  return res.redirect("/user/login");
 });
 
 // This is the Uri for Registration of a new user
 Users.post("/add/", isAdmin, async (req, res) => {
   try {
-    const name = String(req.body.name);
+
+    const params = RoutesCommon.GetParameters(req);
+    const name = String(params.name);
     const count_users = await Model.Users.count({ where: { Name: name } });
 
     if (count_users != 0) return res.json({ success: false, password: null });
@@ -61,8 +64,10 @@ Users.post("/add/", isAdmin, async (req, res) => {
 Users.put("/update/", isAuthenticated, async (req, res) => {
   try {
     const id = Number(req.user.id);
-    const old_pass = String(req.body.old);
-    const new_pass = String(req.body.new);
+
+    const params = RoutesCommon.GetParameters(req);
+    const old_pass = String(params.old);
+    const new_pass = String(params.new);
 
     const user = await Model.Users.findOne({ where: { id: id } });
 
@@ -102,7 +107,8 @@ Users.get("/", isAdmin, async (req, res) => {
 });
 Users.get("/:id", isAdmin, async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const params = RoutesCommon.GetParameters(req);
+    const id = Number(params.id);
     const user = await Model.Users.findOne({
       attributes: ["id", "Name"],
       where: { id: id, Authority: "NORMAL" }
@@ -133,5 +139,11 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
 // Check if User is Admin
 function isAdmin(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
+  res.redirect("/user/login");
+}
+
+// Check if User is Not Admin
+function isNotAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
   res.redirect("/user/login");
 }
