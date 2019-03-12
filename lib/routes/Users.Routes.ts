@@ -8,9 +8,9 @@ export const Users = Router();
 
 Users.get("/login/", (req, res)=>{
   if(req.isUnauthenticated())
-    return res.redirect('/login.html');
+    return res.render('login.html');
   const authority = req.user.Authority;
-  return res.redirect('/ImageUpload.html');
+  return res.redirect('/files/upload');
 });
 // This is the Uri
 // By default when Post Request is Made
@@ -21,18 +21,18 @@ Users.post(
   passport.authenticate("app", { failureRedirect: "/user/login/" }),
   (req, res) => {
     const authority = String(req.user!.Authority);
-    return res.redirect("/ImageUpload.html");
+    return res.redirect('/files/upload');
   }
 );
 
 // Uri for Logout
-Users.all("/logout/", isAuthenticated, (req, res) => {
+Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
   req.logout();
   return res.redirect("/user/login");
 });
 
 // This is the Uri for Registration of a new user
-Users.post("/add/", isAdmin, async (req, res) => {
+Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
 
     const params = RoutesCommon.GetParameters(req);
@@ -61,7 +61,7 @@ Users.post("/add/", isAdmin, async (req, res) => {
 // This is the Uri for Updation of a User's details
 // Get Old Password
 // And Set Change to New Password
-Users.put("/update/", isAuthenticated, async (req, res) => {
+Users.put("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
   try {
     const id = Number(req.user.id);
 
@@ -90,7 +90,7 @@ Users.put("/update/", isAuthenticated, async (req, res) => {
 });
 
 // This is Uri to access List of Non Admin Users
-Users.get("/", isAdmin, async (req, res) => {
+Users.get("/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
     const users = await Model.Users.findAll({
       attributes: ["id", "Name"],
@@ -105,7 +105,7 @@ Users.get("/", isAdmin, async (req, res) => {
     return res.json([]);
   }
 });
-Users.get("/:id", isAdmin, async (req, res) => {
+Users.get("/:id", RoutesCommon.IsAdmin, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
     const id = Number(params.id);
@@ -129,21 +129,3 @@ Users.get("/:id", isAdmin, async (req, res) => {
     });
   }
 });
-
-// Check if Authentication is Correct
-function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) return next();
-  res.redirect("/user/login");
-}
-
-// Check if User is Admin
-function isAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
-  res.redirect("/user/login");
-}
-
-// Check if User is Not Admin
-function isNotAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
-  res.redirect("/user/login");
-}

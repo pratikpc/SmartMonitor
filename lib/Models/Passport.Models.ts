@@ -76,7 +76,7 @@ export function PassportModelsGenerate(app: Express.Application) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await Model.Users.findById(id);
+      const user = await Model.Users.findByPk(id);
       if (user == null) return done(null, undefined);
       else
         return done(

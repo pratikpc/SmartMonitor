@@ -1,6 +1,28 @@
-import { Request } from "express";
+import { Request, Response, NextFunction } from "express";
 
 export namespace RoutesCommon {
+  // Check if Authentication is Correct
+  export function IsAuthenticated(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    if (req.isAuthenticated()) return next();
+    res.redirect("/user/login");
+  }
+
+  // Check if User is Admin
+  export function IsAdmin(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
+    res.redirect("/user/login");
+  }
+
+  // Check if User is Not Admin
+  export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
+    res.redirect("/user/login");
+  }
+
   function IsNotEmptyAny(object: any): boolean {
     return object && Object.keys(object).length !== 0;
   }

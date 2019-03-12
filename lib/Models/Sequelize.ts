@@ -51,7 +51,7 @@ export async function RunSynchronisation() {
   // Authenticate if Entered Information is correct
   await SequelizeSql.authenticate();
 
-  SequelizeSql.addModels([Displays, Users]);
+  SequelizeSql.addModels([Displays, Users, Files]);
   // End up creating the Table
   // If it does not exist
   Users.sync({ force: false }).then(async () => {

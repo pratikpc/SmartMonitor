@@ -4,7 +4,7 @@ import { RoutesCommon } from "./Common.Routes";
 
 export const Displays = Router();
 
-Displays.post("/", isAdmin, async (req, res, next) => {
+Displays.post("/", RoutesCommon.IsAdmin, async (req, res, next) => {
   const userId = Number(req.user.id);
 
   const params = RoutesCommon.GetParameters(req);
@@ -34,7 +34,7 @@ Displays.post("/", isAdmin, async (req, res, next) => {
   });
 });
 
-Displays.put("/", isAdmin, async (req, res, next) => {
+Displays.put("/", RoutesCommon.IsAdmin, async (req, res, next) => {
   const userId = Number(req.user.id);
 
   const params = RoutesCommon.GetParameters(req);
@@ -65,7 +65,7 @@ Displays.put("/", isAdmin, async (req, res, next) => {
   });
 });
 
-Displays.get("/", isAuthenticated, async (req, res, next) => {
+Displays.get("/", RoutesCommon.IsAuthenticated, async (req, res, next) => {
   const displays = await Model.Displays.findAll({
     attributes: ["id", "Name"],
     order: [["id", "ASC"]]
@@ -79,12 +79,12 @@ Displays.get("/", isAuthenticated, async (req, res, next) => {
 
 Displays.get(
   "/:id",
-  isAuthenticated,
+  RoutesCommon.IsAuthenticated,
   async (req, res, next) => {
     const params = RoutesCommon.GetParameters(req);
     const id = Number(params.id);
 
-    const display = await Model.Displays.findById(id, {
+    const display = await Model.Displays.findByPk(id, {
       attributes: ["id", "Name"]
     });
     if (display)
@@ -99,15 +99,3 @@ Displays.get(
     });
   }
 );
-
-// Check if Authentication is Correct
-function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) return next();
-  res.redirect("/user/login/");
-}
-
-// Check if User is Admin
-function isAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
-  res.redirect("/user/login/");
-}

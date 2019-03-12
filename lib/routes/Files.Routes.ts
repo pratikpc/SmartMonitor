@@ -4,17 +4,22 @@ import * as Models from "../Models/Models";
 
 export const Files = Router();
 
+Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
+  return res.render("ImageUpload.html");
+});
+
 Files.get("/download/list", ValidateActualDisplay, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const displayId = Number(params.id);
 
   const files = await Models.Files.findAll({
+    attributes: ['id'],
     where: { DisplayID: displayId }
   });
 
   const list: any[] = [];
   files.forEach(file => {
-      list.push({id: file.id});
+    list.push({ id: file.id });
   });
   return res.json(list);
 });
@@ -38,6 +43,7 @@ Files.get("/download/file", ValidateActualDisplay, async (req, res) => {
   const displayId = Number(params.id);
 
   const file = await Models.Files.findOne({
+    attributes: ['PathToFile'],
     where: { id: fileId, DisplayID: displayId }
   });
 

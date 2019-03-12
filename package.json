@@ -12,7 +12,7 @@
   "author": "",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "@types/dotenv": "^6.1.0",
+    "@types/ejs": "^2.6.3",
     "@types/express-session": "^1.15.12",
     "@types/passport": "^1.0.0",
     "@types/passport-local": "^1.0.33",
@@ -23,7 +23,7 @@
     "connect-session-sequelize": "^6.0.0",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
-    "dotenv": "^6.2.0",
+    "ejs": "^2.6.1",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "express-validator": "^5.3.1",
