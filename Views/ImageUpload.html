@@ -14,8 +14,9 @@
     <body>
 
         <div class="container" style="margin-top: 1em;">
-            <form> 
-                <input type="file" accept=".xlsx,.xls,image/*,.doc,audio/*,.docx,video/*,.ppt,.pptx,.txt,.pdf" multiple>
+            <form enctype="multipart/form-data" method="POST" action="/files/upload"> 
+                <input type="file" accept="image/*,video/*" name='files' multiple>
+                <input type="submit" value="script">
             </form>
         </div>
 

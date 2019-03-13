@@ -47,14 +47,13 @@ export class Files extends Model<Files> {
     return this.Location + "/" + this.Name + "." + this.Extension;
   }
 
-  @BeforeBulkCreate
-  @BeforeCreate
+  @BeforeValidate
   public static CheckFileExistence(File: Files, options: any): void {
     const filename = File.GetFileLocation();
     File.PathToFile = filename;
 
-    if (existsSync(File.PathToFile)) {
-      throw "File Already Exists at " + File.PathToFile;
+    if (!existsSync(File.PathToFile)) {
+      throw "File Not Exists at " + File.PathToFile;
     }
   }
 }

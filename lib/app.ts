@@ -2,6 +2,7 @@ import express from "express";
 import * as bodyParser from "body-parser";
 import * as Routes from "./routes/Routes";
 import * as Models from "./Models/Sequelize";
+import * as cors from 'cors';
 import { PassportModelsGenerate } from "./Models/Passport.Models";
 
 import * as ejs from 'ejs';
@@ -21,6 +22,7 @@ app.use(express.static("./Website"));
 Models.RunSynchronisation().then(() => {});
 PassportModelsGenerate(app);
 
+app.use(cors.default());
 // middleware for json body parsing
 app.use(bodyParser.json());
 
