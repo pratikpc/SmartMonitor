@@ -1,4 +1,5 @@
 import * as Model from "../Models/Models";
+import * as crypto from "crypto";
 import { Router, Request, Response, NextFunction } from "express";
 import { RoutesCommon } from "./Common.Routes";
 
@@ -17,7 +18,8 @@ Displays.post("/", RoutesCommon.IsAdmin, async (req, res, next) => {
 
   const newDisplay = await Model.Displays.create({
     Name: displayName,
-    CreatingUserID: userId
+    CreatingUserID: userId,
+    IdentifierKey: crypto.randomBytes(20).toString('hex')
   });
 
   if (newDisplay == null)

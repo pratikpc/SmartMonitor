@@ -30,9 +30,4 @@ export class Displays extends Model<Displays> {
   @CreatedAt
   @Column
   CreationDate!: Date;
-
-  @BeforeValidate
-  static SetIdentifierKey(display: Displays): void {
-    display.IdentifierKey = crypto.randomBytes(20).toString("hex");
-  }
 }
