@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import * as Model from "../Models/Users.Model";
-import * as crypto from "crypto";
+import {randomBytes} from "crypto";
 import passport = require("passport");
 import { RoutesCommon } from "./Common.Routes";
 
@@ -42,7 +42,7 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
     if (count_users != 0) return res.json({ success: false, password: null });
 
     // Generate Random Pass Key
-    const pass_key = crypto.randomBytes(10).toString("hex");
+    const pass_key = randomBytes(10).toString("hex");
     const authority = "NORMAL";
     const new_user = await Model.Users.create({
       Name: name,

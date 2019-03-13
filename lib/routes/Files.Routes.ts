@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { RoutesCommon } from "./Common.Routes";
 import * as Models from "../Models/Models";
-import * as crypto from "crypto";
+import {randomBytes} from "crypto";
 import { extname } from "path";
 import * as fs from "fs";
 import * as multer from "multer";
@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
   filename: (request: any, file: any, callback: any) => {
     let fileName = "";
     while (true) {
-      const name = crypto.randomBytes(12).toString("hex");
+      const name = randomBytes(12).toString("hex");
       const ext = extname(file.originalname);
       fileName = name + ext;
       if (!fs.existsSync(fileName)) break;

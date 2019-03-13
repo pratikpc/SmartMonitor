@@ -1,8 +1,7 @@
 import * as Model from "../Models/Models";
-import * as crypto from "crypto";
+import {randomBytes}  from "crypto";
 import { Router, Request, Response, NextFunction } from "express";
 import { RoutesCommon } from "./Common.Routes";
-import { Mqtt } from "config/Mqtt";
 
 export const Displays = Router();
 
@@ -20,7 +19,7 @@ Displays.post("/", RoutesCommon.IsAdmin, async (req, res, next) => {
   const newDisplay = await Model.Displays.create({
     Name: displayName,
     CreatingUserID: userId,
-    IdentifierKey: crypto.randomBytes(20).toString("hex")
+    IdentifierKey: randomBytes(20).toString("hex")
   });
 
   if (newDisplay == null)
