@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Demo</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretty-checkbox@3.0/dist/pretty-checkbox.min.css"/>
+        <style type="text/css">
+            .checkbox + .checkbox, .radio + .radio {
+                margin-top: 10px;
+            }
+            .cen{
+            	text-align: center;
+            	margin-left: auto;
+            	margin-right: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container col-12 cen">
+
+            <br/><br/>
+            <button type="button" class="btn btn-hot text-uppercase btn-lg" value="Add New Raspi" id="btnSave"><a>Add New Raspi</a></button>
+            <br/><br/>
+
+            
+            <div class="row text-center" >
+                <div class="col-lg-6 col-md-6 col-sm-6" id="cblist" ></div>
+            </div>
+
+        </div>
+    </body>
+
+    <style>
+    	
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#btnSave').click(function() {
+                addCheckbox();
+            });
+        });
+
+        function addCheckbox(name) {
+            var container = $('#cblist');
+            var inputs = container.find('input');
+            var id = inputs.length+1;
+
+            $html = ' <div class="pretty p-icon p-round p-pulse col-md-5">';
+            $html += '<input type="checkbox" name="cb[]" value="cb'+id+'" id="cb'+id+'"/>';
+            $html += '<div class="state p-success">';
+			$html += '<i class="icon mdi mdi-check"></i>';
+            $html += '<label>Raspi '+id+'</label>';
+			$html += '</div></div>';
+
+            container.append($html);
+        }
+		
+
+
+    </script>
+</html>
