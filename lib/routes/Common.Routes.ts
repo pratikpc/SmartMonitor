@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction } from "express";
+import * as mqtt from "mqtt";
+import * as Config from "../config/Mqtt";
 
 export namespace RoutesCommon {
+  export const MqttClient = mqtt.connect(Config.Mqtt.Url);
+
+  MqttClient.on("connect", async () => {
+    console.log("Mqtt Connected");
+  });
   // Check if Authentication is Correct
   export function IsAuthenticated(
     req: Request,

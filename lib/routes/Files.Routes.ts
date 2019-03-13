@@ -6,6 +6,7 @@ import { extname } from "path";
 import * as fs from "fs";
 import * as multer from "multer";
 import * as Path from "path";
+import { Mqtt } from "../config/Mqtt";
 
 const storage = multer.diskStorage({
   destination: (request: any, file: any, callback: any) => {
@@ -36,19 +37,27 @@ Files.post(
   (req, res) => {
     const files = req.files as any[];
 
-    // const params = RoutesCommon.GetParameters(req);
-    // const checkBoxSelectedIDs = RoutesCommon.GetParameters(req) as any[];
+    const params = RoutesCommon.GetParameters(req);
+    // const checkBoxSelectedIDs = params.ids as number[];
+    const checkBoxSelectedIDs = [1, 2];
 
-    files.forEach(async file => {
+    files.forEach(file => {
       const ext = Path.extname(file.filename).substr(1);
       const name = Path.basename(file.filename, Path.extname(file.filename));
 
-      const fileAdd = await Models.Files.create({
-        Name: name,
-        Extension: ext,
-        Location: file.destination,
-        DisplayID: 1
+      checkBoxSelectedIDs.forEach(async displayId => {
+        const fileAdd = await Models.Files.create({
+          Name: name,
+          Extension: ext,
+          Location: file.destination,
+          DisplayID: displayId
+        });
       });
+    });
+
+    checkBoxSelectedIDs.forEach(async displayId => {
+      while (!RoutesCommon.MqttClient.connected);
+      RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
     });
     return res.redirect("/files/upload");
   }
