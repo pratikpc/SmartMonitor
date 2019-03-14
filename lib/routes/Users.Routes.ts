@@ -25,6 +25,18 @@ Users.post(
   }
 );
 
+Users.post(
+  "/login/json",
+  passport.authenticate("app"),
+  (req, res) => {
+    if (req.isAuthenticated())
+      return res.json({ success: true });
+    else
+      return res.json({ success: false });
+  }
+);
+
+
 // Uri for Logout
 Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
   req.logout();
