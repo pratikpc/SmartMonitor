@@ -1,13 +1,13 @@
 import { Router, Request, Response, NextFunction } from "express";
 import * as Model from "../Models/Users.Model";
-import {randomBytes} from "crypto";
+import { randomBytes } from "crypto";
 import passport = require("passport");
 import { RoutesCommon } from "./Common.Routes";
 
 export const Users = Router();
 
-Users.get("/login/", (req, res)=>{
-  if(req.isUnauthenticated())
+Users.get("/login/", (req, res) => {
+  if (req.isUnauthenticated())
     return res.render('login.html');
   const authority = req.user.Authority;
   return res.redirect('/files/upload');
@@ -31,8 +31,11 @@ Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
   return res.redirect("/user/login");
 });
 
+Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => { return res.render("addUser.html"); });
+Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => { return res.render("userlist.html"); });
+
 // This is the Uri for Registration of a new user
-Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {
+Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
 
     const params = RoutesCommon.GetParameters(req);
@@ -40,6 +43,9 @@ Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {
     const count_users = await Model.Users.count({ where: { Name: name } });
 
     if (count_users !== 0) return res.json({ success: false, password: null });
+
+    if (name == null) return res.json({ success: false, password: null });
+    if (name === "") return res.json({ success: false, password: null });
 
     // Generate Random Pass Key
     const pass_key = randomBytes(10).toString("hex");
@@ -52,7 +58,7 @@ Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {
 
     if (!new_user) return res.json({ success: false, password: null });
 
-    return res.json({ success: true , password: pass_key });
+    return res.json({ success: true, password: pass_key });
   } catch (error) {
     return res.json({ success: false, password: null });
   }

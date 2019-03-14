@@ -37,11 +37,15 @@ Files.post(
   (req, res) => {
     const files = req.files as any[];
     if (files.length === 0)
-      return res.redirect("/files/upload");
+      return res.json({ success: false });
 
     const params = RoutesCommon.GetParameters(req);
-    // const checkBoxSelectedIDs = params.ids as number[];
-    const checkBoxSelectedIDs = [1, 2];
+    const checkBoxSelectedIDs = params.ids as number[];
+    // const checkBoxSelectedIDs = [1, 2];
+
+    if (checkBoxSelectedIDs.length === 0)
+      return res.json({ success: false });
+
 
     files.forEach(file => {
       const ext = Path.extname(file.filename).substr(1);
@@ -62,7 +66,7 @@ Files.post(
         return;
       RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
     });
-    return res.redirect("/files/upload");
+    return res.json({ success: true });
   }
 );
 
