@@ -37,14 +37,17 @@ Files.post(
   (req, res) => {
     const files = req.files as any[];
     if (files.length === 0)
-      return res.json({ success: false });
+      return res.render("ImageUpload.html");
 
     const params = RoutesCommon.GetParameters(req);
-    const checkBoxSelectedIDs = params.ids as number[];
-    // const checkBoxSelectedIDs = [1, 2];
+
+    // const checkBoxSelectedIDs = params.ids as number[];
+    const checkBoxSelectedIDs = [1, 2];
+
+    console.log(params, params.ids, checkBoxSelectedIDs);
 
     if (checkBoxSelectedIDs.length === 0)
-      return res.json({ success: false });
+      return res.render("ImageUpload.html");
 
 
     files.forEach(file => {
@@ -66,7 +69,7 @@ Files.post(
         return;
       RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
     });
-    return res.json({ success: true });
+    return res.render("ImageUpload.html");
   }
 );
 
@@ -79,13 +82,13 @@ Files.get("/download/list", ValidateActualDisplay, async (req, res) => {
   const displayId = Number(params.id);
 
   const files = await Models.Files.findAll({
-    attributes: ["id"],
+    attributes: ["id", "Extension", "Name"],
     where: { DisplayID: displayId }
   });
 
   const list: any[] = [];
   files.forEach(file => {
-    list.push({ id: file.id });
+    list.push({ id: file.id, Name: file.Name, Extension: file.Extension });
   });
   return res.json({ success: true, data: list });
 });
