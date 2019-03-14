@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { RoutesCommon } from "./Common.Routes";
 import * as Models from "../Models/Models";
-import {randomBytes} from "crypto";
+import { randomBytes } from "crypto";
 import { extname } from "path";
 import * as fs from "fs";
 import * as multer from "multer";
@@ -36,6 +36,8 @@ Files.post(
   upload.array("files"),
   (req, res) => {
     const files = req.files as any[];
+    if (files.length === 0)
+      return res.redirect("/files/upload");
 
     const params = RoutesCommon.GetParameters(req);
     // const checkBoxSelectedIDs = params.ids as number[];
@@ -56,7 +58,8 @@ Files.post(
     });
 
     checkBoxSelectedIDs.forEach(async displayId => {
-      while (!RoutesCommon.MqttClient.connected);
+      if (!RoutesCommon.MqttClient.connected)
+        return;
       RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
     });
     return res.redirect("/files/upload");
@@ -72,13 +75,13 @@ Files.get("/download/list", ValidateActualDisplay, async (req, res) => {
   const displayId = Number(params.id);
 
   const files = await Models.Files.findAll({
-    attributes: ["id", "PathToFile"],
+    attributes: ["id"],
     where: { DisplayID: displayId }
   });
 
   const list: any[] = [];
   files.forEach(file => {
-    list.push({ id: file.id, path: file.PathToFile });
+    list.push({ id: file.id });
   });
   return res.json({ success: true, data: list });
 });

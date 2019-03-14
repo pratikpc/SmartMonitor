@@ -1,34 +1,63 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>ImageUploadify - Example</title>
 
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/fontawesome/fontawesome.min.css" rel="stylesheet">
-        <link href="/dist/imageuploadify.min.css" rel="stylesheet">
-    </head>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ImageUploadify - Example</title>
 
-    <body>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/fontawesome/fontawesome.min.css" rel="stylesheet">
+    <link href="/dist/imageuploadify.min.css" rel="stylesheet">
+</head>
 
-        <div class="container" style="margin-top: 1em;">
-            <form enctype="multipart/form-data" method="POST" action="/files/upload"> 
-                <input type="file" accept="image/*,video/*" name='files' multiple>
-                <input type="submit" value="script">
-            </form>
-        </div>
+<body>
 
-        <script src="dist/jquery.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="/dist/imageuploadify.min.js"></script>
+    <div class="container" style="margin-top: 1em;">
+        <form enctype="multipart/form-data" method="POST" action="/files/upload">
+            <input type="file" accept="image/*,video/*" name='files' multiple>
+            <input type="submit" value="script">
+            <div id="Displays">
+        </form>
+    </div>
 
-        <script type="text/javascript">
-            $(document).ready(function() {
-                $('input[type="file"]').imageuploadify();
-            })
-        </script>
+    <script src="/dist/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/dist/imageuploadify.min.js"></script>
 
-    </body>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('input[type="file"]').imageuploadify();
+        })
+    </script>
+
+    <script type="text/javascript">
+        $(document).ready(() => {
+            $.getJSON("/display/", (displays) => {
+                addCheckbox(displays);
+            });
+        });
+
+        function addCheckbox(displays) {
+            const dispId = document.getElementById("Displays");
+            displays.forEach(display => {
+                const checkbox = document.createElement("input");
+                checkbox.setAttribute("type", "checkbox");
+                checkbox.setAttribute("name", "ids");
+                checkbox.setAttribute("value", display.id);
+
+                const label = document.createElement("label");
+                label.innerText = display.name;
+
+                const div = document.createElement("div");
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                dispId.appendChild(div);
+            });
+        }
+    </script>
+
+</body>
+
 </html>

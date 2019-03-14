@@ -32,14 +32,14 @@ Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
 });
 
 // This is the Uri for Registration of a new user
-Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
+Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
 
     const params = RoutesCommon.GetParameters(req);
     const name = String(params.name);
     const count_users = await Model.Users.count({ where: { Name: name } });
 
-    if (count_users != 0) return res.json({ success: false, password: null });
+    if (count_users !== 0) return res.json({ success: false, password: null });
 
     // Generate Random Pass Key
     const pass_key = randomBytes(10).toString("hex");
@@ -52,7 +52,7 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
 
     if (!new_user) return res.json({ success: false, password: null });
 
-    return res.json({ success: false, password: new_user.Password });
+    return res.json({ success: true , password: pass_key });
   } catch (error) {
     return res.json({ success: false, password: null });
   }
