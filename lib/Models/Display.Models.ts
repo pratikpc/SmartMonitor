@@ -9,7 +9,6 @@ import {
   BeforeValidate
 } from "sequelize-typescript";
 
-import * as crypto from "crypto";
 import { Users } from "./Users.Model";
 
 @Table

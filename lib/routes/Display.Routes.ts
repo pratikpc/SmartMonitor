@@ -1,5 +1,5 @@
 import * as Model from "../Models/Models";
-import * as crypto from "crypto";
+import {randomBytes}  from "crypto";
 import { Router, Request, Response, NextFunction } from "express";
 import { RoutesCommon } from "./Common.Routes";
 
@@ -19,7 +19,7 @@ Displays.post("/", RoutesCommon.IsAdmin, async (req, res, next) => {
   const newDisplay = await Model.Displays.create({
     Name: displayName,
     CreatingUserID: userId,
-    IdentifierKey: crypto.randomBytes(20).toString('hex')
+    IdentifierKey: randomBytes(20).toString("hex")
   });
 
   if (newDisplay == null)
@@ -29,10 +29,12 @@ Displays.post("/", RoutesCommon.IsAdmin, async (req, res, next) => {
 
   return res.json({
     success: true,
-    id: newDisplay.id,
-    Name: newDisplay.Name,
-    CreatingUserID: newDisplay.CreatingUserID,
-    IdentifierKey: newDisplay.IdentifierKey
+    data: {
+      id: newDisplay.id,
+      Name: newDisplay.Name,
+      CreatingUserID: newDisplay.CreatingUserID,
+      IdentifierKey: newDisplay.IdentifierKey
+    }
   });
 });
 
@@ -79,25 +81,21 @@ Displays.get("/", RoutesCommon.IsAuthenticated, async (req, res, next) => {
   return res.json(list);
 });
 
-Displays.get(
-  "/:id",
-  RoutesCommon.IsAuthenticated,
-  async (req, res, next) => {
-    const params = RoutesCommon.GetParameters(req);
-    const id = Number(params.id);
+Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res, next) => {
+  const params = RoutesCommon.GetParameters(req);
+  const id = Number(params.id);
 
-    const display = await Model.Displays.findByPk(id, {
-      attributes: ["id", "Name"]
-    });
-    if (display)
-      return res.json({
-        success: true,
-        data: { id: display.id, name: display.Name }
-      });
-
+  const display = await Model.Displays.findByPk(id, {
+    attributes: ["id", "Name"]
+  });
+  if (display)
     return res.json({
-      success: false,
-      data: { id: null, name: null }
+      success: true,
+      data: { id: display.id, name: display.Name }
     });
-  }
-);
+
+  return res.json({
+    success: false,
+    data: { id: null, name: null }
+  });
+});

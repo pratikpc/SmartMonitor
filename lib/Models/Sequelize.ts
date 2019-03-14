@@ -15,7 +15,8 @@ export const SequelizeSql = new Sequelize({
   password: Config.DB.Password,
   port: Config.DB.Port,
   database: Config.DB.AdminName,
-  dialect: Config.DB.Dialect
+  dialect: Config.DB.Dialect,
+  operatorsAliases: Config.DB.operatorsAliases,
 });
 
 async function CreateDatabaseIfNotExists(db_name: string) {
