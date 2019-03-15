@@ -42,6 +42,7 @@ Files.post(
     const params = RoutesCommon.GetParameters(req);
 
     // const checkBoxSelectedIDs = params.ids as number[];
+    console.log("Hello Nokia",params.ids, params.ids as number[]);
     const checkBoxSelectedIDs = [1, 2];
 
     console.log(params, params.ids, checkBoxSelectedIDs);

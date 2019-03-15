@@ -44,7 +44,7 @@
             displays.forEach(display => {
                 const checkbox = document.createElement("input");
                 checkbox.setAttribute("type", "checkbox");
-                checkbox.setAttribute("name", "ids");
+                checkbox.setAttribute("name", "ids[]");
                 checkbox.setAttribute("value", display.id);
 
                 const label = document.createElement("label");
