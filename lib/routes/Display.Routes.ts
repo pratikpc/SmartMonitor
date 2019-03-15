@@ -2,11 +2,13 @@ import * as Model from "../Models/Models";
 import {randomBytes}  from "crypto";
 import { Router, Request, Response, NextFunction } from "express";
 import { RoutesCommon } from "./Common.Routes";
+import passport = require("passport");
 
 export const Displays = Router();
 
-Displays.post("/", RoutesCommon.IsAdmin, async (req, res, next) => {
+Displays.get("/add/", passport.authenticate("app"), async (req, res, next) => {
   const userId = Number(req.user.id);
+  // const userId = 1;
 
   const params = RoutesCommon.GetParameters(req);
   const displayName = params.displayname;

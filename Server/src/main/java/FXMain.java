@@ -1,9 +1,7 @@
 
 import java.io.File;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Vector;
+import java.util.*;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -22,13 +20,26 @@ class Configuraion
     String IdentifierKey;
     int Id;
     String Location;
+    String URL;
+
+    public  Configuraion(Properties props)
+    {
+        this.Id = Integer.parseInt(props.getProperty("id"));
+        this.IdentifierKey = props.getProperty("IdentifierKey");
+//        this.Location = props.getProperty("Name");
+    }
+
+    public String GetURL(String Name)
+    {
+        return URL + "/" + Name;
+    }
 }
 
 class PerformRequest
 {
     public static void GetDownload(Configuraion configuraion, int fileId, String fileName) throws Exception
     {
-        URIBuilder ub = new URIBuilder("http://localhost:8000/files/download/file");
+        URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey)
         .addParameter("file", Integer.toString(fileId));
@@ -43,7 +54,7 @@ class PerformRequest
 
     public static void DeleteDownload(Configuraion configuraion, int fileId) throws Exception
     {
-        URIBuilder ub = new URIBuilder("http://localhost:8000/files/download/file");
+        URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey)
                 .addParameter("file", Integer.toString(fileId));
@@ -56,7 +67,7 @@ class PerformRequest
 
     public static String GetList(Configuraion configuraion) throws Exception
     {
-        URIBuilder ub = new URIBuilder("http://localhost:8000/files/download/list");
+        URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/list"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey);
         String url = ub.toString();
@@ -88,9 +99,6 @@ class PerformRequest
 
 public class FXMain extends Application {
 
-    public static void main(String[] args) {
-        Application.launch(args);
-    }
 
     int CurrentImage = 0;
     ImageView imageView = new ImageView();
@@ -119,12 +127,11 @@ public class FXMain extends Application {
 
     void RunSetup() throws Exception
     {
-        configuraion = new Configuraion();
-        configuraion.Id = 1;
-        configuraion.IdentifierKey = "ad83df8e5b8ddc719225f66a856f85afc235d9b3";
+        configuraion = new Configuraion(new PropertiesDeal().loadProperties());
         configuraion.Location = "d:\\list";
+        configuraion.URL = "100.100.195.151:8000";
 
-        mqttClient = new MqttClient("tcp://localhost:1883", MqttAsyncClient.generateClientId());
+        mqttClient = new MqttClient("tcp://100.100.195.151:1883", MqttAsyncClient.generateClientId());
         mqttClient.connect();
         mqttClient.subscribe("/display/" + configuraion.Id);
         mqttClient.setCallback(new MqttCallback() {
@@ -154,8 +161,6 @@ public class FXMain extends Application {
             RunSetup();
             GetListFromConfig();
         }catch (Exception e){e.printStackTrace();}
- //       AddImage("file:///C:/Users/Mahesh/Desktop/wat/WhatsApp Image 2019-02-16 at 10.59.13 PM (2).jpeg");
-//        AddImage("file:///C:/Users/Mahesh/Desktop/wat/WhatsApp Image 2019-02-16 at 11.55.41 PM.jpeg");
         // Create the ImageView
         //imageView.setImage(image);
 

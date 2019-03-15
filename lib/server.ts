@@ -9,8 +9,10 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json({limit: '5mb'}));
 
 app.listen(config.Server.Port, config.Server.Name, () => {
+  console.log(config.Server.Port, config.Server.Name);
 });
 
 process.on("SIGINT", function() {
   console.log("App Shutting Down");
 });
+
