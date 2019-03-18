@@ -1,5 +1,4 @@
 import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
@@ -14,6 +13,17 @@ import java.util.Properties;
 public class Signup extends javax.swing.JFrame {
 
     PropertiesDeal properties = new PropertiesDeal();
+    // Variables declaration - do not modify
+    private javax.swing.JLabel internetid;
+    private javax.swing.JTextField internettext;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JTextField location;
+    private javax.swing.JPasswordField password;
+    private javax.swing.JTextField userid;
     /**
      * Creates new form NewJFrame
      */
@@ -32,7 +42,7 @@ public class Signup extends javax.swing.JFrame {
 
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        passward = new javax.swing.JPasswordField();
+        password = new javax.swing.JPasswordField();
         jLabel3 = new javax.swing.JLabel();
         location = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
@@ -49,8 +59,8 @@ public class Signup extends javax.swing.JFrame {
         jLabel1.setForeground(new java.awt.Color(0, 0, 204));
         jLabel1.setText("ENTER PASSWARD HERE");
 
-        passward.setFont(new java.awt.Font("Tahoma", 3, 36)); // NOI18N
-        passward.addActionListener(new java.awt.event.ActionListener() {
+        password.setFont(new java.awt.Font("Tahoma", 3, 36)); // NOI18N
+        password.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 passwardActionPerformed(evt);
             }
@@ -72,10 +82,13 @@ public class Signup extends javax.swing.JFrame {
         jButton1.setText("ENTER");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent evt){
-                try{
-                jButton1ActionPerformed(evt);
-            }catch (Exception ex){ex.printStackTrace();}}
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                try {
+                    jButton1ActionPerformed(evt);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
         });
 
         jLabel4.setFont(new java.awt.Font("Tahoma", 3, 36)); // NOI18N
@@ -101,7 +114,7 @@ public class Signup extends javax.swing.JFrame {
                                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 681, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(location, javax.swing.GroupLayout.PREFERRED_SIZE, 637, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                                .addComponent(passward, javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(password, javax.swing.GroupLayout.Alignment.LEADING)
                                                 .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 634, Short.MAX_VALUE)))
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -117,7 +130,7 @@ public class Signup extends javax.swing.JFrame {
                                 .addGap(80, 80, 80)
                                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(passward, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(password, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(153, 153, 153)
                                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
@@ -138,9 +151,13 @@ public class Signup extends javax.swing.JFrame {
         // TODO add your handling code here:
     }
 
-    public boolean PostNew(String name, String pass, String location) throws Exception
-    {
-        URIBuilder ub = new URIBuilder("http://100.100.195.151:8000/display/add")
+    //********************************************* */
+    private void internettextActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
+    }
+
+    public boolean PostNew(String name, String pass, String location, String Url) throws Exception {
+        URIBuilder ub = new URIBuilder("http://" + Url + ":8000/display/add")
                 .addParameter("name", name)
                 .addParameter("pass", pass)
                 .addParameter("displayname", location);
@@ -151,7 +168,7 @@ public class Signup extends javax.swing.JFrame {
         System.out.print(json + url);
         JSONObject object = new JSONObject(json);
         boolean success = object.getBoolean("success");
-        if(!success)
+        if (!success)
             return false;
         JSONObject data = object.getJSONObject("data");
         int id = data.getInt("id");
@@ -161,71 +178,25 @@ public class Signup extends javax.swing.JFrame {
         props.setProperty("id", String.valueOf(id));
         props.setProperty("Name", Name);
         props.setProperty("IdentifierKey", Identifier);
+        props.setProperty("URLWeb", Url);
         properties.saveProperties(props);
-        System.out.println(id + Name + Identifier);
         return true;
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) throws Exception{
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) throws Exception {
         // TODO add your handling code here:
         String str = userid.getText();
-        String pass= passward.getText();
-        String loc= location.getText();
-
-        if(str.isEmpty() || pass.isEmpty() || loc.isEmpty())
+        String pass = password.getText();
+        String loc = location.getText();
+        String internet = internettext.getText();//************************* */
+        if (str.isEmpty() || pass.isEmpty() || loc.isEmpty() || internet.isEmpty())
             return;
         //*******************************************************************//
 
-        if(!PostNew(str, pass, loc))
-        {
+        if (!PostNew(str, pass, loc, internet)) {
             return;
         }
         dispose();
     }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Signup.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Signup.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Signup.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Signup.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Signup().setVisible(true);
-            }
-        });
-    }
-
-    // Variables declaration - do not modify
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JTextField location;
-    private javax.swing.JPasswordField passward;
-    private javax.swing.JTextField userid;
     // End of variables declaration
 }

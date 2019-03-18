@@ -1,7 +1,3 @@
-
-import java.io.File;
-import java.util.*;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -15,34 +11,40 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-class Configuraion
-{
-    String IdentifierKey;
-    int Id;
-    String Location;
-    String URL;
+import java.io.File;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
 
-    public  Configuraion(Properties props)
-    {
+class Configuraion {
+    final String IdentifierKey;
+    final int Id;
+    final String URL;
+    String Location;
+
+    public Configuraion(Properties props) {
         this.Id = Integer.parseInt(props.getProperty("id"));
         this.IdentifierKey = props.getProperty("IdentifierKey");
-//        this.Location = props.getProperty("Name");
+        this.Location = props.getProperty("Name");
+        this.URL = props.getProperty("URLWeb");
     }
 
-    public String GetURL(String Name)
-    {
-        return URL + "/" + Name;
+    public String GetURL(String Name) {
+        return "http://" + URL + ":8000/" + Name;
+    }
+
+    public String GetMqttLink() {
+        return "tcp://" + URL + ":1883";
     }
 }
 
-class PerformRequest
-{
-    public static void GetDownload(Configuraion configuraion, int fileId, String fileName) throws Exception
-    {
+class PerformRequest {
+    public static void GetDownload(Configuraion configuraion, int fileId, String fileName) throws Exception {
         URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey)
-        .addParameter("file", Integer.toString(fileId));
+                .addParameter("file", Integer.toString(fileId));
         String url = ub.toString();
 
         System.out.println("Hello " + fileName + " " + url);
@@ -52,8 +54,7 @@ class PerformRequest
         System.out.println("2Hello " + fileName + " " + url);
     }
 
-    public static void DeleteDownload(Configuraion configuraion, int fileId) throws Exception
-    {
+    public static void DeleteDownload(Configuraion configuraion, int fileId) throws Exception {
         URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey)
@@ -65,8 +66,7 @@ class PerformRequest
                 .returnResponse();
     }
 
-    public static String GetList(Configuraion configuraion) throws Exception
-    {
+    public static String GetList(Configuraion configuraion) throws Exception {
         URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/list"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey);
@@ -77,10 +77,9 @@ class PerformRequest
                 .socketTimeout(1000)
                 .execute().returnContent().asString();
         JSONObject obj = new JSONObject(json);
-        if(obj.getBoolean("success")){
+        if (obj.getBoolean("success")) {
             JSONArray files = obj.getJSONArray("data");
-            for(int i = 0; i < files.length(); ++i)
-            {
+            for (int i = 0; i < files.length(); ++i) {
                 JSONObject file = files.getJSONObject(i);
                 int id = file.getInt("id");
                 String name = file.getString("Name");
@@ -108,30 +107,26 @@ public class FXMain extends Application {
     Configuraion configuraion;
     MqttClient mqttClient;
 
-    public void GetListFromConfig() throws Exception
-    {
+    public void GetListFromConfig() throws Exception {
         File folder = new File(configuraion.Location);
-        if(!folder.isDirectory())
+        if (!folder.isDirectory())
             return;
         File[] list = folder.listFiles();
         images.clear();
-        for(int i = 0; i < list.length; ++i)
-        {
+        for (int i = 0; i < list.length; ++i) {
             System.out.println();
             File file = list[i];
-            if(file.isFile())
+            if (file.isFile())
                 AddImage("file://" + file.toURI().toURL().getPath());
 
         }
     }
 
-    void RunSetup() throws Exception
-    {
+    void RunSetup() throws Exception {
         configuraion = new Configuraion(new PropertiesDeal().loadProperties());
         configuraion.Location = "d:\\list";
-        configuraion.URL = "100.100.195.151:8000";
 
-        mqttClient = new MqttClient("tcp://100.100.195.151:1883", MqttAsyncClient.generateClientId());
+        mqttClient = new MqttClient(configuraion.GetMqttLink(), MqttAsyncClient.generateClientId());
         mqttClient.connect();
         mqttClient.subscribe("/display/" + configuraion.Id);
         mqttClient.setCallback(new MqttCallback() {
@@ -160,7 +155,9 @@ public class FXMain extends Application {
         try {
             RunSetup();
             GetListFromConfig();
-        }catch (Exception e){e.printStackTrace();}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // Create the ImageView
         //imageView.setImage(image);
 
@@ -168,7 +165,7 @@ public class FXMain extends Application {
         t.schedule(new TimerTask() {
             @Override
             public void run() {
-                CurrentImage = (CurrentImage + 1)%images.size();
+                CurrentImage = (CurrentImage + 1) % images.size();
                 imageView.setImage(images.elementAt(CurrentImage));
             }
         }, 0, 6000);

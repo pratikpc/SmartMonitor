@@ -5,15 +5,18 @@ import java.util.Properties;
 
 public class MainClass {
 
-    static  Properties p;
+    static Properties p;
     static PropertiesDeal propertiesDeal = new PropertiesDeal();
+
     public static void main(final String[] args) throws Exception {
+
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
         p = propertiesDeal.loadProperties();
 
         boolean running = true;
 
-        if(!p.containsKey("id"))
-        {
+        if (!p.containsKey("id")) {
             running = false;
             Signup signUp = new Signup();
             signUp.setVisible(true);
@@ -22,21 +25,24 @@ public class MainClass {
                 @Override
                 public void windowClosed(WindowEvent e) {
                     super.windowClosed(e);
-                    RunFX(args);
+                    try {
+                        p = propertiesDeal.loadProperties();
+                        if (p.containsKey("id")) {
+                            RunFX(args);
+                        }
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
                 }
             });
         }
-        if(running)
-        {
+        if (running) {
             RunFX(args);
         }
     }
 
-    static void RunFX(String[] args)
-    {
-        try{
-            p = propertiesDeal.loadProperties();
-            FXMain.launch(FXMain.class,args);
-        }
-        catch (Exception ex){ex.printStackTrace();}}
+    static void RunFX(String[] args) throws Exception {
+        p = propertiesDeal.loadProperties();
+        FXMain.launch(FXMain.class, args);
+    }
 }

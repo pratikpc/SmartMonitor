@@ -2,11 +2,11 @@
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
+Server/.idea/**/workspace.xml
+Server/.idea/**/tasks.xml
+Server/.idea/**/usage.statistics.xml
+Server/.idea/**/dictionaries
+Server/.idea/**/shelf
 
 # Generated files
 .idea/**/contentModel.xml
@@ -28,9 +28,9 @@
 # When using Gradle or Maven with auto-import, you should exclude module files,
 # since they will be recreated, and may cause churn.  Uncomment if using
 # auto-import.
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
+ Server/.idea/modules.xml
+ Server/.idea/*.iml
+ Server/.idea/modules
 
 # CMake
 cmake-build-*/
@@ -127,3 +127,11 @@ typings/
 dist/
 
 /uploads
+\.idea/
+Server/.idea/
+Server/\paho*/.lck
+Server/props
+Server/target/
+
+
+Server/1\.iml
