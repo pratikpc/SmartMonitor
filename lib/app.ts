@@ -25,6 +25,10 @@ PassportModelsGenerate(app);
 app.use(cors.default());
 // middleware for json body parsing
 app.use(bodyParser.json());
+// middleware for parsing application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended: true}));
+// middleware for json body parsing
+app.use(bodyParser.json({limit: '5mb'}));
 
 // Route via this as Path to Users
 app.use("/user", Routes.Users);

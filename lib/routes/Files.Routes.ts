@@ -35,60 +35,69 @@ Files.post(
   RoutesCommon.IsAuthenticated,
   upload.array("files"),
   async (req, res) => {
-    console.log("Name");
-   const files = req.files as any[];
- 
-    if (files.length === 0)
-      return res.render("ImageUpload.html");
+    try {
+      const files = req.files as any[];
 
-    const params = RoutesCommon.GetParameters(req);
+      if (files.length === 0) return res.render("ImageUpload.html");
 
-    const checkBoxSelectedID = params.ids;
+      const params = RoutesCommon.GetParameters(req);
+      if (params == null) return res.render("ImageUpload.html");
 
-    if (Array.isArray(checkBoxSelectedID)) {
-      const checkBoxSelectedIDs = checkBoxSelectedID as number[];
-      if (checkBoxSelectedIDs.length === 0)
-        return res.render("ImageUpload.html");
+      const displayIDs = RoutesCommon.GetDataAsArray<number>(params.ids);
+      if (displayIDs.length === 0) return res.render("ImageUpload.html");
 
-      files.forEach(file => {
-        const ext = Path.extname(file.filename).substr(1);
-        const name = Path.basename(file.filename, Path.extname(file.filename));
+      // Iterate over all the files
+      files.forEach(async file => {
+        let extension = Path.extname(file.filename).substr(1);
+        let name = Path.basename(file.filename, Path.extname(file.filename));
+        let location = file.destination;
 
-        checkBoxSelectedIDs.forEach(async displayId => {
-          const fileAdd = await Models.Files.create({
-            Name: name,
-            Extension: ext,
-            Location: file.destination,
-            DisplayID: displayId
+        // Get File Hash
+        let fileHash = String(
+          await RoutesCommon.GetSHA256FromFile(location + "/" + file.filename)
+        );
+        // Get File Size
+        let fileSize = Number(file.size);
+
+        const fileSame = await Models.Files.findOne({
+          where: { FileSize: fileSize, FileHash: fileHash }
+        });
+
+        // Same File Found
+        if (fileSame) {
+          fs.unlink(location + "/" + file.filename, () => {});
+
+          name = fileSame.Name;
+          extension = fileSame.Extension;
+          location = fileSame.Location;
+          fileHash = fileSame.FileHash;
+          fileSize = fileSame.FileSize;
+        }
+
+        displayIDs.forEach(async displayId => {
+          const [] = await Models.Files.findOrCreate({
+            where: {
+              Name: name,
+              Extension: extension,
+              Location: location,
+              DisplayID: displayId,
+              FileHash: fileHash,
+              FileSize: fileSize
+            }
           });
         });
       });
-      checkBoxSelectedIDs.forEach(async displayId => {
-        if (!RoutesCommon.MqttClient.connected)
-          return;
+
+      displayIDs.forEach(displayId => {
+        if (!RoutesCommon.MqttClient.connected) return;
         RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
       });
+
+      return res.render("ImageUpload.html");
+    } catch (error) {
+      console.error(error);
+      return res.render("ImageUpload.html");
     }
-    else {
-      files.forEach(async file => {
-        const ext = Path.extname(file.filename).substr(1);
-        const name = Path.basename(file.filename, Path.extname(file.filename));
-
-        const fileAdd = await Models.Files.create({
-          Name: name,
-          Extension: ext,
-          Location: file.destination,
-          DisplayID: Number(checkBoxSelectedID)
-        });
-      });
-      if (!RoutesCommon.MqttClient.connected)
-        return res.render("ImageUpload.html");
-      RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(checkBoxSelectedID), "Check");
-
-    }
-    console.log("Name", params, params.ids, checkBoxSelectedID);
-
-    return res.render("ImageUpload.html");
   }
 );
 

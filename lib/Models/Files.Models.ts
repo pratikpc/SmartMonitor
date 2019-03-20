@@ -5,8 +5,6 @@ import {
   DataType,
   Unique,
   BeforeValidate,
-  BeforeCreate,
-  BeforeBulkCreate,
   Model,
   ForeignKey,
   CreatedAt
@@ -43,12 +41,20 @@ export class Files extends Model<Files> {
   @Column
   CreationDate!: Date;
 
+  @AllowNull(false)
+  @Column(DataType.NUMERIC)
+  FileSize!: number;
+
+  @AllowNull(false)
+  @Column(DataType.TEXT)
+  FileHash!: string;
+
   private GetFileLocation(): string {
     return this.Location + "/" + this.Name + "." + this.Extension;
   }
 
   @BeforeValidate
-  public static CheckFileExistence(File: Files, options: any): void {
+  public static CheckFileExistence(File: Files): void {
     const filename = File.GetFileLocation();
     File.PathToFile = filename;
 
@@ -56,4 +62,5 @@ export class Files extends Model<Files> {
       throw "File Not Exists at " + File.PathToFile;
     }
   }
+
 }
