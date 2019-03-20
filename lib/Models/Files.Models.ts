@@ -7,10 +7,12 @@ import {
   BeforeValidate,
   Model,
   ForeignKey,
-  CreatedAt
+  CreatedAt,
+  Default
 } from "sequelize-typescript";
 import { existsSync } from "fs";
 import { Displays } from "./Display.Models";
+import { join } from "path";
 
 @Table
 export class Files extends Model<Files> {
@@ -45,11 +47,38 @@ export class Files extends Model<Files> {
   FileSize!: number;
 
   @AllowNull(false)
+  @Default(true)
+  @Column(DataType.BOOLEAN)
+  OnDisplay!: boolean;
+
+  @AllowNull(false)
+  @Default(true)
+  @Column(DataType.BOOLEAN)
+  Downloaded!: boolean;
+
+  @AllowNull(false)
   @Column(DataType.TEXT)
   FileHash!: string;
 
+  @AllowNull(false)
+  @Column(DataType.TEXT)
+  MediaType!: string;
+
+  public GetThumbnailFileLocation(): string {
+    return join(this.Location, Files.GetThumbnailFileName(this.Name));
+  }
+  public static GetThumbnailFileName(Name: string): string {
+    return "thumb-" + Name + ".png";
+  }
+
   private GetFileLocation(): string {
-    return this.Location + "/" + this.Name + "." + this.Extension;
+    return join(this.Location, this.Name + "." + this.Extension);
+  }
+
+  @BeforeValidate
+  public static SetDisplayAndDownloadToDefault(File: Files): void {
+    if (File.OnDisplay == true) File.OnDisplay = true;
+    if (File.Downloaded == true) File.OnDisplay = true;
   }
 
   @BeforeValidate
@@ -61,5 +90,4 @@ export class Files extends Model<Files> {
       throw "File Not Exists at " + File.PathToFile;
     }
   }
-
 }
