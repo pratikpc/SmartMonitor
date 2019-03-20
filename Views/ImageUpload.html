@@ -24,13 +24,13 @@
 
     <script src="/dst/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/dst/imageuploadify.min.js"></script>
+    <!-- <script type="text/javascript" src="/dst/imageuploadify.min.js"></script> -->
 
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
         $(document).ready(function () {
             $('input[type="file"]').imageuploadify();
         })
-    </script>
+    </script> -->
 
     <script type="text/javascript">
         $(document).ready(() => {
@@ -44,7 +44,7 @@
             displays.forEach(display => {
                 const checkbox = document.createElement("input");
                 checkbox.setAttribute("type", "checkbox");
-                checkbox.setAttribute("name", "ids[]");
+                checkbox.setAttribute("name", "ids");
                 checkbox.setAttribute("value", display.id);
 
                 const label = document.createElement("label");

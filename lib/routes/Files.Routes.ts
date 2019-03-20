@@ -34,42 +34,60 @@ Files.post(
   "/upload",
   RoutesCommon.IsAuthenticated,
   upload.array("files"),
-  (req, res) => {
-    const files = req.files as any[];
+  async (req, res) => {
+    console.log("Name");
+   const files = req.files as any[];
+ 
     if (files.length === 0)
       return res.render("ImageUpload.html");
 
     const params = RoutesCommon.GetParameters(req);
 
-    // const checkBoxSelectedIDs = params.ids as number[];
-    console.log("Hello Nokia",params.ids, params.ids as number[]);
-    const checkBoxSelectedIDs = [1, 2];
+    const checkBoxSelectedID = params.ids;
 
-    console.log(params, params.ids, checkBoxSelectedIDs);
+    if (Array.isArray(checkBoxSelectedID)) {
+      const checkBoxSelectedIDs = checkBoxSelectedID as number[];
+      if (checkBoxSelectedIDs.length === 0)
+        return res.render("ImageUpload.html");
 
-    if (checkBoxSelectedIDs.length === 0)
-      return res.render("ImageUpload.html");
+      files.forEach(file => {
+        const ext = Path.extname(file.filename).substr(1);
+        const name = Path.basename(file.filename, Path.extname(file.filename));
 
-
-    files.forEach(file => {
-      const ext = Path.extname(file.filename).substr(1);
-      const name = Path.basename(file.filename, Path.extname(file.filename));
-
+        checkBoxSelectedIDs.forEach(async displayId => {
+          const fileAdd = await Models.Files.create({
+            Name: name,
+            Extension: ext,
+            Location: file.destination,
+            DisplayID: displayId
+          });
+        });
+      });
       checkBoxSelectedIDs.forEach(async displayId => {
+        if (!RoutesCommon.MqttClient.connected)
+          return;
+        RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
+      });
+    }
+    else {
+      files.forEach(async file => {
+        const ext = Path.extname(file.filename).substr(1);
+        const name = Path.basename(file.filename, Path.extname(file.filename));
+
         const fileAdd = await Models.Files.create({
           Name: name,
           Extension: ext,
           Location: file.destination,
-          DisplayID: displayId
+          DisplayID: Number(checkBoxSelectedID)
         });
       });
-    });
-
-    checkBoxSelectedIDs.forEach(async displayId => {
       if (!RoutesCommon.MqttClient.connected)
-        return;
-      RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
-    });
+        return res.render("ImageUpload.html");
+      RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(checkBoxSelectedID), "Check");
+
+    }
+    console.log("Name", params, params.ids, checkBoxSelectedID);
+
     return res.render("ImageUpload.html");
   }
 );

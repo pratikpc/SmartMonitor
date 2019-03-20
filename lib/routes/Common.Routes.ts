@@ -6,7 +6,7 @@ export namespace RoutesCommon {
   export const MqttClient = mqtt.connect(Config.Mqtt.Url);
 
   MqttClient.on("connect", async () => {
-    console.log("Mqtt Connected");
+    console.log("Mqtt Connected ", Config.Mqtt.Url );
   });
   // Check if Authentication is Correct
   export function IsAuthenticated(
