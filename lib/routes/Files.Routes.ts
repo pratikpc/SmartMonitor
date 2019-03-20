@@ -1,32 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { RoutesCommon } from "./Common.Routes";
+import { RoutesCommon, upload } from "./Common.Routes";
 import * as Models from "../Models/Models";
-import { randomBytes } from "crypto";
-import { extname } from "path";
 import * as fs from "fs";
-import * as multer from "multer";
 import * as Path from "path";
-import { Mqtt } from "../config/Mqtt";
-
-const storage = multer.diskStorage({
-  destination: (request: any, file: any, callback: any) => {
-    const dir = "./uploads";
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-    callback(null, dir);
-  },
-  filename: (request: any, file: any, callback: any) => {
-    let fileName = "";
-    while (true) {
-      const name = randomBytes(12).toString("hex");
-      const ext = extname(file.originalname);
-      fileName = name + ext;
-      if (!fs.existsSync(fileName)) break;
-    }
-
-    callback(null, fileName);
-  }
-});
-const upload = multer.default({ storage: storage });
 
 export const Files = Router();
 
@@ -37,7 +13,6 @@ Files.post(
   async (req, res) => {
     try {
       const files = req.files as any[];
-
       if (files.length === 0) return res.render("ImageUpload.html");
 
       const params = RoutesCommon.GetParameters(req);
@@ -49,6 +24,12 @@ Files.post(
       // Iterate over all the files
       files.forEach(async file => {
         let extension = Path.extname(file.filename).substr(1);
+        let mediaType = RoutesCommon.GetFileMediaType(extension);
+
+        if (!mediaType) {
+          return;
+        }
+
         let name = Path.basename(file.filename, Path.extname(file.filename));
         let location = file.destination;
 
@@ -63,35 +44,70 @@ Files.post(
           where: { FileSize: fileSize, FileHash: fileHash }
         });
 
+        const AlreadyPresentIDs: number[] = [];
         // Same File Found
         if (fileSame) {
-          fs.unlink(location + "/" + file.filename, () => {});
+          fs.unlink(file.path, () => {});
 
           name = fileSame.Name;
           extension = fileSame.Extension;
           location = fileSame.Location;
           fileHash = fileSame.FileHash;
           fileSize = fileSame.FileSize;
+          mediaType = fileSame.MediaType;
+
+          AlreadyPresentIDs.push(fileSame.id);
         }
+        // As it's not something that already exists
+        // We can check if it's video and Generate Thumbnail accordingly
+        if (mediaType === "VIDEO" && !fileSame)
+          RoutesCommon.GenerateThumbnail(
+            location,
+            name + "." + extension,
+            Models.Files.GetThumbnailFileName(name)
+          );
 
         displayIDs.forEach(async displayId => {
-          const [] = await Models.Files.findOrCreate({
-            where: {
+          if (AlreadyPresentIDs.includes(displayId)) {
+            // As File getting Reuploaded, rather than doing nothing, we assume
+            // It's user's instruction to show the file
+            await Models.Files.update(
+              { OnDisplay: true },
+              {
+                where: {
+                  Name: name,
+                  Extension: extension,
+                  Location: location,
+                  DisplayID: displayId,
+                  FileHash: fileHash,
+                  FileSize: fileSize,
+                  MediaType: mediaType!,
+                  OnDisplay: false
+                }
+              }
+            );
+          } else {
+            await Models.Files.create({
               Name: name,
               Extension: extension,
               Location: location,
               DisplayID: displayId,
               FileHash: fileHash,
-              FileSize: fileSize
-            }
-          });
+              FileSize: fileSize,
+              MediaType: mediaType!,
+              OnDisplay: true,
+              Downloaded: true
+            });
+          }
         });
       });
 
-      displayIDs.forEach(displayId => {
-        if (!RoutesCommon.MqttClient.connected) return;
-        RoutesCommon.MqttClient.publish(Mqtt.DisplayTopic(displayId), "Check");
-      });
+      if (RoutesCommon.MqttClient.connected) {
+        displayIDs.forEach(displayId => {
+          RoutesCommon.SendMqttClientDownloadRequest(displayId);
+          RoutesCommon.SendMqttClientUpdateSignal(displayId);
+        });
+      }
 
       return res.render("ImageUpload.html");
     } catch (error) {
@@ -126,12 +142,59 @@ Files.delete("/download/file", ValidateActualDisplay, async (req, res) => {
   const fileId = Number(params.file);
   const displayId = Number(params.id);
 
-  const count = await Models.Files.destroy({
-    where: { id: fileId, DisplayID: displayId }
-  });
+  const [count] = await Models.Files.update(
+    { Downloaded: false },
+    {
+      where: { id: fileId, DisplayID: displayId, Downloaded: true }
+    }
+  );
 
   if (count === 0) return res.json({ success: false });
   else return res.json({ success: true });
+});
+
+// Controls if File is Hidden or Not
+Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
+  try {
+    const params = RoutesCommon.GetParameters(req);
+    const fileId = Number(params.file);
+    const displayId = Number(params.id);
+    const show = Boolean(params.show);
+
+    const [count] = await Models.Files.update(
+      { OnDisplay: show },
+      {
+        where: { id: fileId, DisplayID: displayId, OnDisplay: !show }
+      }
+    );
+    if (count === 0) return res.json({ success: false });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false });
+  }
+});
+
+Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
+  try {
+    const params = RoutesCommon.GetParameters(req);
+    const fileId = Number(params.file);
+    const displayId = Number(params.id);
+
+    const file = await Models.Files.findOne({
+      where: { id: fileId, DisplayID: displayId }
+    });
+    if (!file) return res.json({ success: false });
+
+    let path = "";
+    if (file.MediaType === "VIDEO") path = file.GetThumbnailFileLocation();
+    else path = file.PathToFile;
+    return res.download(path);
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false });
+  }
 });
 
 Files.get("/download/file", ValidateActualDisplay, async (req, res) => {
@@ -174,6 +237,6 @@ function ValidateActualDisplay(
     where: { id: id, IdentifierKey: key }
   }).then(async count => {
     if (count !== 0) next();
-    else res.json({ succes: false });
+    else res.json({ success: false });
   });
 }
