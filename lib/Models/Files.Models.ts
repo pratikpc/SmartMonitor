@@ -32,7 +32,6 @@ export class Files extends Model<Files> {
   DisplayID!: number;
 
   @AllowNull(false)
-  @Unique
   @Column(DataType.TEXT)
   PathToFile!: string;
 
