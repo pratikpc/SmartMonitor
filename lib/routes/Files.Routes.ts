@@ -153,6 +153,29 @@ Files.delete("/download/file", ValidateActualDisplay, async (req, res) => {
   else return res.json({ success: true });
 });
 
+// Controls if File is Hidden or Not
+Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
+  try {
+    const params = RoutesCommon.GetParameters(req);
+    const fileId = Number(params.file);
+    const displayId = Number(params.id);
+    const show = Boolean(params.show);
+
+    const [count] = await Models.Files.update(
+      { OnDisplay: show },
+      {
+        where: { id: fileId, DisplayID: displayId, OnDisplay: !show }
+      }
+    );
+    if (count === 0) return res.json({ success: false });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false });
+  }
+});
+
 Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
@@ -214,6 +237,6 @@ function ValidateActualDisplay(
     where: { id: id, IdentifierKey: key }
   }).then(async count => {
     if (count !== 0) next();
-    else res.json({ succes: false });
+    else res.json({ success: false });
   });
 }
