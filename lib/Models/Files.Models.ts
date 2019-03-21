@@ -3,13 +3,11 @@ import {
   AllowNull,
   Column,
   DataType,
-  Unique,
   BeforeValidate,
   Model,
   ForeignKey,
   CreatedAt,
-  Default
-} from "sequelize-typescript";
+  Default} from "sequelize-typescript";
 import { existsSync } from "fs";
 import { Displays } from "./Display.Models";
 import { join } from "path";
@@ -76,13 +74,9 @@ export class Files extends Model<Files> {
   }
 
   @BeforeValidate
-  public static SetDisplayAndDownloadToDefault(File: Files): void {
-    if (File.OnDisplay == true) File.OnDisplay = true;
-    if (File.Downloaded == true) File.OnDisplay = true;
-  }
+  public static CheckFileExistence(File: Files, options: any): void {
+    if (!options.fields.includes("Name")) return;
 
-  @BeforeValidate
-  public static CheckFileExistence(File: Files): void {
     const filename = File.GetFileLocation();
     File.PathToFile = filename;
 

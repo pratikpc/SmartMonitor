@@ -29,4 +29,10 @@ public class PropertiesDeal {
         fi.close();
         return p;
     }
+
+    boolean deleteProperties() {
+        if (!file.exists())
+            return false;
+        return file.delete();
+    }
 }

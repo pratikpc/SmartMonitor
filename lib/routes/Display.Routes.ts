@@ -128,13 +128,13 @@ Displays.get("/:id/files", RoutesCommon.IsAuthenticated, async (req, res) => {
 
   try {
     const data: any[] = [];
-    const files = await Model.Files.findAll({ where: {DisplayID: id} });
-    
+    const files = await Model.Files.findAll({ where: { DisplayID: id } });
+
     files.forEach(file => {
-      data.push({file: file.id, OnDisplay: file.OnDisplay});
+      data.push({ file: file.id, OnDisplay: file.OnDisplay });
     });
 
-    return res.json({success: true, data: data});
+    return res.json({ success: true, data: data });
   } catch (err) {
     console.error(err);
     return res.json({
@@ -142,4 +142,25 @@ Displays.get("/:id/files", RoutesCommon.IsAuthenticated, async (req, res) => {
       data: null
     });
   }
+});
+
+Displays.delete("/", RoutesCommon.ValidateActualDisplay, async (req, res) => {
+  try {
+    const params = RoutesCommon.GetParameters(req);
+    if (params == null)
+      return res.json({
+        success: false
+      });
+    const id = Number(params.id);
+
+    const displayDel = await Model.Displays.destroy({ where: { id: id } });
+    await Model.Files.destroy({ where: { DisplayID: id } });
+
+    if (displayDel !== 0) return res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+  }
+  return res.json({
+    success: false
+  });
 });

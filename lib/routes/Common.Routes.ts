@@ -4,9 +4,9 @@ import * as Config from "../config/Mqtt";
 import { createHash, randomBytes } from "crypto";
 import { createReadStream, existsSync, mkdirSync } from "fs";
 import { join, extname } from "path";
-import ffmpeg = require('fluent-ffmpeg');
+import * as Models from "../Models/Models";
+import ffmpeg = require("fluent-ffmpeg");
 import * as multer from "multer";
-
 
 const storage = multer.diskStorage({
   destination: (request: any, file: any, callback: any) => {
@@ -38,6 +38,33 @@ export namespace RoutesCommon {
   MqttClient.on("connect", async () => {
     console.log("Mqtt Connected ", Config.Mqtt.Url);
   });
+
+  export function ValidateActualDisplay(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void {
+    const params = RoutesCommon.GetParameters(req);
+  
+    if (!params) {
+      res.json({ success: false });
+      return;
+    }
+  
+    const id = Number(params.id);
+    const key = String(params.key);
+  
+    if (!id || !key) {
+      res.json({ success: false });
+      return;
+    }
+    Models.Displays.count({
+      where: { id: id, IdentifierKey: key }
+    }).then(async count => {
+      if (count !== 0) next();
+      else res.json({ success: false });
+    });
+  }
 
   export function SendMqttMessage(id: number, message: string): void {
     MqttClient.publish(Config.Mqtt.DisplayTopic(id), message);

@@ -96,7 +96,7 @@ Files.post(
               FileSize: fileSize,
               MediaType: mediaType!,
               OnDisplay: true,
-              Downloaded: true
+              Downloaded: false
             });
           }
         });
@@ -121,13 +121,13 @@ Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
   return res.render("ImageUpload.html");
 });
 
-Files.get("/download/list", ValidateActualDisplay, async (req, res) => {
+Files.get("/download/list", RoutesCommon.ValidateActualDisplay, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const displayId = Number(params.id);
 
   const files = await Models.Files.findAll({
     attributes: ["id", "Extension", "Name"],
-    where: { DisplayID: displayId }
+    where: { DisplayID: displayId, Downloaded: false }
   });
 
   const list: any[] = [];
@@ -135,22 +135,6 @@ Files.get("/download/list", ValidateActualDisplay, async (req, res) => {
     list.push({ id: file.id, Name: file.Name, Extension: file.Extension });
   });
   return res.json({ success: true, data: list });
-});
-
-Files.delete("/download/file", ValidateActualDisplay, async (req, res) => {
-  const params = RoutesCommon.GetParameters(req);
-  const fileId = Number(params.file);
-  const displayId = Number(params.id);
-
-  const [count] = await Models.Files.update(
-    { Downloaded: false },
-    {
-      where: { id: fileId, DisplayID: displayId, Downloaded: true }
-    }
-  );
-
-  if (count === 0) return res.json({ success: false });
-  else return res.json({ success: true });
 });
 
 // Controls if File is Hidden or Not
@@ -168,6 +152,10 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
       }
     );
     if (count === 0) return res.json({ success: false });
+
+    if (RoutesCommon.MqttClient.connected) {
+        RoutesCommon.SendMqttClientUpdateSignal(displayId);
+    }
 
     return res.json({ success: true });
   } catch (err) {
@@ -197,14 +185,30 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
   }
 });
 
-Files.get("/download/file", ValidateActualDisplay, async (req, res) => {
+Files.delete("/download/file", RoutesCommon.ValidateActualDisplay, async (req, res) => {
+  const params = RoutesCommon.GetParameters(req);
+  const fileId = Number(params.file);
+  const displayId = Number(params.id);
+
+  const [count] = await Models.Files.update(
+    { Downloaded: true },
+    {
+      where: { id: fileId, DisplayID: displayId, Downloaded: false }
+    }
+  );
+
+  if (count === 0) return res.json({ success: false });
+  else return res.json({ success: true });
+});
+
+Files.get("/download/file", RoutesCommon.ValidateActualDisplay, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const fileId = Number(params.file);
   const displayId = Number(params.id);
 
   const file = await Models.Files.findOne({
     attributes: ["PathToFile"],
-    where: { id: fileId, DisplayID: displayId }
+    where: { id: fileId, DisplayID: displayId, Downloaded: false }
   });
 
   if (!file) return res.json({ success: false });
@@ -214,29 +218,3 @@ Files.get("/download/file", ValidateActualDisplay, async (req, res) => {
   return res.download(path);
 });
 
-function ValidateActualDisplay(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const params = RoutesCommon.GetParameters(req);
-
-  if (!params) {
-    res.json({ success: false });
-    return;
-  }
-
-  const id = Number(params.id);
-  const key = String(params.key);
-
-  if (!id || !key) {
-    res.json({ success: false });
-    return;
-  }
-  Models.Displays.count({
-    where: { id: id, IdentifierKey: key }
-  }).then(async count => {
-    if (count !== 0) next();
-    else res.json({ success: false });
-  });
-}
