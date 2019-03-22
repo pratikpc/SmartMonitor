@@ -5,15 +5,38 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ImageUploadify - Example</title>
+    <title>FilePond Multiple File Upload</title>
 
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/fontawesome/fontawesome.min.css" rel="stylesheet">
-    <link href="/dst/imageuploadify.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="normalize.min.css">
+	<link rel='stylesheet' href='filepond-plugin-image-preview.min.css'>
+	<link rel='stylesheet' href='filepond.min.css'>
+    <link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css">
+	
+		
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/2.14.1/moment.min.js"></script> 
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script> 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
+	
+	<script type='text/javascript'>
+		$( document ).ready(function() {
+			$('#datetimepicker1').datetimepicker();
+		});
+	</script>
+	
 </head>
 
 <body>
 
+<input type="file" 
+       class="filepond"
+       name="filepond"
+       multiple
+       data-max-file-size="20MB"
+       data-max-files="3" />
+	   
     <div class="container" style="margin-top: 1em;">
         <form enctype="multipart/form-data" method="POST" action="/files/upload">
             <input type="file" accept="image/*,video/*" name='files' multiple>
@@ -21,9 +44,29 @@
             <div id="Displays">
         </form>
     </div>
+	
+	<div class='col-md-4'>
+    <div class="form-group">
+		<input type="checkbox" class="control-label" name="name" value="value">Upload based on Date and Time<br>
+        <div class='input-group date' id='datetimepicker1'>
+             <input type='text' class="form-control" />
+                     <span class="input-group-addon">
+                     <span class="glyphicon glyphicon-calendar"></span>
+                     </span>
+                  </div>
+               </div>
+            </div>
+			
 
     <script src="/dst/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
+	<script src='filepond-plugin-file-encode.min.js'></script>
+	<script src='filepond-plugin-file-validate-size.min.js'></script>
+	<script src='filepond-plugin-image-exif-orientation.min.js'></script>
+	<script src='filepond-plugin-image-preview.min.js'></script>
+	<script src='filepond.min.js'></script>
+    <script  src="js/index.js"></script>
+    <script type="text/javascript">
     <!-- <script type="text/javascript" src="/dst/imageuploadify.min.js"></script> -->
 
     <!-- <script type="text/javascript">
