@@ -14,6 +14,14 @@ import java.util.Properties;
 
 public class SignUpDialog {
 
+    private final TextField username = new TextField();
+    private final PasswordField password = new PasswordField();
+    private final TextField server = new TextField();
+    private final TextArea location = new TextArea();
+    private final TextField storageDir = new TextField();
+    private final Dialog<Boolean> dialog = new Dialog<>();
+    private boolean Done = false;
+
     private String GetDefaultStorageDirectory() {
         final String homeDir = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
         return Paths.get(homeDir, Constants.AppName).toString();
@@ -31,14 +39,6 @@ public class SignUpDialog {
     private boolean IsTextInputEmpty(final TextInputControl field) {
         return field.getText().trim().isEmpty();
     }
-
-    private final TextField username = new TextField();
-    private final PasswordField password = new PasswordField();
-    private final TextField server = new TextField();
-    private final TextArea location = new TextArea();
-    private final TextField storageDir = new TextField();
-    private final Dialog<Boolean> dialog = new Dialog<>();
-    private boolean Done = false;
 
     public void Build() {
         dialog.setTitle(Constants.AppName);
@@ -126,6 +126,15 @@ public class SignUpDialog {
                     // The conditions are not fulfilled so we consume the event
                     // to prevent the dialog to close
                     event.consume();
+                }
+        );
+
+        dialog.setOnCloseRequest(
+                (dialogEvent) -> {
+                    if (!this.Done && Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Terminate")) {
+                        dialog.close();
+                        Utils.Terminate();
+                    }
                 }
         );
 

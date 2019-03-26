@@ -1,5 +1,4 @@
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -11,7 +10,6 @@ import javafx.stage.Stage;
 import org.eclipse.paho.client.mqttv3.*;
 
 import java.io.File;
-import java.security.Key;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -65,26 +63,35 @@ public class FXMain extends Application {
         }
     }
 
-    void RunSetup() throws Exception {
+    void SetupConfiguration() throws Exception {
         configuraion = new Configuraion(new PropertiesDeal().loadProperties());
+    }
 
+    void SetupMQTT() throws MqttException {
         mqttClient = new MqttClient(configuraion.GetMqttLink(), MqttAsyncClient.generateClientId());
         mqttClient.connect();
         mqttClient.subscribe("/display/" + configuraion.Id);
         mqttClient.setCallback(new MqttCallback() {
+            @Override
             public void connectionLost(Throwable throwable) {
 
             }
 
-            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+            @Override
+            public void messageArrived(String topic, MqttMessage mqttMessage) {
                 final String msg = mqttMessage.toString();
-                // Download Signal Received
-                if (msg == "DN") {
-                    ServerInteractor.GetList(configuraion);
-                    GetListFromConfig();
+                try {
+                    // Download Signal Received
+                    if (msg == "DN") {
+                        ServerInteractor.GetList(configuraion);
+                        GetListFromConfig();
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
 
+            @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
 
             }
@@ -92,9 +99,7 @@ public class FXMain extends Application {
     }
 
     public void AddImage(String path) {
-        System.out.println(path);
         images.add(new Image(path));
-
     }
 
     void RunFXLoginSetup() throws Exception {
@@ -118,7 +123,9 @@ public class FXMain extends Application {
     public void start(Stage stage) {
         try {
             RunFXLoginSetup();
-            RunSetup();
+            SetupConfiguration();
+            SetupMQTT();
+            ServerInteractor.GetList(configuraion);
             GetListFromConfig();
         } catch (Exception e) {
             e.printStackTrace();
@@ -154,7 +161,7 @@ public class FXMain extends Application {
                 final KeyCode keyCode = keyEvent.getCode();
                 // Pressing R Button will Reset the Entire Process
                 if (keyCode == KeyCode.R) {
-                    if(!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Reset?"))
+                    if (!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Reset?"))
                         return;
                     try {
                         ServerInteractor.DeleteDisplay(configuraion);
@@ -168,7 +175,7 @@ public class FXMain extends Application {
                     }
                 }
                 if (keyCode == KeyCode.X || keyCode == KeyCode.ESCAPE) {
-                    if(!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Exit?"))
+                    if (!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Exit?"))
                         return;
                     stage.close();
                 }
@@ -195,7 +202,6 @@ public class FXMain extends Application {
         super.stop();
         mqttClient.disconnectForcibly();
         mqttClient.close(true);
-        Platform.exit();
-        System.exit(0);
+        Utils.Terminate();
     }
 }

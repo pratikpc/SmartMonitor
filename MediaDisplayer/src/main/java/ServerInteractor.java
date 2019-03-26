@@ -16,7 +16,7 @@ public class ServerInteractor {
             .build();
     private static final Executor executor = Executor.newInstance(client);
 
-    public static void GetDownload(Configuraion configuraion, int fileId, String fileName) throws Exception {
+    private static void GetDownload(Configuraion configuraion, int fileId, String fileName) throws Exception {
         URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey)
@@ -28,7 +28,7 @@ public class ServerInteractor {
         System.out.println("Hello " + " " + url + " ");
     }
 
-    public static void DeleteDownload(Configuraion configuraion, int fileId) throws Exception {
+    private static void DeleteDownload(Configuraion configuraion, int fileId) throws Exception {
         URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
         ub.addParameter("id", Integer.toString(configuraion.Id))
                 .addParameter("key", configuraion.IdentifierKey)
