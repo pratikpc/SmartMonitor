@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 
-public class SignUpDialog {
+public class CreateDisplayDialog {
 
     private final TextField username = new TextField();
     private final PasswordField password = new PasswordField();
@@ -48,7 +48,7 @@ public class SignUpDialog {
         //dialog.setGraphic(new ImageView(this.getClass().getResource("login.png").toString()));
 
         // Set the button types.
-        final ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
+        final ButtonType loginButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(loginButtonType);
 
         // Create the username and password labels and fields.

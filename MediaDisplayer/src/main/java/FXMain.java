@@ -112,10 +112,10 @@ public class FXMain extends Application {
             Properties p = propertiesDeal.loadProperties();
             if (p.containsKey("id"))
                 break;
-            SignUpDialog signUpDialog = new SignUpDialog();
-            signUpDialog.Build();
-            signUpDialog.Assign(props);
-            if (signUpDialog.Show())
+            CreateDisplayDialog createDisplayDialog = new CreateDisplayDialog();
+            createDisplayDialog.Build();
+            createDisplayDialog.Assign(props);
+            if (createDisplayDialog.Show())
                 break;
         }
     }
@@ -185,8 +185,9 @@ public class FXMain extends Application {
         // Add the scene to the Stage
         stage.setScene(scene);
         stage.setResizable(false);
-        stage.setFullScreen(true);
-//        stage.setMaximized(true);
+        // Disable Full Screen during Debugging
+        // stage.setFullScreen(true);
+        stage.setMaximized(true);
         // Set the title of the Stage
         stage.setTitle("Displaying an Image");
         // Display the Stage
