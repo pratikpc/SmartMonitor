@@ -1,23 +1,24 @@
+/* Made with love by Mutiullah Samim*/
 
 @import url('https://fonts.googleapis.com/css?family=Numans');
 html,
 body {
-	height: 100%;
-	background-image: url('pexels-photo-953214.jpeg');
-	background-attachment: fixed;
+	background-image: url('http://getwallpapers.com/wallpaper/full/a/5/d/544750.jpg');
 	background-size: cover;
+	background-repeat: no-repeat;
+    height: 100%;
     color:white;
 	font-family: 'Numans', sans-serif;
 }
 
 .container {
-	height: auto;
+	height: 100%;
 	align-content: center;
 }
 
 #tabtab{
     margin: auto;
-	width: 100%;
+    width: 100%
 }
 
 .table th{
@@ -26,20 +27,15 @@ body {
 .table td{
     text-align: center;
 }
-#card {
-	margin-top: 5%;
-	margin-bottom: 5%;
-	padding: 15px 15px 0px 15px ;
+.card {
+	height: 75%;
+	margin-top: auto;
+	margin-bottom: auto;
 	width: 50%;
 	background-color: rgba(0, 0, 0, 0.5) !important;
 }
-
-#card-body{
-    position: relative;
-    margin: 10px;
-    /* overflow-x: hidden;
-    overflow-y: visible; */
-
+.card-header h3 {
+	color: white;
 }
 
 .input-group-prepend span {
