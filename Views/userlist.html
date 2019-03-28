@@ -2,56 +2,37 @@
 <html>
 
 <head>
+    <title>userlist</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ImageUploadify - Example</title>
-
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/fontawesome/fontawesome.min.css" rel="stylesheet">
     <link href="/dist/imageuploadify.min.css" rel="stylesheet">
+    <script src="/js/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/uselist.css">
 </head>
 
 <body>
-
-    <table id="tabtab"></table>
-
-    <script src="/dist/jquery.min.js"></script>
+    <div class="container">
+        <div class="d-flex justify-content-center h-100">
+            <div class="card">
+                <div class="card-body">
+                    <table id="tabtab"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/dist/imageuploadify.min.js"></script>
+    <script type="text/javascript" src="/dst/imageuploadify.min.js"></script>
 
-    <script type="text/javascript">
-        $(document).ready(() => {
-            $.getJSON("/user/", (users) => {
-                addCheckbox(users);
-            });
-        });
-
-        function addCheckbox(users) {
-            const dispId = document.getElementById("Displays");
-            users.forEach(user => {
-                const id = user.id;
-                const name = user.name;
-
-                const checkbox = document.createElement("input");
-                checkbox.setAttribute("type", "checkbox");
-                checkbox.setAttribute("name", "ids");
-                checkbox.setAttribute("value", user.id);
-
-                const label = document.createElement("label");
-                label.innerText = user.name;
-
-                const div = document.createElement("div");
-                div.appendChild(checkbox);
-                div.appendChild(label);
-                dispId.appendChild(div);
-            });
-        }
-    </script>
     <script>
         $.getJSON('/user/', (user) => {
             var tab = document.createElement('table');
-            tab.classList.add("table", "thead-dark"); //Pending Testing
+            tab.classList.add("table","table-dark","thead-dark"); //Pending Testing
             var newthead = document.createElement('thead');
             tab.appendChild(newthead);
             var newtr = document.createElement('tr');
@@ -78,7 +59,4 @@
             $('#tabtab').append(tab);
         });
     </script>
-
-</body>
-
 </html>
