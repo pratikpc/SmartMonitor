@@ -40,51 +40,68 @@
         });
     </script>
 
+
+    <style>
+        *{
+            
+            padding: 0;
+            margin: 0;
+
+        }
+        #Displays {
+            padding: 2rem;
+
+
+        }
+
+        label {
+            font-size: 1.5rem;
+
+
+        }
+    </style>
+
 </head>
 
-<body>
+<body class="col-12" style="background-color:#111; text-align: center">
 
-    <input type="file" id="xyz" class="filepond" name="filepond" multiple data-max-file-size="20MB"
-        data-max-files="3" />
-
-    <div class="container" style="margin-top: 1em;">
         <form enctype="multipart/form-data" method="POST" action="/files/upload">
-            <input type="file" id="files" accept="image/*,video/*" name='files' multiple>
-            <input type="submit" id="upload" value="script" disabled="disabled">
+            <input type="file" id="xyz" class="filepond" name="filepond" multiple data-max-file-size="20MB"
+                data-max-files="3" />
+
+            <!-- <input type="file" id="files" accept="image/*,video/*" name='files' multiple> -->
+            <!-- <input type="submit" id="upload" value="Upload" disabled="disabled"> -->
             <div id="Displays">
-        </form>
-    </div>
 
-    <body class="bg-for-submit-name">
 
-        <div class="container">
-            <div class="row margin-top">
-                <div class="col-md-12">
-                    <div class="wrap">
-                        <input type="checkbox" name='files'>Upload based on Date and Time<br><br>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group bootstrap-timepicker">
-                                    <label class="control-label">Start Time</label>
-                                    <input id="start" name="start" ng-model="start" type="text" required="required"
-                                        class="form-control start" />
+                <div class="container">
+                    <div class="row margin-top">
+                        <div class="col-12">
+                            <div class="wrap">
+                                    <p style="color: #fff"><input type="checkbox" name='files' >Upload based on Date and Time<br><br></input></p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group bootstrap-timepicker">
+                                            <label class="control-label">Start Time</label>
+                                            <input id="start" name="start" ng-model="start" type="text"
+                                                required="required" class="form-control start" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group bootstrap-timepicker">
+                                            <label class="control-label">End Time</label>
+                                            <input id="end" name="end" ng-model="end" type="text" required="required"
+                                                class="form-control end" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group bootstrap-timepicker">
-                                    <label class="control-label">End Time</label>
-                                    <input id="end" name="end" ng-model="end" type="text" required="required"
-                                        class="form-control end" />
-                                </div>
-                            </div>
-                        </div>
+                            <button type="submit" class="btn btn-success" id="submit_on"
+                                disabled="disabled">SUBMIT</button>
+                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success" id="submit_on" disabled="disabled">SUBMIT</button>
-                    </form>
                 </div>
-            </div>
-        </div>
-    </body>
+    </form>
 
     <!--	
 	<div class='col-md-20'>
