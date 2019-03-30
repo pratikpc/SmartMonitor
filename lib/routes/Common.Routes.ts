@@ -7,6 +7,7 @@ import { join, extname } from "path";
 import * as Models from "../Models/Models";
 import ffmpeg = require("fluent-ffmpeg");
 import * as multer from "multer";
+import * as mime from "mime";
 
 const storage = multer.diskStorage({
   destination: (request: any, file: any, callback: any) => {
@@ -45,15 +46,15 @@ export namespace RoutesCommon {
     next: NextFunction
   ): void {
     const params = RoutesCommon.GetParameters(req);
-  
+
     if (!params) {
       res.json({ success: false });
       return;
     }
-  
+
     const id = Number(params.id);
     const key = String(params.key);
-  
+
     if (!id || !key) {
       res.json({ success: false });
       return;
@@ -137,17 +138,11 @@ export namespace RoutesCommon {
 
   // Find Multimedia type based on File Extension
   export function GetFileMediaType(ext: string): string | null {
-    switch (ext) {
-      case "jpg":
-      case "jpeg":
-      case "png":
-      case "gif":
-        return "IMAGE";
-      case "mp4":
-        return "VIDEO";
-      default:
-        return null;
-    }
+    const mimeType = mime.getType(ext);
+    if (!mimeType) return null;
+    if (mimeType.startsWith("image")) return "IMAGE";
+    if (mimeType.startsWith("video")) return "VIDEO";
+    return null;
   }
   export function GenerateThumbnail(
     location: string,
