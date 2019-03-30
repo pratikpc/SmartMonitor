@@ -8,7 +8,8 @@ import * as Models from "../Models/Models";
 import ffmpeg = require("fluent-ffmpeg");
 import * as multer from "multer";
 import * as mime from "mime";
-
+import { Sharp } from "sharp";
+import * as sharp from "sharp";
 const storage = multer.diskStorage({
   destination: (request: any, file: any, callback: any) => {
     const dir = "./uploads";
@@ -144,7 +145,31 @@ export namespace RoutesCommon {
     if (mimeType.startsWith("video")) return "VIDEO";
     return null;
   }
-  export function GenerateThumbnail(
+  export async function GenerateThumbnail(
+    location: string,
+    name: string,
+    extension: string,
+    mediaType: string,
+    thumbnailName: string
+  ) {
+    if (mediaType === "VIDEO") {
+      const videoName = name + "." + extension;
+      return GenerateThumbnailVideo(location, videoName, thumbnailName);
+    }
+    if (mediaType === "IMAGE") {
+      const sourceName = join(location, name + "." + extension);
+      const destName = join(location, thumbnailName);
+      await sharp
+        .default(sourceName)
+        .resize(320, 240, {
+          kernel: sharp.kernel.nearest,
+          fit: "contain",
+          position: "right top"
+        })
+        .toFile(destName);
+    }
+  }
+  export function GenerateThumbnailVideo(
     location: string,
     videoName: string,
     thumbnailName: string,

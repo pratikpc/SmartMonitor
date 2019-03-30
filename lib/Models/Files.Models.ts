@@ -7,7 +7,8 @@ import {
   Model,
   ForeignKey,
   CreatedAt,
-  Default} from "sequelize-typescript";
+  Default
+} from "sequelize-typescript";
 import { existsSync } from "fs";
 import { Displays } from "./Display.Models";
 import { join } from "path";
@@ -63,10 +64,19 @@ export class Files extends Model<Files> {
   MediaType!: string;
 
   public GetThumbnailFileLocation(): string {
-    return join(this.Location, Files.GetThumbnailFileName(this.Name));
+    return join(
+      this.Location,
+      Files.GetThumbnailFileName(this.Name, this.Extension, this.MediaType)
+    );
   }
-  public static GetThumbnailFileName(Name: string): string {
-    return "thumb-" + Name + ".png";
+  public static GetThumbnailFileName(
+    Name: string,
+    Extension: string,
+    MediaType: string
+  ): string {
+    if (MediaType === "IMAGE") return "thumb-" + Name + "." + Extension;
+    // For Videos
+    else return "thumb-" + Name + ".png";
   }
 
   private GetFileLocation(): string {
@@ -80,8 +90,7 @@ export class Files extends Model<Files> {
     const filename = File.GetFileLocation();
     File.PathToFile = filename;
 
-    if (!existsSync(File.PathToFile)) {
+    if (!existsSync(File.PathToFile))
       throw "File Not Exists at " + File.PathToFile;
-    }
   }
 }
