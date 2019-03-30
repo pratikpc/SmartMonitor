@@ -2,16 +2,16 @@
 @import url('https://fonts.googleapis.com/css?family=Numans');
 html,
 body {
+	height: 100%;
 	background-image: url('http://getwallpapers.com/wallpaper/full/a/5/d/544750.jpg');
+	background-attachment: fixed;
 	background-size: cover;
-	background-repeat: no-repeat;
-    height: 100%;
     color:white;
 	font-family: 'Numans', sans-serif;
 }
 
 .container {
-	height: 100%;
+	height: auto;
 	align-content: center;
 }
 
@@ -26,17 +26,19 @@ body {
 .table td{
     text-align: center;
 }
-.card {
+#card {
 	height: 85%;
-	margin-top: auto;
-	margin-bottom: auto;
+	margin: auto;
+	padding: 10px 10px 0px 10px;
+	/* margin-top: auto; */
+	/* margin-bottom: auto; */
 	width: 50%;
 	background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
 #card-body{
     position: relative;
-    margin: auto;
+    margin: 10px;
     /* overflow-x: hidden;
     overflow-y: visible; */
 
