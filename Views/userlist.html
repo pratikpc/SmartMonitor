@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/fontawesome/fontawesome.min.css" rel="stylesheet">
-    <link href="/dist/imageuploadify.min.css" rel="stylesheet">
+    <!-- <link href="/dist/imageuploadify.min.css" rel="stylesheet"> -->
     <script src="/js/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/css/uselist.css">
@@ -17,48 +17,49 @@
 <body>
     <div class="container">
         <div class="d-flex justify-content-center h-100">
-            <div class="card">
-                <div class="container-fluid", id="card-body">
-                    <div id="tabtab"></div>
-                </div>
+            <div class="container-fluid" id="card">
+                <!-- <div class="container-fluid", id="card-body"> -->
+                <div id="tabtab"></div>
+                <!-- </div> -->
             </div>
         </div>
     </div>
 </body>
 <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/dst/imageuploadify.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/dst/imageuploadify.min.js"></script>
 
-    <script>
-        $.getJSON('/user/', (user) => {
-            var tab = document.createElement('table');
-            tab.classList.add("table","table-dark","thead-dark"); //Pending Testing
-            var newthead = document.createElement('thead');
-            tab.appendChild(newthead);
-            var newtr = document.createElement('tr');
-            newthead.appendChild(newtr);
-            var newth = document.createElement('th');
-            newth.innerText = "ID";
-            newtr.appendChild(newth);
-            var newth = document.createElement('th');
-            newth.innerText = "User Name";
-            newtr.appendChild(newth);
-            var newtbody = document.createElement('tbody');
-            tab.appendChild(newtbody);
-            // newtbody.appendChild(newtr);
-            for (var i = 0; i < user.length; ++i) {
-                // if(i>3)
-                // continue;
-                var newTR = document.createElement('tr');
-                var id = document.createElement('td');
-                id.appendChild(document.createTextNode(i + 1));
-                newTR.appendChild(id);
-                var username = document.createElement('td');
-                username.appendChild(document.createTextNode(user[i].name));
-                newTR.appendChild(username);
-                newtbody.appendChild(newTR);
-            }
-            $('#tabtab').append(tab);
-        });
-    </script>
+<script>
+    $.getJSON('/user/', (user) => {
+        var tab = document.createElement('table');
+        tab.classList.add("table", "table-dark", "thead-dark"); //Pending Testing
+        var newthead = document.createElement('thead');
+        tab.appendChild(newthead);
+        var newtr = document.createElement('tr');
+        newthead.appendChild(newtr);
+        var newth = document.createElement('th');
+        newth.innerText = "ID";
+        newtr.appendChild(newth);
+        var newth = document.createElement('th');
+        newth.innerText = "User Name";
+        newtr.appendChild(newth);
+        var newtbody = document.createElement('tbody');
+        tab.appendChild(newtbody);
+        // newtbody.appendChild(newtr);
+        for (var i = 0; i < user.length; ++i) {
+            // if(i>3)
+            // continue;
+            var newTR = document.createElement('tr');
+            var id = document.createElement('td');
+            id.appendChild(document.createTextNode(i + 1));
+            newTR.appendChild(id);
+            var username = document.createElement('td');
+            username.appendChild(document.createTextNode(user[i].name));
+            newTR.appendChild(username);
+            newtbody.appendChild(newTR);
+        }
+        $('#tabtab').append(tab);
+    });
+</script>
+
 </html>
