@@ -116,7 +116,7 @@ Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res) => {
   }
 });
 
-Displays.get("/:id/files", RoutesCommon.IsAuthenticated, async (req, res) => {
+Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
 
   if (params == null)
@@ -131,7 +131,7 @@ Displays.get("/:id/files", RoutesCommon.IsAuthenticated, async (req, res) => {
     const files = await Model.Files.findAll({ where: { DisplayID: id } });
 
     files.forEach(file => {
-      data.push({ file: file.id, OnDisplay: file.OnDisplay });
+      data.push({ file: file.id, Name: file.Name, Extension: file.Extension, OnDisplay: file.OnDisplay });
     });
 
     return res.json({ success: true, data: data });
