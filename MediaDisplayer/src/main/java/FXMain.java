@@ -1,19 +1,19 @@
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 import org.eclipse.paho.client.mqttv3.*;
 
 import java.io.File;
 import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 class Configuraion {
     public final String IdentifierKey;
@@ -43,11 +43,12 @@ class Configuraion {
 public class FXMain extends Application {
     int CurrentImage = 0;
     ImageView imageView = new ImageView();
-    //  Timeline timeline = new Timeline();
-    Vector<Image> images = new Vector<Image>();
+    MediaView mediaView = new MediaView();
+    Vector<Pair> images = new Vector<>();
 
     Configuraion configuraion;
     MqttClient mqttClient;
+    Thread repeatThread;
 
     public void GetListFromConfig() throws Exception {
         File folder = new File(configuraion.StoragePath);
@@ -59,7 +60,7 @@ public class FXMain extends Application {
         for (File file : list) {
             System.out.println(file.getAbsolutePath() + "/" + file.isFile());
             if (file.isFile())
-                AddImage("file://" + file.toURI().toURL().getPath());
+                AddMediaLink(file.getAbsolutePath());
         }
     }
 
@@ -82,7 +83,7 @@ public class FXMain extends Application {
                 final String msg = mqttMessage.toString();
                 try {
                     // Download Signal Received
-                    if (msg == "DN") {
+                    if (msg.equals("DN")) {
                         ServerInteractor.GetList(configuraion);
                         GetListFromConfig();
                     }
@@ -98,8 +99,8 @@ public class FXMain extends Application {
         });
     }
 
-    public void AddImage(String path) {
-        images.add(new Image(path));
+    public void AddMediaLink(String path) throws Exception {
+        images.add(new Pair(path));
     }
 
     void RunFXLoginSetup() throws Exception {
@@ -112,43 +113,93 @@ public class FXMain extends Application {
             Properties p = propertiesDeal.loadProperties();
             if (p.containsKey("id"))
                 break;
-            CreateDisplayDialog createDisplayDialog = new CreateDisplayDialog();
-            createDisplayDialog.Build();
-            createDisplayDialog.Assign(props);
-            if (createDisplayDialog.Show())
+            RegisterDisplayDialog registerDisplayDialog = new RegisterDisplayDialog();
+            registerDisplayDialog.Build();
+            registerDisplayDialog.Assign(props);
+            if (registerDisplayDialog.Show())
                 break;
         }
     }
 
+    @Override
     public void start(Stage stage) {
         try {
             RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
             ServerInteractor.GetList(configuraion);
-            GetListFromConfig();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        Timer t = new Timer();
-        t.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                System.out.println("He;o" + CurrentImage + images.size());
-                if (images.size() == 0)
-                    return;
-                CurrentImage = (CurrentImage + 1) % images.size();
-                imageView.setImage(images.elementAt(CurrentImage));
+        try {
+            GetListFromConfig();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        repeatThread = new Thread(() -> {
+            try {
+                while (true) {
+                    if (Thread.currentThread().isInterrupted())
+                        return;
+                    if (images.size() == 0)
+                        return;
+                    CurrentImage = (CurrentImage + 1) % images.size();
+                    Pair element = images.elementAt(CurrentImage);
+                    switch (element.Type) {
+                        case IMAGE:
+                            imageView.setImage(element.Image);
+                            imageView.setVisible(true);
+                            mediaView.setVisible(false);
+                            mediaView.fitWidthProperty().unbind();
+                            mediaView.fitHeightProperty().unbind();
+                            mediaView.setFitWidth(0);
+                            mediaView.setFitHeight(0);
+                            imageView.fitWidthProperty().bind(stage.widthProperty());
+                            imageView.fitHeightProperty().bind(stage.heightProperty());
+                            TimeUnit.SECONDS.sleep(1);
+                            imageView.setImage(null);
+                            break;
+                        case VIDEO:
+                            MediaPlayer mediaPlayer = new MediaPlayer(element.Video);
+                            imageView.setImage(null);
+                            imageView.fitWidthProperty().unbind();
+                            imageView.fitHeightProperty().unbind();
+                            imageView.setFitWidth(0);
+                            imageView.setFitHeight(0);
+                            mediaView.fitWidthProperty().bind(stage.widthProperty());
+                            mediaView.fitHeightProperty().bind(stage.heightProperty());
+                            imageView.setVisible(false);
+                            mediaView.setVisible(true);
+                            mediaPlayer.play();
+                            mediaPlayer.setAutoPlay(true);
+                            mediaPlayer.setMute(true);
+                            mediaView.setMediaPlayer(mediaPlayer);
+                            Thread.sleep(500);
+                            Thread.sleep((long) element.Video.getDuration().toMillis());
+                            mediaPlayer.stop();
+                            break;
+                        default:
+                            imageView.setVisible(false);
+                            mediaView.setVisible(false);
+                            break;
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-        }, 0, 6000);
-        imageView.fitWidthProperty().bind(stage.widthProperty());
-        imageView.fitHeightProperty().bind(stage.heightProperty());
+        });
+        repeatThread.start();
+
+        imageView.setVisible(false);
+        mediaView.setVisible(false);
 
         // Create the HBox
         HBox root = new HBox();
         // Add Children to the HBox
         root.getChildren().add(imageView);
+        root.getChildren().add(mediaView);
 
         // Set the size of the HBox
         root.setPrefSize(300, 300);
@@ -201,6 +252,7 @@ public class FXMain extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
+        repeatThread.interrupt();
         mqttClient.disconnectForcibly();
         mqttClient.close(true);
         Utils.Terminate();
