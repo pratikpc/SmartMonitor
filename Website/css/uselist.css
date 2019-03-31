@@ -3,7 +3,7 @@
 html,
 body {
 	height: 100%;
-	background-image: url('http://getwallpapers.com/wallpaper/full/a/5/d/544750.jpg');
+	background-image: url('pexels-photo-953214.jpeg');
 	background-attachment: fixed;
 	background-size: cover;
     color:white;
@@ -17,7 +17,7 @@ body {
 
 #tabtab{
     margin: auto;
-    width: 100%;
+	width: 100%;
 }
 
 .table th{
@@ -27,11 +27,9 @@ body {
     text-align: center;
 }
 #card {
-	height: 85%;
-	margin: auto;
-	padding: 10px 10px 0px 10px;
-	/* margin-top: auto; */
-	/* margin-bottom: auto; */
+	margin-top: 5%;
+	margin-bottom: 5%;
+	padding: 15px 15px 0px 15px ;
 	width: 50%;
 	background-color: rgba(0, 0, 0, 0.5) !important;
 }
