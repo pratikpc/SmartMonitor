@@ -7,12 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FilePond Multiple File Upload</title>
 
-    <link rel='stylesheet' href="/css/normalize.min.css" type='text/css'>
-    <link rel='stylesheet' href='/css/filepond-plugin-image-preview.min.css' type='text/css'>
-    <link rel='stylesheet' href='/css/filepond.min.css' type='text/css'>
+    
     <link rel="stylesheet" href="/css/style.css" type='text/css'>
     <link rel="stylesheet" href="/css/bootstrap.min.css" type='text/css'>
     <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css" type='text/css'>
+	<link rel="stylesheet" href="/css/imagebutton.css" type='text/css'>
 
 
     <script type='text/javascript' src="/js/jquery.min.js"></script>
@@ -65,10 +64,13 @@
 
 <body class="col-12" style="background-color:#111; text-align: center">
 
-        <form enctype="multipart/form-data" method="POST" action="/files/upload">
-            <input type="file" id="xyz" class="filepond" name="filepond" multiple data-max-file-size="20MB"
-                data-max-files="3" />
-
+        <form enctype="multipart/form-data" method="POST" action="/files/upload">				
+			<div class="custom-file">
+				<input type="file" accept="image/*,video/*" class="custom-file-input" name='files' multiple id="customFile">
+				<label class="custom-file-label" for="customFile">Choose file</label>
+			</div>
+		</form>
+			 
             <!-- <input type="file" id="files" accept="image/*,video/*" name='files' multiple> -->
             <!-- <input type="submit" id="upload" value="Upload" disabled="disabled"> -->
             <div id="Displays">
@@ -128,15 +130,15 @@
     </script> -->
 
     <script type='text/javascript' src="/js/bootstrap.min.js"></script>
-    <script type='text/javascript' src='/js/filepond-plugin-file-encode.min.js'></script>
-    <script type='text/javascript' src='/js/filepond-plugin-file-validate-size.min.js'></script>
-    <script type='text/javascript' src='/js/filepond-plugin-image-exif-orientation.min.js'></script>
-    <script type='text/javascript' src='/js/filepond-plugin-image-preview.min.js'></script>
-    <script type='text/javascript' src='/js/filepond.min.js'></script>
-    <script type="text/javascript" src="/js/filepond.jquery.js"></script>
-    <script type='text/javascript' src="/js/index.js"></script>
     <script type='text/javascript' src='/js/rasplistgen.js'></script>
 
+	<script>
+	// Add the following code if you want the name of the file appear on select
+		$(".custom-file-input").on("change", function() {
+		var fileName = $(this).val().split("\\").pop();
+		$(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+		});
+	</script>
 </body>
 
 </html>
