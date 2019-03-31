@@ -16,22 +16,22 @@ public class ServerInteractor {
             .build();
     private static final Executor executor = Executor.newInstance(client);
 
-    private static void GetDownload(Configuraion configuraion, int fileId, String fileName) throws Exception {
-        URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
-        ub.addParameter("id", Integer.toString(configuraion.Id))
-                .addParameter("key", configuraion.IdentifierKey)
+    private static void GetDownload(Configuration configuration, int fileId, String fileName) throws Exception {
+        URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/file"));
+        ub.addParameter("id", Integer.toString(configuration.Id))
+                .addParameter("key", configuration.IdentifierKey)
                 .addParameter("file", Integer.toString(fileId));
         String url = ub.toString();
 
         executor.execute(Request.Get(url))
-                .saveContent(new File(Paths.get(configuraion.StoragePath, fileName).toAbsolutePath().toString()));
+                .saveContent(new File(Paths.get(configuration.StoragePath, fileName).toAbsolutePath().toString()));
         System.out.println("Hello " + " " + url + " ");
     }
 
-    private static void DeleteDownload(Configuraion configuraion, int fileId) throws Exception {
-        URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/file"));
-        ub.addParameter("id", Integer.toString(configuraion.Id))
-                .addParameter("key", configuraion.IdentifierKey)
+    private static void DeleteDownload(Configuration configuration, int fileId) throws Exception {
+        URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/file"));
+        ub.addParameter("id", Integer.toString(configuration.Id))
+                .addParameter("key", configuration.IdentifierKey)
                 .addParameter("file", Integer.toString(fileId));
         String url = ub.toString();
 
@@ -39,20 +39,20 @@ public class ServerInteractor {
                 .returnContent().asString();
     }
 
-    public static void DeleteDisplay(Configuraion configuraion) throws Exception {
-        URIBuilder ub = new URIBuilder(configuraion.GetURL("display"));
-        ub.addParameter("id", Integer.toString(configuraion.Id))
-                .addParameter("key", configuraion.IdentifierKey);
+    public static void DeleteDisplay(Configuration configuration) throws Exception {
+        URIBuilder ub = new URIBuilder(configuration.GetURL("display"));
+        ub.addParameter("id", Integer.toString(configuration.Id))
+                .addParameter("key", configuration.IdentifierKey);
         String url = ub.toString();
 
         final String json = executor.execute(Request.Delete(url))
                 .returnContent().asString();
     }
 
-    public static void GetList(Configuraion configuraion) throws Exception {
-        URIBuilder ub = new URIBuilder(configuraion.GetURL("files/download/list"));
-        ub.addParameter("id", Integer.toString(configuraion.Id))
-                .addParameter("key", configuraion.IdentifierKey);
+    public static void GetList(Configuration configuration) throws Exception {
+        URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/list"));
+        ub.addParameter("id", Integer.toString(configuration.Id))
+                .addParameter("key", configuration.IdentifierKey);
         String url = ub.toString();
 
         final String json = executor.execute(Request.Get(url)
@@ -71,8 +71,8 @@ public class ServerInteractor {
             final String extension = file.getString("Extension");
             final String fileName = name + "." + extension;
 
-            GetDownload(configuraion, id, fileName);
-            DeleteDownload(configuraion, id);
+            GetDownload(configuration, id, fileName);
+            DeleteDownload(configuration, id);
         }
     }
 
