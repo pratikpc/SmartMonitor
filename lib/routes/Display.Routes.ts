@@ -131,7 +131,11 @@ Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
     const files = await Models.Files.findAll({ where: { DisplayID: id } });
 
     files.forEach(file => {
-      data.push({ file: file.id, OnDisplay: file.OnDisplay });
+      data.push({
+        file: file.id,
+        ShowTime: file.ShowTime,
+        OnDisplay: file.OnDisplay
+      });
     });
 
     return res.json({ success: true, data: data });

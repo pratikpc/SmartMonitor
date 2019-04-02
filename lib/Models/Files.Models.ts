@@ -71,6 +71,10 @@ export class Files extends Model<Files> {
   @Column(DataType.NUMERIC)
   TimeEnd!: number;
 
+  @AllowNull(false)
+  @Column(DataType.NUMERIC)
+  ShowTime!: number;
+
   public GetThumbnailFileLocation(): string {
     return join(
       this.Location,

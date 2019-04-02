@@ -31,7 +31,7 @@ public class ServerInteractor {
                 .connectTimeout(1000)
                 .body(new UrlEncodedFormEntity(form, "UTF-8"))
                 .socketTimeout(1000))
-                .saveContent(new File(Utils.GetAbsolutePath(configuration.StoragePath, fileName)));
+                .saveContent(new File(configuration.GetAbsolutePathFromStorage(fileName)));
         System.out.println("Hello " + " "  + " ");
     }
 
@@ -73,10 +73,10 @@ public class ServerInteractor {
                 .body(new UrlEncodedFormEntity(form, "UTF-8"))
                 .socketTimeout(1000))
                 .returnContent().asString();
-        JSONObject obj = new JSONObject(json);
+        final JSONObject obj = new JSONObject(json);
         if (!obj.optBoolean("success", false))
             return;
-        JSONArray files = obj.getJSONArray("data");
+        final JSONArray files = obj.getJSONArray("data");
         for (int i = 0; i < files.length(); ++i) {
             final JSONObject file = files.getJSONObject(i);
 
@@ -84,6 +84,8 @@ public class ServerInteractor {
             final String name = file.getString("Name");
             final String extension = file.getString("Extension");
             final String fileName = name + "." + extension;
+
+            System.out.println("Heyo"  + fileName);
 
             GetDownload(configuration, id, fileName);
             DeleteDownload(configuration, id);

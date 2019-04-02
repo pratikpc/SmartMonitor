@@ -42,6 +42,7 @@ public class SQLFiles extends SQLInteractor {
                 + "path STRING NOT NULL UNIQUE,"
                 + "start INTEGER NOT NULL,"
                 + "end INTEGER NOT NULL,"
+                + "showtime INTEGER NOT NULL,"
                 + "display BOOLEAN NOT NULL"
                 + ");";
         ExecuteSQLStatement(tableNew);
@@ -49,7 +50,7 @@ public class SQLFiles extends SQLInteractor {
 
     public Vector<Medium> Load() throws Exception {
         Vector<Medium> media = new Vector<>();
-        final String select = "SELECT path from " + Constants.DB.FileT + " WHERE display=? AND (start = end OR (start < ? AND end > ?))";
+        final String select = "SELECT path , showtime from " + Constants.DB.FileT + " WHERE display=? AND (start = end OR (start < ? AND end > ?))";
         final PreparedStatement preparedStatement = this.connection.prepareStatement(select);
         preparedStatement.setBoolean(1, true);
         final int time = Utils.GetCurrentHourAndMinuteAsInteger();
@@ -58,7 +59,8 @@ public class SQLFiles extends SQLInteractor {
         final ResultSet resultSet = preparedStatement.executeQuery();
         while (resultSet.next()) {
             final String path = resultSet.getString("path");
-            final Medium medium = new Medium(path);
+            final int showTime = resultSet.getInt("showtime");
+            final Medium medium = new Medium(path, showTime);
             // Ensure only proper media files get added
             if (medium.Type == Utils.FileType.UNKNOWN)
                 continue;
@@ -88,21 +90,23 @@ public class SQLFiles extends SQLInteractor {
 
     public int Insert(final JSONObject jsonObject) throws Exception {
         final int id = jsonObject.getInt("file");
-        final String path = configuration.GetRelativePathAsUriFromStorage(jsonObject.getString("Path"));
+        final String path = configuration.GetAbsolutePathAsUriFromStorage(jsonObject.getString("Path"));
         final int start = jsonObject.getInt("Start");
         final int end = jsonObject.getInt("End");
-        final boolean display = jsonObject.getBoolean("OnDisplay");
-        return Insert(id, path, start, end, display);
+        final boolean display = jsonObject.optBoolean("OnDisplay", false);
+        final int showTime = jsonObject.optInt("ShowTime", 0);
+        return Insert(id, path, start, end, showTime, display);
     }
 
-    public int Insert(int id, String path, int start, int end, boolean display) throws SQLException {
-        final String sql = "INSERT OR REPLACE INTO " + Constants.DB.FileT + " VALUES(?,?,?,?,?)";
+    public int Insert(int id, String path, int start, int end, int showTime, boolean display) throws SQLException {
+        final String sql = "INSERT OR REPLACE INTO " + Constants.DB.FileT + " VALUES(?,?,?,?,?,?)";
         final PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setInt(1, id);
         stmt.setString(2, path);
         stmt.setInt(3, start);
         stmt.setInt(4, end);
-        stmt.setBoolean(5, display);
+        stmt.setInt(5, showTime);
+        stmt.setBoolean(6, display);
         return stmt.executeUpdate();
     }
 

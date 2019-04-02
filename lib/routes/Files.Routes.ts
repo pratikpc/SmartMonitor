@@ -21,6 +21,8 @@ Files.post(
       const displayIDs = RoutesCommon.GetDataAsArray<number>(params.ids);
       const startTime = 0;
       const endTime = 0;
+      const showTime = 0;
+
       if (displayIDs.length === 0) return res.redirect("/files/upload");
 
       // Iterate over all the files
@@ -74,7 +76,12 @@ Files.post(
             // As File getting Reuploaded, rather than doing nothing, we assume
             // It's user's instruction to show the file
             await Models.Files.update(
-              { OnDisplay: true, TimeStart: startTime, TimeEnd: endTime },
+              {
+                OnDisplay: true,
+                TimeStart: startTime,
+                TimeEnd: endTime,
+                ShowTime: showTime
+              },
               {
                 where: {
                   Name: name,
@@ -120,16 +127,14 @@ Files.post(
   }
 );
 
-Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res)=>{
+Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const fileId = Number(params.file);
   const displayId = Number(params.id);
 
-  const count = await Models.Files.destroy(
-    {
-      where: { id: fileId, DisplayID: displayId }
-    }
-  );
+  const count = await Models.Files.destroy({
+    where: { id: fileId, DisplayID: displayId }
+  });
 
   if (count === 0) return res.json({ success: false });
   else return res.json({ success: true });
@@ -269,6 +274,7 @@ Files.post(
           Path: file.Name + "." + file.Extension,
           Start: file.TimeStart,
           End: file.TimeEnd,
+          ShowTime: file.ShowTime,
           OnDisplay: file.OnDisplay
         });
       });

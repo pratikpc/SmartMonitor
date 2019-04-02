@@ -8,8 +8,9 @@ public class Medium {
     public Image Image;
     public Media Video;
     public Utils.FileType Type;
+    public int ShowTime;
 
-    Medium(final String path) throws Exception {
+    Medium(final String path, final int showTime) throws Exception {
         this.Type = Utils.GetFileType(new URI(path));
         switch (this.Type) {
             case IMAGE:
@@ -19,16 +20,21 @@ public class Medium {
                 this.Video = new Media(path);
                 break;
         }
+        this.ShowTime = showTime;
     }
 
-    // TIme for Which to Show Image
+    // TIme for Which to Show Medium
+    // ShowTimeSeconds only works for Image
     public long TImeInMillisForWhichToShowMedium() {
         switch (this.Type) {
             case VIDEO:
                 return (long) this.Video.getDuration().toMillis();
             case IMAGE:
-                // 3 Seconds
-                return TimeUnit.SECONDS.toMillis(3);
+                if(this.ShowTime == 0)
+                    // 3 Seconds
+                    return TimeUnit.SECONDS.toMillis(3);
+                else
+                    return TimeUnit.SECONDS.toMillis(this.ShowTime);
         }
         return (long) (Double.NaN);
     }

@@ -30,8 +30,8 @@ class Configuration {
         this.Location = props.getProperty("Name");
         this.URL = props.getProperty("URLWeb");
         Utils.CreateDirectoryIfNotExists(this.StoragePath);
-        Utils.CreateDirectoryIfNotExists(this.GetRelativePathFromStorage("database"));
-        Utils.CreateDirectoryIfNotExists(this.GetRelativePathFromStorage("paho"));
+        Utils.CreateDirectoryIfNotExists(this.GetAbsolutePathFromStorage("database"));
+        Utils.CreateDirectoryIfNotExists(this.GetAbsolutePathFromStorage("paho"));
     }
 
     public String GetURL(String Name) {
@@ -42,20 +42,20 @@ class Configuration {
         return "tcp://" + URL + ":1883";
     }
 
-    public String GetRelativePathAsUriFromStorage(final String... names) throws Exception {
-        return Utils.ToUri(GetRelativePathFromStorage(names));
+    public String GetAbsolutePathAsUriFromStorage(final String... names) throws Exception {
+        return Utils.ToUri(GetAbsolutePathFromStorage(names));
     }
 
-    public String GetRelativePathFromStorage(final String... names) {
+    public String GetAbsolutePathFromStorage(final String... names) {
         return Utils.GetAbsolutePath(this.StoragePath, names);
     }
 
     public Connection GetSQLDBConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + this.GetRelativePathFromStorage("database", "files.db"));
+        return DriverManager.getConnection("jdbc:sqlite:" + this.GetAbsolutePathFromStorage("database", "files.db"));
     }
 
     public MqttDefaultFilePersistence GetMqttDefaultStorageLocation() {
-        return new MqttDefaultFilePersistence(this.GetRelativePathFromStorage("paho"));
+        return new MqttDefaultFilePersistence(this.GetAbsolutePathFromStorage("paho"));
     }
 }
 
