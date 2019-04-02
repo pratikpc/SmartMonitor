@@ -66,7 +66,7 @@ public class SQLFiles extends SQLInteractor {
                 continue;
             media.add(medium);
         }
-
+        preparedStatement.close();
         return media;
     }
 
@@ -107,7 +107,9 @@ public class SQLFiles extends SQLInteractor {
         stmt.setInt(4, end);
         stmt.setInt(5, showTime);
         stmt.setBoolean(6, display);
-        return stmt.executeUpdate();
+        int modified = stmt.executeUpdate();
+        stmt.close();
+        return modified;
     }
 
     @Override
