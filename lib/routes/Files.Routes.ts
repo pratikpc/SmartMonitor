@@ -119,6 +119,21 @@ Files.post(
   }
 );
 
+Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res)=>{
+  const params = RoutesCommon.GetParameters(req);
+  const fileId = Number(params.file);
+  const displayId = Number(params.id);
+
+  const count = await Models.Files.destroy(
+    {
+      where: { id: fileId, DisplayID: displayId }
+    }
+  );
+
+  if (count === 0) return res.json({ success: false });
+  else return res.json({ success: true });
+});
+
 Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
   return res.render("ImageUpload.html");
 });
