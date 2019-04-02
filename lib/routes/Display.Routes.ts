@@ -6,7 +6,7 @@ import passport = require("passport");
 
 export const Displays = Router();
 
-Displays.get("/add/", passport.authenticate("app"), async (req, res) => {
+Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
   const userId = Number(req.user.id);
   // const userId = 1;
 

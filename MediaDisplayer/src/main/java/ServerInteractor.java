@@ -1,5 +1,8 @@
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.fluent.Executor;
+import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -7,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 
 public class ServerInteractor {
@@ -16,50 +20,61 @@ public class ServerInteractor {
     private static final Executor executor = Executor.newInstance(client);
 
     private static void GetDownload(Configuration configuration, int fileId, String fileName) throws Exception {
-        URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/file"));
-        ub.addParameter("id", Integer.toString(configuration.Id))
-                .addParameter("key", configuration.IdentifierKey)
-                .addParameter("file", Integer.toString(fileId));
-        String url = ub.toString();
 
-        executor.execute(Request.Get(url))
+        List<NameValuePair> form = Form.form()
+                .add("id", Integer.toString(configuration.Id))
+                .add("key", configuration.IdentifierKey)
+                .add("file", Integer.toString(fileId))
+                .build();
+
+        executor.execute(Request.Post(configuration.GetURL("files/download/file"))
+                .connectTimeout(1000)
+                .body(new UrlEncodedFormEntity(form, "UTF-8"))
+                .socketTimeout(1000))
                 .saveContent(new File(Utils.GetAbsolutePath(configuration.StoragePath, fileName)));
-        System.out.println("Hello " + " " + url + " ");
+        System.out.println("Hello " + " "  + " ");
     }
 
-    private static void DeleteDownload(Configuration configuration, int fileId) throws Exception {
-        URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/file"));
-        ub.addParameter("id", Integer.toString(configuration.Id))
+    private static boolean DeleteDownload(Configuration configuration, int fileId) throws Exception {
+        final URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/file"))
+                .addParameter("id", Integer.toString(configuration.Id))
                 .addParameter("key", configuration.IdentifierKey)
                 .addParameter("file", Integer.toString(fileId));
-        String url = ub.toString();
+        final String url = ub.toString();
 
-        final String json = executor.execute(Request.Delete(url))
-                .returnContent().asString();
-    }
-
-    public static void DeleteDisplay(Configuration configuration) throws Exception {
-        URIBuilder ub = new URIBuilder(configuration.GetURL("display"));
-        ub.addParameter("id", Integer.toString(configuration.Id))
-                .addParameter("key", configuration.IdentifierKey);
-        String url = ub.toString();
-
-        final String json = executor.execute(Request.Delete(url))
-                .returnContent().asString();
-    }
-
-    public static void DownloadNewFiles(Configuration configuration) throws Exception {
-        URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/list"));
-        ub.addParameter("id", Integer.toString(configuration.Id))
-                .addParameter("key", configuration.IdentifierKey);
-        String url = ub.toString();
-
-        final String json = executor.execute(Request.Get(url)
+        final String json = executor.execute(Request.Delete(url)
                 .connectTimeout(1000)
                 .socketTimeout(1000))
                 .returnContent().asString();
+        return new JSONObject(json).optBoolean("success", false);
+    }
+
+    public static boolean DeleteDisplay(Configuration configuration) throws Exception {
+        final URIBuilder ub = new URIBuilder(configuration.GetURL("display"))
+                .addParameter("id", Integer.toString(configuration.Id))
+                .addParameter("key", configuration.IdentifierKey);
+        final String url = ub.toString();
+
+        final String json = executor.execute(Request.Delete(url)
+                .connectTimeout(1000)
+                .socketTimeout(1000))
+                .returnContent().asString();
+        return new JSONObject(json).optBoolean("success", false);
+    }
+
+    public static void DownloadNewFiles(Configuration configuration) throws Exception {
+        List<NameValuePair> form = Form.form()
+                .add("id", Integer.toString(configuration.Id))
+                .add("key", configuration.IdentifierKey)
+                .build();
+
+        final String json = executor.execute(Request.Post(configuration.GetURL("files/download/list"))
+                .connectTimeout(1000)
+                .body(new UrlEncodedFormEntity(form, "UTF-8"))
+                .socketTimeout(1000))
+                .returnContent().asString();
         JSONObject obj = new JSONObject(json);
-        if (!obj.getBoolean("success"))
+        if (!obj.optBoolean("success", false))
             return;
         JSONArray files = obj.getJSONArray("data");
         for (int i = 0; i < files.length(); ++i) {
@@ -76,34 +91,42 @@ public class ServerInteractor {
     }
 
     public static JSONArray GetFileDownloadList(Configuration configuration) throws Exception {
-        URIBuilder ub = new URIBuilder(configuration.GetURL("files/list/filesFX"));
-        ub.addParameter("id", Integer.toString(configuration.Id))
-                .addParameter("key", configuration.IdentifierKey);
-        String url = ub.toString();
+        List<NameValuePair> form = Form.form()
+                .add("id", Integer.toString(configuration.Id))
+                .add("key", configuration.IdentifierKey)
+                .build();
 
-        final String json = executor.execute(Request.Get(url)
+        final String json = executor.execute(Request.Post(configuration.GetURL("files/list/filesFX"))
                 .connectTimeout(1000)
+                .body(new UrlEncodedFormEntity(form, "UTF-8"))
                 .socketTimeout(1000))
                 .returnContent().asString();
+
         System.out.println(json);
         JSONObject obj = new JSONObject(json);
-        if (obj == null || !obj.getBoolean("success") || obj.isNull("data"))
+        if (obj == null || !obj.optBoolean("success", false) || obj.isNull("data"))
             return null;
         System.out.println("Hello " + json);
         return obj.getJSONArray("data");
     }
 
     public static boolean CreateNewRasPi(final String name, final String pass, final String location, final String Url, final String StoragePath) throws Exception {
-        URIBuilder ub = new URIBuilder("http://" + Url + ":8000/display/add")
-                .addParameter("name", name)
-                .addParameter("pass", pass)
-                .addParameter("displayname", location);
-        String url = ub.toString();
+        final List<NameValuePair> form = Form.form()
+                .add("name", name)
+                .add("pass", pass)
+                .add("displayname", location)
+                .build();
+
+        final String url = "http://" + Url + ":8000/display/add";
 
         Executor executor = Executor.newInstance();
-        String json = executor.execute(Request.Get(url).useExpectContinue()).returnContent().asString();
+        final String json = executor.execute(Request.Post(url)
+                .connectTimeout(1000)
+                .body(new UrlEncodedFormEntity(form, "UTF-8"))
+                .socketTimeout(1000))
+                .returnContent().asString();
         JSONObject jsonObject = new JSONObject(json);
-        boolean success = jsonObject.getBoolean("success") || jsonObject.isNull("data");
+        boolean success = jsonObject.optBoolean("success", false) || jsonObject.isNull("data");
         if (!success)
             return false;
         JSONObject data = jsonObject.getJSONObject("data");

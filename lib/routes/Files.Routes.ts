@@ -99,6 +99,7 @@ Files.post(
               OnDisplay: true,
               TimeStart: startTime,
               TimeEnd: endTime,
+              ShowTime: showTime,
               Downloaded: false
             });
           }
@@ -138,7 +139,7 @@ Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
   return res.render("ImageUpload.html");
 });
 
-Files.get(
+Files.post(
   "/download/list",
   RoutesCommon.ValidateActualDisplay,
   async (req, res) => {
@@ -224,7 +225,7 @@ Files.delete(
   }
 );
 
-Files.get(
+Files.post(
   "/download/file",
   RoutesCommon.ValidateActualDisplay,
   async (req, res) => {
@@ -245,7 +246,7 @@ Files.get(
   }
 );
 
-Files.get(
+Files.post(
   "/list/filesFX",
   RoutesCommon.ValidateActualDisplay,
   async (req, res) => {

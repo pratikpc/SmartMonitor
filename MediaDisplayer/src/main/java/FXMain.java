@@ -182,6 +182,8 @@ public class FXMain extends Application {
                             break;
                     }
                 }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // restore interrupted status
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -269,12 +271,12 @@ public class FXMain extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        this.sqlFiles.Close();
-        mqttClient.disconnect();
-        mqttClient.close(true);
         // Stop the Display Loop
         displayThread.interrupt();
         displayThread.join();
+        this.sqlFiles.Close();
+        mqttClient.disconnect();
+        mqttClient.close(true);
         Utils.Terminate();
     }
 }
