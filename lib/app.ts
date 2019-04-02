@@ -4,8 +4,8 @@ import * as Routes from "./routes/Routes";
 import * as Models from "./Models/Sequelize";
 import * as cors from "cors";
 import { PassportModelsGenerate } from "./Models/Passport.Models";
-
 import * as ejs from "ejs";
+import { RoutesCommon } from "./routes/Common.Routes";
 
 export const app = express();
 // app.use(bodyParser.json());
@@ -36,5 +36,11 @@ app.use("/user", Routes.Users);
 app.use("/display", Routes.Displays);
 // Route via this as path for File Uploading and Downloading
 app.use("/files", Routes.Files);
+
+app.get("/list", RoutesCommon.IsAuthenticated, (req,res)=>
+{
+  return res.render("displist.html");
+});
+
 
 app.get("/", (req, res)=>{return res.redirect("/user/login");});

@@ -164,8 +164,3 @@ Displays.delete("/", RoutesCommon.ValidateActualDisplay, async (req, res) => {
     success: false
   });
 });
-
-Displays.get("/list", RoutesCommon.IsAuthenticated, (req,res)=>
-{
-  return res.render("displist.html");
-});
