@@ -1,4 +1,4 @@
-import * as Model from "../Models/Models";
+import * as Models from "../Models/Models";
 import { randomBytes } from "crypto";
 import { Router } from "express";
 import { RoutesCommon } from "./Common.Routes";
@@ -18,7 +18,7 @@ Displays.get("/add/", passport.authenticate("app"), async (req, res) => {
       success: false
     });
 
-  const newDisplay = await Model.Displays.create({
+  const newDisplay = await Models.Displays.create({
     Name: displayName,
     CreatingUserID: userId,
     IdentifierKey: randomBytes(20).toString("hex")
@@ -49,7 +49,7 @@ Displays.put("/", RoutesCommon.IsAdmin, async (req, res) => {
   const displayKey = String(params.displaykey);
   const newDisplayName = String(params.displayname);
 
-  const [count] = await Model.Displays.update(
+  const [count] = await Models.Displays.update(
     { Name: newDisplayName },
     {
       where: {
@@ -72,7 +72,7 @@ Displays.put("/", RoutesCommon.IsAdmin, async (req, res) => {
 });
 
 Displays.get("/", RoutesCommon.IsAuthenticated, async (req, res) => {
-  const displays = await Model.Displays.findAll({
+  const displays = await Models.Displays.findAll({
     attributes: ["id", "Name"],
     order: [["id", "ASC"]]
   });
@@ -94,7 +94,7 @@ Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res) => {
   const id = Number(params.id);
 
   try {
-    const display = await Model.Displays.findByPk(id, {
+    const display = await Models.Displays.findByPk(id, {
       attributes: ["id", "Name"]
     });
     if (display)
@@ -117,31 +117,31 @@ Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res) => {
 });
 
 Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
-  const params = RoutesCommon.GetParameters(req);
-
-  if (params == null)
-    return res.json({
-      success: false,
-      data: null
-    });
-  const id = Number(params.id);
-
   try {
+    const params = RoutesCommon.GetParameters(req);
+
+    if (params == null)
+      return res.json({
+        success: false,
+        data: null
+      });
+    const id = Number(params.id);
+
     const data: any[] = [];
-    const files = await Model.Files.findAll({ where: { DisplayID: id } });
+    const files = await Models.Files.findAll({ where: { DisplayID: id } });
 
     files.forEach(file => {
-      data.push({ file: file.id, Name: file.Name, Extension: file.Extension, OnDisplay: file.OnDisplay });
+      data.push({ file: file.id, OnDisplay: file.OnDisplay });
     });
 
     return res.json({ success: true, data: data });
   } catch (err) {
     console.error(err);
-    return res.json({
-      success: false,
-      data: null
-    });
   }
+  return res.json({
+    success: false,
+    data: null
+  });
 });
 
 Displays.delete("/", RoutesCommon.ValidateActualDisplay, async (req, res) => {
@@ -153,8 +153,8 @@ Displays.delete("/", RoutesCommon.ValidateActualDisplay, async (req, res) => {
       });
     const id = Number(params.id);
 
-    const displayDel = await Model.Displays.destroy({ where: { id: id } });
-    await Model.Files.destroy({ where: { DisplayID: id } });
+    const displayDel = await Models.Displays.destroy({ where: { id: id } });
+    await Models.Files.destroy({ where: { DisplayID: id } });
 
     if (displayDel !== 0) return res.json({ success: true });
   } catch (error) {

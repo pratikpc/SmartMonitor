@@ -68,6 +68,28 @@ export namespace RoutesCommon {
     });
   }
 
+  // Check if Authentication is Correct
+  export function IsAuthenticated(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    if (req.isAuthenticated()) return next();
+    res.redirect("/user/login");
+  }
+
+  // Check if User is Admin
+  export function IsAdmin(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
+    res.redirect("/user/login");
+  }
+
+  // Check if User is Not Admin
+  export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
+    if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
+    res.redirect("/user/login");
+  }
+
   export function SendMqttMessage(id: number, message: string): void {
     MqttClient.publish(Config.Mqtt.DisplayTopic(id), message);
   }
@@ -77,16 +99,6 @@ export namespace RoutesCommon {
   }
   export function SendMqttClientUpdateSignal(id: number) {
     SendMqttMessage(id, "UE");
-  }
-
-  // Check if Authentication is Correct
-  export function IsAuthenticated(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    if (req.isAuthenticated()) return next();
-    res.redirect("/user/login");
   }
 
   export function GetSHA256FromFile(path: string): Promise<string> {
@@ -113,18 +125,6 @@ export namespace RoutesCommon {
       const value = data as T;
       return [value];
     }
-  }
-
-  // Check if User is Admin
-  export function IsAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
-    res.redirect("/user/login");
-  }
-
-  // Check if User is Not Admin
-  export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
-    res.redirect("/user/login");
   }
 
   function IsNotEmptyAny(object: any): boolean {

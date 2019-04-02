@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 public class ServerInteractor {
@@ -24,7 +23,7 @@ public class ServerInteractor {
         String url = ub.toString();
 
         executor.execute(Request.Get(url))
-                .saveContent(new File(Paths.get(configuration.StoragePath, fileName).toAbsolutePath().toString()));
+                .saveContent(new File(Utils.GetAbsolutePath(configuration.StoragePath, fileName)));
         System.out.println("Hello " + " " + url + " ");
     }
 
@@ -49,7 +48,7 @@ public class ServerInteractor {
                 .returnContent().asString();
     }
 
-    public static void GetList(Configuration configuration) throws Exception {
+    public static void DownloadNewFiles(Configuration configuration) throws Exception {
         URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/list"));
         ub.addParameter("id", Integer.toString(configuration.Id))
                 .addParameter("key", configuration.IdentifierKey);
@@ -76,6 +75,24 @@ public class ServerInteractor {
         }
     }
 
+    public static JSONArray GetFileDownloadList(Configuration configuration) throws Exception {
+        URIBuilder ub = new URIBuilder(configuration.GetURL("files/list/filesFX"));
+        ub.addParameter("id", Integer.toString(configuration.Id))
+                .addParameter("key", configuration.IdentifierKey);
+        String url = ub.toString();
+
+        final String json = executor.execute(Request.Get(url)
+                .connectTimeout(1000)
+                .socketTimeout(1000))
+                .returnContent().asString();
+        System.out.println(json);
+        JSONObject obj = new JSONObject(json);
+        if (obj == null || !obj.getBoolean("success") || obj.isNull("data"))
+            return null;
+        System.out.println("Hello " + json);
+        return obj.getJSONArray("data");
+    }
+
     public static boolean CreateNewRasPi(final String name, final String pass, final String location, final String Url, final String StoragePath) throws Exception {
         URIBuilder ub = new URIBuilder("http://" + Url + ":8000/display/add")
                 .addParameter("name", name)
@@ -85,11 +102,11 @@ public class ServerInteractor {
 
         Executor executor = Executor.newInstance();
         String json = executor.execute(Request.Get(url).useExpectContinue()).returnContent().asString();
-        JSONObject object = new JSONObject(json);
-        boolean success = object.getBoolean("success");
+        JSONObject jsonObject = new JSONObject(json);
+        boolean success = jsonObject.getBoolean("success") || jsonObject.isNull("data");
         if (!success)
             return false;
-        JSONObject data = object.getJSONObject("data");
+        JSONObject data = jsonObject.getJSONObject("data");
 
         int id = data.getInt("id");
         String Name = data.getString("Name");

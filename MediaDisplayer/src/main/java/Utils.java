@@ -3,21 +3,27 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.Optional;
 
 public class Utils {
-    public static void CreateDirectoryIfNotExists(String path) {
-        File directory = new File(path);
+    public static void CreateDirectoryIfNotExists(final String path) {
+        final File directory = new File(path);
         if (!directory.exists()) directory.mkdirs();
     }
 
-    public static void ClearDirectory(String fileOrDirectory) {
+    public static String GetAbsolutePath(final String first, final String... names) {
+        return Paths.get(first, names).toAbsolutePath().normalize().toString();
+    }
+
+    public static void ClearDirectory(final String fileOrDirectory) {
         ClearDirectory(new File(fileOrDirectory));
     }
 
-    public static void ClearDirectory(File fileOrDirectory) {
+    public static void ClearDirectory(final File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())
                 ClearDirectory(child);
@@ -41,17 +47,32 @@ public class Utils {
 
     }
 
-    public static String ToUri(final String path) throws Exception{
+    public static String ToUri(final String path) throws Exception {
         return new File(path).toURI().toURL().toExternalForm();
     }
 
     public static FileType GetFileType(String path) throws Exception {
         final String mimeType = Files.probeContentType(Paths.get(path));
-        System.out.println(mimeType);
         if (mimeType == null) return FileType.UNKNOWN;
         if (mimeType.startsWith("image")) return FileType.IMAGE;
         if (mimeType.startsWith("video")) return FileType.VIDEO;
         return FileType.UNKNOWN;
+    }
+
+    public static FileType GetFileType(final URI path) throws Exception {
+        final String mimeType = Files.probeContentType(Paths.get(path));
+        if (mimeType == null) return FileType.UNKNOWN;
+        if (mimeType.startsWith("image")) return FileType.IMAGE;
+        if (mimeType.startsWith("video")) return FileType.VIDEO;
+        return FileType.UNKNOWN;
+    }
+
+    public static int GetCurrentHourAndMinuteAsInteger() {
+        final LocalTime currentTime = LocalTime.now();
+        final int hour = currentTime.getHour();
+        final int minute = currentTime.getMinute();
+
+        return hour * 100 + minute;
     }
 
     public enum FileType {

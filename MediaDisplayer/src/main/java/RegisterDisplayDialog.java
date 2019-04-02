@@ -8,7 +8,6 @@ import javafx.stage.DirectoryChooser;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 
@@ -24,7 +23,7 @@ public class RegisterDisplayDialog {
 
     private String GetDefaultStorageDirectory() {
         final String homeDir = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-        return Paths.get(homeDir, Constants.AppName).toString();
+        return Utils.GetAbsolutePath(homeDir, Constants.AppName);
     }
 
     private String CreateFileChooser(final String title, final String defaultPath) {

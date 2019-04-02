@@ -7,8 +7,11 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
-import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
@@ -20,13 +23,15 @@ class Configuration {
     public final String StoragePath;
     public final String Location;
 
-    public Configuration(Properties props) {
+    public Configuration(final Properties props) {
         this.Id = Integer.parseInt(props.getProperty("id"));
         this.IdentifierKey = props.getProperty("IdentifierKey");
         this.StoragePath = props.getProperty("StoragePath");
         this.Location = props.getProperty("Name");
         this.URL = props.getProperty("URLWeb");
         Utils.CreateDirectoryIfNotExists(this.StoragePath);
+        Utils.CreateDirectoryIfNotExists(this.GetRelativePathFromStorage("database"));
+        Utils.CreateDirectoryIfNotExists(this.GetRelativePathFromStorage("paho"));
     }
 
     public String GetURL(String Name) {
@@ -36,38 +41,40 @@ class Configuration {
     public String GetMqttLink() {
         return "tcp://" + URL + ":1883";
     }
+
+    public String GetRelativePathAsUriFromStorage(final String... names) throws Exception {
+        return Utils.ToUri(GetRelativePathFromStorage(names));
+    }
+
+    public String GetRelativePathFromStorage(final String... names) {
+        return Utils.GetAbsolutePath(this.StoragePath, names);
+    }
+
+    public Connection GetSQLDBConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:sqlite:" + this.GetRelativePathFromStorage("database", "files.db"));
+    }
+
+    public MqttDefaultFilePersistence GetMqttDefaultStorageLocation() {
+        return new MqttDefaultFilePersistence(this.GetRelativePathFromStorage("paho"));
+    }
 }
 
 public class FXMain extends Application {
-    int CurrentMedium = 0;
     final ImageView imageView = new ImageView();
     final MediaView mediaView = new MediaView();
-    final Vector<Medium> media = new Vector<>();
+    int CurrentMedium = 0;
+    SQLFiles sqlFiles;
 
     Configuration configuration;
     MqttClient mqttClient;
     Thread displayThread;
-
-    public void GetListFromConfig() throws Exception {
-        File folder = new File(configuration.StoragePath);
-        System.out.println(folder.getAbsolutePath() + folder.isDirectory());
-        if (!folder.isDirectory())
-            return;
-        File[] list = folder.listFiles();
-        media.clear();
-        for (File file : list) {
-            System.out.println(file.getAbsolutePath() + "/" + file.isFile());
-            if (file.isFile())
-                AddMediaLink(file.getAbsolutePath());
-        }
-    }
 
     void SetupConfiguration() throws Exception {
         configuration = new Configuration(new PropertiesDeal().loadProperties());
     }
 
     void SetupMQTT() throws MqttException {
-        mqttClient = new MqttClient(configuration.GetMqttLink(), MqttAsyncClient.generateClientId());
+        mqttClient = new MqttClient(configuration.GetMqttLink(), MqttAsyncClient.generateClientId(), configuration.GetMqttDefaultStorageLocation());
         mqttClient.connect();
         mqttClient.subscribe("/display/" + configuration.Id);
         mqttClient.setCallback(new MqttCallback() {
@@ -82,8 +89,14 @@ public class FXMain extends Application {
                 try {
                     // Download Signal Received
                     if (msg.equals("DN")) {
-                        ServerInteractor.GetList(configuration);
-                        GetListFromConfig();
+                        ServerInteractor.DownloadNewFiles(configuration);
+                        // Update SQL Files List
+                        sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
+                    }
+                    // Update Signal Received
+                    if (msg.equals("UE")) {
+                        // Update SQL Files List
+                        sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -97,18 +110,14 @@ public class FXMain extends Application {
         });
     }
 
-    public void AddMediaLink(String path) throws Exception {
-        media.add(new Medium(path));
-    }
-
     void RunFXLoginSetup() throws Exception {
         RunFXLoginSetup(null);
     }
 
-    void RunFXLoginSetup(Properties props) throws Exception {
+    void RunFXLoginSetup(final Properties props) throws Exception {
         final PropertiesDeal propertiesDeal = new PropertiesDeal();
         while (true) {
-            Properties p = propertiesDeal.loadProperties();
+            final Properties p = propertiesDeal.loadProperties();
             if (p.containsKey("id"))
                 break;
             RegisterDisplayDialog registerDisplayDialog = new RegisterDisplayDialog();
@@ -123,6 +132,7 @@ public class FXMain extends Application {
         displayThread = new Thread(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
+                    final Vector<Medium> media = sqlFiles.Load();
                     if (media.isEmpty())
                         continue;
                     // Use this to Iterate over positions
@@ -130,7 +140,7 @@ public class FXMain extends Application {
                         CurrentMedium = 0;
                     else
                         CurrentMedium = (CurrentMedium + 1) % media.size();
-                    Medium medium = media.elementAt(CurrentMedium);
+                    final Medium medium = media.elementAt(CurrentMedium);
                     switch (medium.Type) {
                         case IMAGE:
                             imageView.setImage(medium.Image);
@@ -142,12 +152,11 @@ public class FXMain extends Application {
                             mediaView.setFitHeight(0);
                             imageView.fitWidthProperty().bind(stage.widthProperty());
                             imageView.fitHeightProperty().bind(stage.heightProperty());
-                            
+
                             medium.DelayTillMediumShowDone();
-                            imageView.setImage(null);
                             break;
                         case VIDEO:
-                            MediaPlayer mediaPlayer = new MediaPlayer(medium.Video);
+                            final MediaPlayer mediaPlayer = new MediaPlayer(medium.Video);
                             imageView.setImage(null);
                             imageView.fitWidthProperty().unbind();
                             imageView.fitHeightProperty().unbind();
@@ -179,19 +188,22 @@ public class FXMain extends Application {
         });
     }
 
+
     @Override
     public void start(Stage stage) {
         try {
             RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
-            ServerInteractor.GetList(configuration);
+            ServerInteractor.DownloadNewFiles(configuration);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
-            GetListFromConfig();
+            sqlFiles = new SQLFiles(configuration);
+            // Update SQL Files List
+            sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
             SetupDisplayThread(stage);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -257,10 +269,12 @@ public class FXMain extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        // Stop the Display Loop
-        displayThread.interrupt();
+        this.sqlFiles.Close();
         mqttClient.disconnect();
         mqttClient.close(true);
+        // Stop the Display Loop
+        displayThread.interrupt();
+        displayThread.join();
         Utils.Terminate();
     }
 }

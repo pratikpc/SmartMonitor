@@ -19,6 +19,8 @@ Files.post(
       if (params == null) return res.redirect("/files/upload");
 
       const displayIDs = RoutesCommon.GetDataAsArray<number>(params.ids);
+      const startTime = 0;
+      const endTime = 0;
       if (displayIDs.length === 0) return res.redirect("/files/upload");
 
       // Iterate over all the files
@@ -26,9 +28,7 @@ Files.post(
         let extension = Path.extname(file.filename).substr(1);
         let mediaType = RoutesCommon.GetFileMediaType(extension);
 
-        if (!mediaType) {
-          return;
-        }
+        if (!mediaType) return;
 
         let name = Path.basename(file.filename, Path.extname(file.filename));
         let location = file.destination;
@@ -74,7 +74,7 @@ Files.post(
             // As File getting Reuploaded, rather than doing nothing, we assume
             // It's user's instruction to show the file
             await Models.Files.update(
-              { OnDisplay: true },
+              { OnDisplay: true, TimeStart: startTime, TimeEnd: endTime },
               {
                 where: {
                   Name: name,
@@ -83,8 +83,7 @@ Files.post(
                   DisplayID: displayId,
                   FileHash: fileHash,
                   FileSize: fileSize,
-                  MediaType: mediaType!,
-                  OnDisplay: false
+                  MediaType: mediaType!
                 }
               }
             );
@@ -98,6 +97,8 @@ Files.post(
               FileSize: fileSize,
               MediaType: mediaType!,
               OnDisplay: true,
+              TimeStart: startTime,
+              TimeEnd: endTime,
               Downloaded: false
             });
           }
@@ -107,7 +108,6 @@ Files.post(
       if (RoutesCommon.MqttClient.connected) {
         displayIDs.forEach(displayId => {
           RoutesCommon.SendMqttClientDownloadRequest(displayId);
-          RoutesCommon.SendMqttClientUpdateSignal(displayId);
         });
       }
 
@@ -242,5 +242,43 @@ Files.get(
     const path = file.PathToFile;
 
     return res.download(path);
+  }
+);
+
+Files.get(
+  "/list/filesFX",
+  RoutesCommon.ValidateActualDisplay,
+  async (req, res) => {
+    try {
+      const params = RoutesCommon.GetParameters(req);
+
+      if (params == null)
+        return res.json({
+          success: false,
+          data: null
+        });
+      const id = Number(params.id);
+
+      const data: any[] = [];
+      const files = await Models.Files.findAll({ where: { DisplayID: id } });
+
+      files.forEach(file => {
+        data.push({
+          file: file.id,
+          Path: file.Name + "." + file.Extension,
+          Start: file.TimeStart,
+          End: file.TimeEnd,
+          OnDisplay: file.OnDisplay
+        });
+      });
+
+      return res.json({ success: true, data: data });
+    } catch (err) {
+      console.error(err);
+    }
+    return res.json({
+      success: false,
+      data: null
+    });
   }
 );
