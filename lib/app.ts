@@ -36,3 +36,5 @@ app.use("/user", Routes.Users);
 app.use("/display", Routes.Displays);
 // Route via this as path for File Uploading and Downloading
 app.use("/files", Routes.Files);
+
+app.get("/", (req, res)=>{return res.redirect("/user/login");});

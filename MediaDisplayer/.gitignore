@@ -127,5 +127,11 @@ typings/
 dist/
 
 /uploads
-
 .idea/
+
+/1\.iml
+
+/target/
+/paho*/\*.lck
+
+/props
