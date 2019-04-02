@@ -19,9 +19,11 @@ Files.post(
       if (params == null) return res.redirect("/files/upload");
 
       const displayIDs = RoutesCommon.GetDataAsArray<number>(params.ids);
-      const startTime = 0;
-      const endTime = 0;
-      const showTime = 0;
+      const startTime = RoutesCommon.TimeToDecimal(params.startTime);
+      const endTime = RoutesCommon.TimeToDecimal(params.endTime);
+      let showTime = Number(params.showTime);
+
+      if (showTime == null || Number.isNaN(showTime)) showTime = 0;
 
       if (displayIDs.length === 0) return res.redirect("/files/upload");
 

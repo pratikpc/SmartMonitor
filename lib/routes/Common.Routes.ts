@@ -145,6 +145,16 @@ export namespace RoutesCommon {
     if (mimeType.startsWith("video")) return "VIDEO";
     return null;
   }
+
+  export function TimeToDecimal(decimal: string) {
+    // Get First 2 Array Elements
+    const arr = decimal.split(":");
+    if (arr.length == 2) return 0;
+    const hh = Number(decimal[0]);
+    const mm = Number(decimal[1]);
+    return hh * 100 + mm;
+  }
+
   export async function GenerateThumbnail(
     location: string,
     name: string,
