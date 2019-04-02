@@ -234,6 +234,7 @@ public class FXMain extends Application {
                     return;
                 try {
                     ServerInteractor.DeleteDisplay(configuration);
+                    CloseConnections();
                     Utils.ClearDirectory(configuration.StoragePath);
                     PropertiesDeal propertiesDeal = new PropertiesDeal();
                     propertiesDeal.deleteProperties();
@@ -268,15 +269,22 @@ public class FXMain extends Application {
         displayThread.start();
     }
 
+    void CloseConnections() throws Exception
+    {
+        this.sqlFiles.Close();
+        if(mqttClient.isConnected()) {
+            mqttClient.disconnect();
+            mqttClient.close(true);
+        }
+    }
+
     @Override
     public void stop() throws Exception {
         super.stop();
         // Stop the Display Loop
         displayThread.interrupt();
         displayThread.join();
-        this.sqlFiles.Close();
-        mqttClient.disconnect();
-        mqttClient.close(true);
+        CloseConnections();
         Utils.Terminate();
     }
 }
