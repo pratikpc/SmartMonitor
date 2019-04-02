@@ -51,8 +51,7 @@ public class RegisterDisplayDialog {
         return field.getText().trim().isEmpty();
     }
 
-    public void ShowDirSelector()
-    {
+    public void ShowDirSelector() {
         String storageSelected = CreateFileChooser("Select Storage", storageDir.getText());
         if (storageSelected != null)
             storageDir.setText(storageSelected);

@@ -75,7 +75,7 @@ public class Utils {
         return hour * 100 + minute;
     }
 
-    public static boolean IsDirectoryEmpty(final String directory) throws Exception{
+    public static boolean IsDirectoryEmpty(final String directory) throws Exception {
         return directory != null && !Files.list(Paths.get(directory)).findAny().isPresent();
     }
 

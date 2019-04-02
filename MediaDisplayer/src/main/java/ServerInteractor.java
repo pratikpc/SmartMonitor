@@ -32,7 +32,7 @@ public class ServerInteractor {
                 .body(new UrlEncodedFormEntity(form, "UTF-8"))
                 .socketTimeout(1000))
                 .saveContent(new File(configuration.GetAbsolutePathFromStorage(fileName)));
-        System.out.println("Hello " + " "  + " ");
+        System.out.println("Hello " + " " + " ");
     }
 
     private static boolean DeleteDownload(Configuration configuration, int fileId) throws Exception {
@@ -85,7 +85,7 @@ public class ServerInteractor {
             final String extension = file.getString("Extension");
             final String fileName = name + "." + extension;
 
-            System.out.println("Heyo"  + fileName);
+            System.out.println("Heyo" + fileName);
 
             GetDownload(configuration, id, fileName);
             DeleteDownload(configuration, id);

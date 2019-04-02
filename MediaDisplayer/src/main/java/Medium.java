@@ -30,7 +30,7 @@ public class Medium {
             case VIDEO:
                 return (long) this.Video.getDuration().toMillis();
             case IMAGE:
-                if(this.ShowTime == 0)
+                if (this.ShowTime == 0)
                     // 3 Seconds
                     return TimeUnit.SECONDS.toMillis(3);
                 else

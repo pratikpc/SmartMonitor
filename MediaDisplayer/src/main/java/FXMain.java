@@ -269,10 +269,9 @@ public class FXMain extends Application {
         displayThread.start();
     }
 
-    void CloseConnections() throws Exception
-    {
+    void CloseConnections() throws Exception {
         this.sqlFiles.Close();
-        if(mqttClient.isConnected()) {
+        if (mqttClient.isConnected()) {
             mqttClient.disconnect();
             mqttClient.close(true);
         }
