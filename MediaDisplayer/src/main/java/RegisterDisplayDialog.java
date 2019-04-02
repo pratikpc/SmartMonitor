@@ -27,16 +27,35 @@ public class RegisterDisplayDialog {
     }
 
     private String CreateFileChooser(final String title, final String defaultPath) {
+
         Utils.CreateDirectoryIfNotExists(defaultPath);
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle(title);
         directoryChooser.setInitialDirectory(new File(defaultPath));
-        final String path = directoryChooser.showDialog(null).getAbsolutePath();
+        final File file = directoryChooser.showDialog(null);
+        if (file == null)
+            return null;
+        final String path = file.getAbsolutePath();
+
+        try {
+            if (!Utils.IsDirectoryEmpty(path))
+                return null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
         return path;
     }
 
     private boolean IsTextInputEmpty(final TextInputControl field) {
         return field.getText().trim().isEmpty();
+    }
+
+    public void ShowDirSelector()
+    {
+        String storageSelected = CreateFileChooser("Select Storage", storageDir.getText());
+        if (storageSelected != null)
+            storageDir.setText(storageSelected);
     }
 
     public void Build() {
@@ -83,10 +102,8 @@ public class RegisterDisplayDialog {
         this.storageDir.setPromptText("Storage Default");
         this.storageDir.setText(GetDefaultStorageDirectory());
         grid.add(storageDir, 1, 4);
-        storageSelect.setOnMouseClicked((event) -> {
-            String storageSelected = CreateFileChooser("Select Storage", GetDefaultStorageDirectory());
-            storageDir.setText(storageSelected);
-        });
+        storageDir.setOnMouseClicked((event) -> ShowDirSelector());
+        storageSelect.setOnMouseClicked((event) -> ShowDirSelector());
 
         final Label errorLabel = new Label("");
         errorLabel.setVisible(false);
@@ -105,15 +122,16 @@ public class RegisterDisplayDialog {
                 event -> {
                     // Check whether some conditions are fulfilled
                     if (!loginButton.isDisabled()) {
-                        String Name = this.username.getText().trim();
-                        String Password = this.password.getText().trim();
-                        String Server = this.server.getText().trim();
-                        String Location = this.location.getText().trim();
-                        String StoragePath = this.storageDir.getText().trim();
+                        final String Name = this.username.getText().trim();
+                        final String Password = this.password.getText().trim();
+                        final String Server = this.server.getText().trim();
+                        final String Location = this.location.getText().trim();
+                        final String StoragePath = this.storageDir.getText().trim();
                         try {
-                            ServerInteractor.CreateNewRasPi(Name, Password, Location, Server, StoragePath);
-                            this.Done = true;
-                            return;
+                            if (Utils.IsDirectoryEmpty(StoragePath)) {
+                                this.Done = ServerInteractor.CreateNewRasPi(Name, Password, Location, Server, StoragePath);
+                                return;
+                            }
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
