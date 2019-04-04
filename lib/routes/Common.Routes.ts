@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import * as mqtt from "mqtt";
-import * as Config from "../config/Mqtt";
 import { createHash, randomBytes } from "crypto";
 import { createReadStream, existsSync, mkdirSync } from "fs";
 import { join, extname } from "path";
@@ -8,8 +7,9 @@ import * as Models from "../Models/Models";
 import ffmpeg = require("fluent-ffmpeg");
 import * as multer from "multer";
 import * as mime from "mime";
-import { Sharp } from "sharp";
 import * as sharp from "sharp";
+import * as Config from "../config/Config";
+
 const storage = multer.diskStorage({
   destination: (request: any, file: any, callback: any) => {
     const dir = "./uploads";
@@ -160,7 +160,9 @@ export namespace RoutesCommon {
     name: string,
     extension: string,
     mediaType: string,
-    thumbnailName: string
+    thumbnailName: string,
+    width: number = Config.Thumbnail.Width,
+    height: number = Config.Thumbnail.Height
   ) {
     if (mediaType === "VIDEO") {
       const videoName = name + "." + extension;
@@ -171,7 +173,7 @@ export namespace RoutesCommon {
       const destName = join(location, thumbnailName);
       await sharp
         .default(sourceName)
-        .resize(320, 240, {
+        .resize(width, height, {
           kernel: sharp.kernel.nearest,
           fit: "contain",
           position: "right top"
@@ -184,19 +186,17 @@ export namespace RoutesCommon {
     videoName: string,
     thumbnailName: string,
     moment: string = "50%",
-    size: string = "320x240"
+    size: string = Config.Thumbnail.WxH
   ) {
     const videoPath = join(location, videoName);
 
-    ffmpeg(videoPath)
-      .thumbnails({
-        count: 1,
-        filename: thumbnailName,
-        folder: location,
-        size: size,
-        // Take Thumbnail at Half Time
-        timestamps: [moment]
-      })
-      .run();
+    ffmpeg(videoPath).thumbnails({
+      count: 1,
+      filename: thumbnailName,
+      folder: location,
+      size: size,
+      // Take Thumbnail at Half Time
+      timestamps: [moment]
+    });
   }
 }

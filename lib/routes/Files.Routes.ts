@@ -19,9 +19,9 @@ Files.post(
       if (params == null) return res.redirect("/files/upload");
 
       const displayIDs = RoutesCommon.GetDataAsArray<number>(params.ids);
-      const startTime = RoutesCommon.TimeToDecimal(params.startTime);
-      const endTime = RoutesCommon.TimeToDecimal(params.endTime);
-      let showTime = Number(params.showTime);
+      const startTime = 0;//RoutesCommon.TimeToDecimal(params.startTime);
+      const endTime = 0;//RoutesCommon.TimeToDecimal(params.endTime);
+      let showTime = 0;//Number(params.showTime);
 
       if (showTime == null || Number.isNaN(showTime)) showTime = 0;
 
@@ -62,6 +62,7 @@ Files.post(
 
           AlreadyPresentIDs.push(fileSame.id);
         }
+
         // As it's not something that already exists
         // We can check if it's video and Generate Thumbnail accordingly
         if (!fileSame)
