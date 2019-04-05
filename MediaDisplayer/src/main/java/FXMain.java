@@ -60,14 +60,16 @@ class Configuration {
 }
 
 public class FXMain extends Application {
-    final ImageView imageView = new ImageView();
-    final MediaView mediaView = new MediaView();
-    int CurrentMedium = 0;
-    SQLFiles sqlFiles;
+    private final ImageView imageView = new ImageView();
+    private final MediaView mediaView = new MediaView();
+    private int CurrentMedium = 0;
+    private SQLFiles sqlFiles;
 
-    Configuration configuration;
-    MqttClient mqttClient;
-    Thread displayThread;
+    private Configuration configuration;
+    private MqttClient mqttClient;
+    private Thread displayThread;
+
+    private MediaPlayer mediaPlayer;
 
     void SetupConfiguration() throws Exception {
         configuration = new Configuration(new PropertiesDeal().loadProperties());
@@ -130,6 +132,7 @@ public class FXMain extends Application {
 
     void SetupDisplayThread(final Stage stage) {
         displayThread = new Thread(() -> {
+
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     final Vector<Medium> media = sqlFiles.Load();
@@ -156,7 +159,7 @@ public class FXMain extends Application {
                             medium.DelayTillMediumShowDone();
                             break;
                         case VIDEO:
-                            final MediaPlayer mediaPlayer = new MediaPlayer(medium.Video);
+                            mediaPlayer = new MediaPlayer(medium.Video);
                             imageView.setImage(null);
                             imageView.fitWidthProperty().unbind();
                             imageView.fitHeightProperty().unbind();
@@ -164,15 +167,15 @@ public class FXMain extends Application {
                             imageView.setFitHeight(0);
                             mediaView.fitWidthProperty().bind(stage.widthProperty());
                             mediaView.fitHeightProperty().bind(stage.heightProperty());
-                            imageView.setVisible(false);
-                            mediaView.setVisible(true);
+                            // Do this to Ensure that Video plays in Same Size as
+                            // MediaView Object
                             mediaView.setMediaPlayer(mediaPlayer);
                             mediaPlayer.play();
-                            mediaPlayer.setAutoPlay(true);
-                            mediaPlayer.setMute(true);
+                            imageView.setVisible(false);
+                            mediaView.setVisible(true);
 
                             // Delay for sometime till it can load Medium Details
-                            TimeUnit.MILLISECONDS.sleep(500);
+                            TimeUnit.MILLISECONDS.sleep(200);
                             medium.DelayTillMediumShowDone();
                             mediaPlayer.stop();
                             break;
@@ -182,6 +185,8 @@ public class FXMain extends Application {
                             break;
                     }
                 }
+                this.mediaPlayer.stop();
+                this.mediaPlayer.dispose();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // restore interrupted status
             } catch (Exception ex) {
@@ -193,26 +198,24 @@ public class FXMain extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Any Error in High Priority Actions indicates Need to Terminate Stage
         try {
             RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
             ServerInteractor.DownloadNewFiles(configuration);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
             sqlFiles = new SQLFiles(configuration);
             // Update SQL Files List
             sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
             SetupDisplayThread(stage);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+            stage.close();
         }
 
         imageView.setVisible(false);
         mediaView.setVisible(false);
+        mediaView.setPreserveRatio(false);
 
         // Create the HBox
         HBox root = new HBox();
@@ -235,6 +238,9 @@ public class FXMain extends Application {
                 try {
                     ServerInteractor.DeleteDisplay(configuration);
                     CloseConnections();
+                    // Stop the Media Player to Ensure Media Files get Cleaned too
+                    this.mediaPlayer.stop();
+                    this.mediaPlayer.dispose();
                     Utils.ClearDirectory(configuration.StoragePath);
                     PropertiesDeal propertiesDeal = new PropertiesDeal();
                     propertiesDeal.deleteProperties();
@@ -270,6 +276,7 @@ public class FXMain extends Application {
     }
 
     void CloseConnections() throws Exception {
+        this.mediaPlayer.dispose();
         this.sqlFiles.Close();
         if (mqttClient.isConnected()) {
             mqttClient.disconnect();

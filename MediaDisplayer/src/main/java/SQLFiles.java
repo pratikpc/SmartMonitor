@@ -50,7 +50,7 @@ public class SQLFiles extends SQLInteractor {
 
     public Vector<Medium> Load() throws Exception {
         Vector<Medium> media = new Vector<>();
-        final String select = "SELECT path , showtime from " + Constants.DB.FileT + " WHERE display=? AND (start = end OR (start < ? AND end > ?))";
+        final String select = "SELECT path , showtime from " + Constants.DB.FileT + " WHERE display=? AND (start = end OR (start < ? AND end > ?)) ORDER BY id";
         final PreparedStatement preparedStatement = this.connection.prepareStatement(select);
         preparedStatement.setBoolean(1, true);
         final int time = Utils.GetCurrentHourAndMinuteAsInteger();
@@ -105,7 +105,8 @@ public class SQLFiles extends SQLInteractor {
         stmt.setString(2, path);
         stmt.setInt(3, start);
         stmt.setInt(4, end);
-        stmt.setInt(5, showTime);
+        int showTimeValidated = Math.max(showTime, 0);
+        stmt.setInt(5, showTimeValidated);
         stmt.setBoolean(6, display);
         int modified = stmt.executeUpdate();
         stmt.close();

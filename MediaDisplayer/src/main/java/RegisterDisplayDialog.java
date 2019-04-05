@@ -127,7 +127,12 @@ public class RegisterDisplayDialog {
                         final String Location = this.location.getText().trim();
                         final String StoragePath = this.storageDir.getText().trim();
                         try {
-                            if (Utils.IsDirectoryEmpty(StoragePath)) {
+                            Utils.CreateDirectoryIfNotExists(StoragePath);
+                            if (!Utils.IsDirectoryEmpty(StoragePath)) {
+                                errorLabel.setVisible(true);
+                                errorLabel.setText("Error Occurred. Folder Not Empty");
+                            } else {
+                                errorLabel.setVisible(false);
                                 this.Done = ServerInteractor.CreateNewRasPi(Name, Password, Location, Server, StoragePath);
                                 return;
                             }

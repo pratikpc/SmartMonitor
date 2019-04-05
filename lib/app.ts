@@ -26,9 +26,9 @@ app.use(cors.default());
 // middleware for json body parsing
 app.use(bodyParser.json());
 // middleware for parsing application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 // middleware for json body parsing
-app.use(bodyParser.json({limit: '5mb'}));
+app.use(bodyParser.json({ limit: "5mb" }));
 
 // Route via this as Path to Users
 app.use("/user", Routes.Users);
@@ -37,10 +37,10 @@ app.use("/display", Routes.Displays);
 // Route via this as path for File Uploading and Downloading
 app.use("/files", Routes.Files);
 
-app.get("/list", RoutesCommon.IsAuthenticated, (req,res)=>
-{
+app.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
   return res.render("displist.html");
 });
 
-
-app.get("/", (req, res)=>{return res.redirect("/user/login");});
+app.get("/", (req, res) => {
+  return res.redirect("/user/login");
+});

@@ -7,10 +7,9 @@ import { RoutesCommon } from "./Common.Routes";
 export const Users = Router();
 
 Users.get("/login/", (req, res) => {
-  if (req.isUnauthenticated())
-    return res.render('login.html');
+  if (req.isUnauthenticated()) return res.render("login.html");
   const authority = req.user.Authority;
-  return res.redirect('/files/upload');
+  return res.redirect("/files/upload");
 });
 // This is the Uri
 // By default when Post Request is Made
@@ -21,21 +20,14 @@ Users.post(
   passport.authenticate("app", { failureRedirect: "/user/login/" }),
   (req, res) => {
     const authority = String(req.user!.Authority);
-    return res.redirect('/files/upload');
+    return res.redirect("/files/upload");
   }
 );
 
-Users.post(
-  "/login/json",
-  passport.authenticate("app"),
-  (req, res) => {
-    if (req.isAuthenticated())
-      return res.json({ success: true });
-    else
-      return res.json({ success: false });
-  }
-);
-
+Users.post("/login/json", passport.authenticate("app"), (req, res) => {
+  if (req.isAuthenticated()) return res.json({ success: true });
+  else return res.json({ success: false });
+});
 
 // Uri for Logout
 Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
@@ -43,13 +35,16 @@ Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
   return res.redirect("/user/login");
 });
 
-Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => { return res.render("addUser.html"); });
-Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => { return res.render("userlist.html"); });
+Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {
+  return res.render("addUser.html");
+});
+Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => {
+  return res.render("userlist.html");
+});
 
 // This is the Uri for Registration of a new user
 Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
-
     const params = RoutesCommon.GetParameters(req);
     const name = String(params.name);
     const count_users = await Model.Users.count({ where: { Name: name } });

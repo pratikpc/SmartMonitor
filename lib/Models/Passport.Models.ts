@@ -8,12 +8,12 @@ import { Strategy } from "passport-local";
 import * as Model from "../Models/Models";
 
 export function PassportModelsGenerate(app: Express.Application) {
-  const SequelizeSessionStore = require('connect-session-sequelize')(Store);
-      const sessionStore = new SequelizeSessionStore({
-      db: Model.SequelizeSql,
-      checkExpirationInterval: 15 * 60 * 1000,
-      expiration: 24 * 60 * 60 * 60 * 1000
-    });
+  const SequelizeSessionStore = require("connect-session-sequelize")(Store);
+  const sessionStore = new SequelizeSessionStore({
+    db: Model.SequelizeSql,
+    checkExpirationInterval: 15 * 60 * 1000,
+    expiration: 24 * 60 * 60 * 60 * 1000
+  });
   app.use(
     ExpressSession({
       cookie: Config.Session.cookie,
@@ -22,7 +22,7 @@ export function PassportModelsGenerate(app: Express.Application) {
       saveUninitialized: Config.Session.saveUninitialized,
       secret: Config.Session.secret,
       // store: new FileStore()
-        store: sessionStore
+      store: sessionStore
     })
   );
 

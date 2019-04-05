@@ -6,9 +6,20 @@ import passport = require("passport");
 
 export const Displays = Router();
 
+Displays.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
+  return res.render("displist.html");
+});
+
 Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
-  const userId = Number(req.user.id);
-  // const userId = 1;
+  if (req.isUnauthenticated())
+    return res.json({
+      success: false
+    });
+
+  const userId = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
+    req.user.id,
+    0 /*User ID never less than this*/
+  );
 
   const params = RoutesCommon.GetParameters(req);
   const displayName = params.displayname;
@@ -128,7 +139,10 @@ Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
     const id = Number(params.id);
 
     const data: any[] = [];
-    const files = await Models.Files.findAll({ where: { DisplayID: id } });
+    const files = await Models.Files.findAll({
+      where: { DisplayID: id },
+      order: [["id", "ASC"]]
+    });
 
     files.forEach(file => {
       data.push({

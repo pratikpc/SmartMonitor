@@ -1,12 +1,15 @@
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 
 import java.io.File;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 public class Utils {
@@ -23,12 +26,20 @@ public class Utils {
         ClearDirectory(new File(fileOrDirectory));
     }
 
+    public static boolean ExistsDirectory(final String path) throws Exception {
+        return Files.exists(Paths.get(path));
+    }
+
     public static void ClearDirectory(final File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())
                 ClearDirectory(child);
 
         fileOrDirectory.delete();
+    }
+
+    public static UrlEncodedFormEntity AddToForm(final List<NameValuePair> form) throws Exception {
+        return new UrlEncodedFormEntity(form, "UTF-8");
     }
 
     public static boolean CreateConfirmationDialog(final String title, final String content) {

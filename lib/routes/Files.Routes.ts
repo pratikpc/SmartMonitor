@@ -18,18 +18,21 @@ Files.post(
       const params = RoutesCommon.GetParameters(req);
       if (params == null) return res.redirect("/files/upload");
 
-      const displayIDs = RoutesCommon.GetDataAsArray<number>(params.ids);
-      const startTime = 0;//RoutesCommon.TimeToDecimal(params.startTime);
-      const endTime = 0;//RoutesCommon.TimeToDecimal(params.endTime);
-      let showTime = 0;//Number(params.showTime);
+      const startTime = RoutesCommon.TimeToDecimal(params.startTime);
+      const endTime = RoutesCommon.TimeToDecimal(params.endTime);
+      if (startTime > endTime) return res.redirect("/files/upload");
 
-      if (showTime == null || Number.isNaN(showTime)) showTime = 0;
+      const showTime = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
+        params.showTime,
+        0 /*Default Time Set*/
+      );
 
+      const displayIDs = RoutesCommon.ToArray(params.ids);
       if (displayIDs.length === 0) return res.redirect("/files/upload");
 
       // Iterate over all the files
       files.forEach(async file => {
-        let extension = Path.extname(file.filename).substr(1);
+        let extension = Path.extname(file.filename).substr(1); // Ignores Dot
         let mediaType = RoutesCommon.GetFileMediaType(extension);
 
         if (!mediaType) return;
@@ -37,12 +40,34 @@ Files.post(
         let name = Path.basename(file.filename, Path.extname(file.filename));
         let location = file.destination;
 
+        // Convert to Mp4 x264 For Java compatibility
+        if (mediaType === "VIDEO") {
+          const converted = await RoutesCommon.VideoChangeFormatToH264(
+            location,
+            name,
+            extension
+          );
+          const oldPath = Path.join(location, name + "." + extension);
+          fs.unlink(oldPath, () => {});
+
+          if (!converted) return;
+
+          // We need to Add Video to name as then
+          // We need to also convert MP4 Files to New Format
+          // But we can't just write into the original file
+          name = name + "video";
+          extension = "mp4";
+        }
         // Get File Hash
         let fileHash = String(
-          await RoutesCommon.GetSHA256FromFile(location + "/" + file.filename)
+          await RoutesCommon.GetSHA256FromFileAsync(
+            Path.join(location, name + "." + extension)
+          )
         );
         // Get File Size
-        let fileSize = Number(file.size);
+        let fileSize = RoutesCommon.GetFileSizeInBytes(
+          Path.join(location, name + "." + extension)
+        );
 
         const fileSame = await Models.Files.findOne({
           where: { FileSize: fileSize, FileHash: fileHash }
@@ -51,7 +76,8 @@ Files.post(
         const AlreadyPresentIDs: number[] = [];
         // Same File Found
         if (fileSame) {
-          fs.unlink(file.path, () => {});
+          const path = Path.join(location, name + "." + extension);
+          fs.unlink(path, () => {});
 
           name = fileSame.Name;
           extension = fileSame.Extension;
@@ -60,13 +86,13 @@ Files.post(
           fileSize = fileSame.FileSize;
           mediaType = fileSame.MediaType;
 
-          AlreadyPresentIDs.push(fileSame.id);
+          AlreadyPresentIDs.push(fileSame.DisplayID);
         }
 
-        // As it's not something that already exists
-        // We can check if it's video and Generate Thumbnail accordingly
+        // As it's New File
+        // Generate Thumbnail
         if (!fileSame)
-          RoutesCommon.GenerateThumbnail(
+          RoutesCommon.GenerateThumbnailAsync(
             location,
             name,
             extension,
@@ -75,7 +101,7 @@ Files.post(
           );
 
         displayIDs.forEach(async displayId => {
-          if (AlreadyPresentIDs.includes(displayId)) {
+          if (AlreadyPresentIDs.includes(displayId))
             // As File getting Reuploaded, rather than doing nothing, we assume
             // It's user's instruction to show the file
             await Models.Files.update(
@@ -97,7 +123,7 @@ Files.post(
                 }
               }
             );
-          } else {
+          else
             await Models.Files.create({
               Name: name,
               Extension: extension,
@@ -112,15 +138,10 @@ Files.post(
               ShowTime: showTime,
               Downloaded: false
             });
-          }
-        });
-      });
 
-      if (RoutesCommon.MqttClient.connected) {
-        displayIDs.forEach(displayId => {
           RoutesCommon.SendMqttClientDownloadRequest(displayId);
         });
-      }
+      });
 
       return res.redirect("/files/upload");
     } catch (error) {
@@ -183,9 +204,7 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
     );
     if (count === 0) return res.json({ success: false });
 
-    if (RoutesCommon.MqttClient.connected) {
-      RoutesCommon.SendMqttClientUpdateSignal(displayId);
-    }
+    RoutesCommon.SendMqttClientUpdateSignal(displayId);
 
     return res.json({ success: true });
   } catch (err) {
@@ -203,14 +222,14 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
     const file = await Models.Files.findOne({
       where: { id: fileId, DisplayID: displayId }
     });
-    if (!file) return res.json({ success: false });
+    if (!file) return res.sendStatus(404);
 
     const path = file.GetThumbnailFileLocation();
     return res.download(path);
   } catch (err) {
     console.error(err);
-    return res.json({ success: false });
   }
+  return res.sendStatus(404);
 });
 
 Files.delete(
@@ -246,11 +265,10 @@ Files.post(
       where: { id: fileId, DisplayID: displayId, Downloaded: false }
     });
 
-    if (!file) return res.json({ success: false });
-
+    if (!file) return res.sendStatus(404);
     const path = file.PathToFile;
-
-    return res.download(path);
+    if (fs.existsSync(path)) return res.download(path);
+    return res.sendStatus(404);
   }
 );
 
@@ -264,12 +282,15 @@ Files.post(
       if (params == null)
         return res.json({
           success: false,
-          data: null
+          data: []
         });
       const id = Number(params.id);
 
       const data: any[] = [];
-      const files = await Models.Files.findAll({ where: { DisplayID: id } });
+      const files = await Models.Files.findAll({
+        where: { DisplayID: id },
+        order: [["id", "ASC"]]
+      });
 
       files.forEach(file => {
         data.push({
@@ -288,7 +309,7 @@ Files.post(
     }
     return res.json({
       success: false,
-      data: null
+      data: []
     });
   }
 );

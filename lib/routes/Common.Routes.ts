@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as mqtt from "mqtt";
 import { createHash, randomBytes } from "crypto";
-import { createReadStream, existsSync, mkdirSync } from "fs";
+import { createReadStream, existsSync, mkdirSync, statSync } from "fs";
 import { join, extname } from "path";
 import * as Models from "../Models/Models";
 import ffmpeg = require("fluent-ffmpeg");
@@ -91,7 +91,8 @@ export namespace RoutesCommon {
   }
 
   export function SendMqttMessage(id: number, message: string): void {
-    MqttClient.publish(Config.Mqtt.DisplayTopic(id), message);
+    if (MqttClient.connected)
+      MqttClient.publish(Config.Mqtt.DisplayTopic(id), message);
   }
 
   export function SendMqttClientDownloadRequest(id: number) {
@@ -101,7 +102,7 @@ export namespace RoutesCommon {
     SendMqttMessage(id, "UE");
   }
 
-  export function GetSHA256FromFile(path: string): Promise<string> {
+  export function GetSHA256FromFileAsync(path: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const hash = createHash("sha256");
       const rs = createReadStream(path);
@@ -111,20 +112,35 @@ export namespace RoutesCommon {
     });
   }
 
+  export function GetFileSizeInBytes(filename: string) {
+    const stats = statSync(filename);
+    const fileSizeInBytes = stats["size"];
+    return fileSizeInBytes;
+  }
+
   // Convert Given Data as Array of Type
-  export function GetDataAsArray<T>(data: any) {
+  export function ToArray(data: any): number[] {
     // If Null, Return Empty Array
     if (data == null) {
       return [];
     }
     // If it's already an array perform type conversion
     else if (Array.isArray(data)) {
-      return data as T[];
+      return data.map(Number);
     } else {
       // If it's Element, send as first value
-      const value = data as T;
+      const value = Number(data);
       return [value];
     }
+  }
+
+  export function ConvertStringToIntegralGreaterThanMin(
+    data: string,
+    min: number
+  ): number {
+    const val = Number(data);
+    if (val == null || Number.isNaN(val) || val < min) return min;
+    return val;
   }
 
   function IsNotEmptyAny(object: any): boolean {
@@ -146,16 +162,20 @@ export namespace RoutesCommon {
     return null;
   }
 
+  // Converts time provided in hh:mm format to
+  // Decimal
+  // 10:45 becomes 1045
   export function TimeToDecimal(decimal: string) {
+    if (decimal == null) return 0;
     // Get First 2 Array Elements
     const arr = decimal.split(":");
-    if (arr.length == 2) return 0;
+    if (arr.length !== 2) return 0;
     const hh = Number(decimal[0]);
     const mm = Number(decimal[1]);
     return hh * 100 + mm;
   }
 
-  export async function GenerateThumbnail(
+  export function GenerateThumbnailAsync(
     location: string,
     name: string,
     extension: string,
@@ -166,27 +186,49 @@ export namespace RoutesCommon {
   ) {
     if (mediaType === "VIDEO") {
       const videoName = name + "." + extension;
-      return GenerateThumbnailVideo(location, videoName, thumbnailName);
+      const wxh = width + "x" + height;
+      return GenerateThumbnailVideoAsync(
+        location,
+        videoName,
+        thumbnailName,
+        wxh
+      );
     }
     if (mediaType === "IMAGE") {
-      const sourceName = join(location, name + "." + extension);
-      const destName = join(location, thumbnailName);
-      await sharp
-        .default(sourceName)
-        .resize(width, height, {
-          kernel: sharp.kernel.nearest,
-          fit: "contain",
-          position: "right top"
-        })
-        .toFile(destName);
+      const imageName = name + "." + extension;
+      return GenerateThumbnailImageAsync(
+        location,
+        imageName,
+        thumbnailName,
+        width,
+        height
+      );
     }
   }
-  export function GenerateThumbnailVideo(
+  function GenerateThumbnailImageAsync(
+    location: string,
+    imageName: string,
+    thumbnailName: string,
+    width: number,
+    height: number
+  ) {
+    const sourceName = join(location, imageName);
+    const destName = join(location, thumbnailName);
+    return sharp
+      .default(sourceName)
+      .resize(width, height, {
+        kernel: sharp.kernel.nearest,
+        fit: "contain",
+        position: "right top"
+      })
+      .toFile(destName);
+  }
+  function GenerateThumbnailVideoAsync(
     location: string,
     videoName: string,
     thumbnailName: string,
-    moment: string = "50%",
-    size: string = Config.Thumbnail.WxH
+    size: string,
+    moment: string = "50%"
   ) {
     const videoPath = join(location, videoName);
 
@@ -197,6 +239,33 @@ export namespace RoutesCommon {
       size: size,
       // Take Thumbnail at Half Time
       timestamps: [moment]
+    });
+  }
+
+  export function VideoChangeFormatToH264(
+    location: string,
+    videoName: string,
+    videoExt: string
+  ) {
+    const videoSrc = join(location, videoName + "." + videoExt);
+    // Append video to Hash of Name
+    // Done because
+    // For an MP4 file, we can't write into same file
+    // Again
+    const videoDest = join(location, videoName + "video.mp4");
+
+    // Make this given function awaitable
+    // This way, the interface becomes easier to implement
+    // And Understand
+    // And we can introduce a blocking call
+    return new Promise<boolean>((resolve, reject) => {
+      ffmpeg(videoSrc)
+        .format("mp4")
+        .videoCodec("libx264")
+        .noAudio()
+        .saveToFile(videoDest)
+        .on("end", () => resolve(true))
+        .on("error", err => reject(err));
     });
   }
 }
