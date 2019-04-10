@@ -17,6 +17,9 @@ $.getJSON("/display/", function (data) {
             for (var i = 0; i < photo.data.length; i++) {
 
                 var iden2 = photo.data[i].file;
+                var dispstat = photo.data[i].OnDisplay;
+                console.log(dispstat);
+                var chng = !dispstat; 
 
                 var gridDiv = document.createElement('div');
                 gridDiv.classList.add("col-lg-3", "col-md-4", "col-6");
@@ -32,24 +35,21 @@ $.getJSON("/display/", function (data) {
                 var butHide = document.createElement('a');
                 butHide.classList.add("btn", "btn-primary");
                 butHide.setAttribute("role", "button");
-                butHide.setAttribute("disp",id);
-                butHide.setAttribute("fileid",iden2);
-                // butHide.onclick = function() {$.ajax({
-                //     url: '/files/shown' + $.param({"fileid": iden2, "id" : id}),
-                //     type: 'DELETE'});};
-                butHide.innerText = "Hide";
-                butHide.setAttribute('href', "#");
-
+                butHide.setAttribute("data-OnDisplay",dispstat)
+                if(dispstat)
+                { butHide.innerText = "Hide"; }
+                else { butHide.innerText = "Show"; }
+                butHide.onclick = function() {$.ajax({
+                    url: '/files/shown', type: 'PUT', contentType:'application/json', data:{"fileId": iden2, "DisplayId" : id, "OnDisplay":chng }
+                    });};
+                
                 var butDel = document.createElement('a');
                 butDel.classList.add("btn", "btn-primary");
                 butDel.setAttribute("role", "button");
-                butDel.setAttribute("disp",id);
-                butDel.setAttribute("fileid",iden2);
-                // butDel.onclick = function() {$.ajax({
-                //     url: '/files/remove' + $.param({"fileid": iden2, "id" : id}),
-                //     type: 'DELETE'});};
+                butDel.onclick = function() {$.ajax({
+                    url: '/files/remove' + $.param({"fileId": iden2, "DisplayId" : id}),
+                    type: 'DELETE'});};
                 butDel.innerText = "Delete";
-                butDel.setAttribute('href', "#");
 
                 aBlock.appendChild(imgBlock);
                 gridDiv.appendChild(aBlock);
