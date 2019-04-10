@@ -6,7 +6,7 @@ $.getJSON("/display/", function (data) {
         var newH3 = document.createElement('h3');
         var rowDiv = document.createElement('div');
         var acc = document.getElementById('accordion');
-
+        rowDiv.setAttribute("id","acc-div");
         newH3.innerText = data[count].name;
 
         rowDiv.classList.add("row", "text-center", "text-lg-left");
@@ -32,12 +32,22 @@ $.getJSON("/display/", function (data) {
                 var butHide = document.createElement('a');
                 butHide.classList.add("btn", "btn-primary");
                 butHide.setAttribute("role", "button");
+                butHide.setAttribute("disp",id);
+                butHide.setAttribute("fileid",iden2);
+                // butHide.onclick = function() {$.ajax({
+                //     url: '/files/shown' + $.param({"fileid": iden2, "id" : id}),
+                //     type: 'DELETE'});};
                 butHide.innerText = "Hide";
                 butHide.setAttribute('href', "#");
 
                 var butDel = document.createElement('a');
                 butDel.classList.add("btn", "btn-primary");
                 butDel.setAttribute("role", "button");
+                butDel.setAttribute("disp",id);
+                butDel.setAttribute("fileid",iden2);
+                // butDel.onclick = function() {$.ajax({
+                //     url: '/files/remove' + $.param({"fileid": iden2, "id" : id}),
+                //     type: 'DELETE'});};
                 butDel.innerText = "Delete";
                 butDel.setAttribute('href', "#");
 

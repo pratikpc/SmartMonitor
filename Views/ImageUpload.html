@@ -7,99 +7,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FilePond Multiple File Upload</title>
 
-    
+
     <link rel="stylesheet" href="/css/style.css" type='text/css'>
     <link rel="stylesheet" href="/css/bootstrap.min.css" type='text/css'>
     <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css" type='text/css'>
-	<link rel="stylesheet" href="/css/bootstrap-datepicker.css" type='text/css'>
+    <link rel="stylesheet" href="/css/bootstrap-datepicker.css" type='text/css'>
 
     <script type='text/javascript' src="/js/jquery.js"></script>
     <script type='text/javascript' src="/js/moment.min.js"></script>
     <script type='text/javascript' src="/js/bootstrap.min.js"></script>
     <script type='text/javascript' src="/js/bootstrap-datetimepicker.min.js"></script>
     <script type='text/javascript' src="/js/formvalidator.js"></script>
+    <script type="text/javascript" src="/js/rasplistgen.js"></script>
 
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+        integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 
-	<script src="/js/moment.min.js"></script> 
-	<script type="text/javascript" src="/js/tempusdominus-bootstrap-4.min.js"></script>
-	<link rel="stylesheet" href="/css/tempusdominus-bootstrap-4.min.css" />
+    <script type='text/javascript' src="/js/moment.min.js"></script>
+    <script type="text/javascript" src="/js/tempusdominus-bootstrap-4.min.js"></script>
+    <link type='text/css' rel="stylesheet" href="/css/tempusdominus-bootstrap-4.min.css" />
 
     <style>
-        *{
-            
+        * {
+
             padding: 0;
             margin: 0;
         }
+
         #Displays {
             padding: 2rem;
         }
+
         label {
             font-size: 1.5rem;
         }
     </style>
 
 </head>
+<body class="col-12" style="background-color: #252525; text-align: center">
+    <form enctype="multipart/form-data" method="POST" action="/files/upload">
+        <div class="custom-file">
+            <input type="file" accept="image/*,video/*" class="custom-file-input" name='files' multiple id="customFile">
+            <label class="custom-file-label" for="customFile">Choose file</label>
+        </div>
 
-<body class="col-12" style="background-color:#111; text-align: center">
+        <div class="container">
+            <div class="row margin-top">
+                <div class="col-12">
+                    <br>
+                    <p style="margin-bottom: 0px;">
+                        <font color="white">Select displays to upload image to:</font>
+                    </p>
+                    <div id="Displays"></div>
+                    <div class="wrap">
+                        <p style="margin-bottom: 0px;">
+                            <font color="white">Time Period :</font>
+                        </p><br>
+                        <input type="text" name="showTime" value="00"><br><br>
+                        <p style="color: #fff"><input type="checkbox" name='files'>Upload based on Date and
+                            Time<br><br></input></p>
+                        <div class="container">
+                            <div class="row justify-content-around">
+                                <div class='col-4'>
+                                    <div class="form-group">
+                                        <div class="input-group date" id="datetimepicker7" data-target-input="nearest">
+                                            <input type="text" class="form-control datetimepicker-input"
+                                                data-target="#datetimepicker7" name="startTime" />
+                                            <div class="input-group-append" data-target="#datetimepicker7"
+                                                data-toggle="datetimepicker">
+                                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><p>
+                                        <font color="white">TO</font>
+                                    </p> 
+                                <div class='col-4'>
+                                    <div class="form-group">
+                                        <div class="input-group date" id="datetimepicker8" data-target-input="nearest">
+                                            <input type="text" class="form-control datetimepicker-input"
+                                                data-target="#datetimepicker8" name="endTime" />
+                                            <div class="input-group-append" data-target="#datetimepicker8"
+                                                data-toggle="datetimepicker">
+                                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" id="submit_on">SUBMIT</button>
 
-	<form enctype="multipart/form-data" method="POST" action="/files/upload">				
-		<div class="custom-file">
-			<input type="file" accept="image/*,video/*" class="custom-file-input" name='files' multiple id="customFile">
-				<label class="custom-file-label" for="customFile">Choose file</label>
-		</div>
-		
-		<div id="Displays">
+                    <script type="text/javascript">
+                        $(function () {
+                            $('#datetimepicker7, #datetimepicker8').datetimepicker({
+                                format: 'HH:mm'
+                            });
 
-			<div class="container">
-                    <div class="row margin-top">
-                        <div class="col-12">
-                            <div class="wrap">
-									<p><font color="white">Time Period :</font></p><br>
-								<input type="text" name="showTime" value="00"><br><br>
-                                    <p style="color: #fff"><input type="checkbox" name='files' >Upload based on Date and Time<br><br></input></p>
-										<div class="container">
-											<div class='col-md-5'>
-												<div class="form-group">
-													<div class="input-group date" id="datetimepicker7" data-target-input="nearest">
-														<input type="text" class="form-control datetimepicker-input" data-target="#datetimepicker7" name="startTime"/>
-															<div class="input-group-append" data-target="#datetimepicker7" data-toggle="datetimepicker">
-																<div class="input-group-text"><i class="fa fa-calendar"></i></div>
-															</div>
-														</div>
-													</div>
-												</div> TO
-											<div class='col-md-5'>
-												<div class="form-group">
-													<div class="input-group date" id="datetimepicker8" data-target-input="nearest">
-														<input type="text" class="form-control datetimepicker-input" data-target="#datetimepicker8" name="endTime"/>
-															<div class="input-group-append" data-target="#datetimepicker8" data-toggle="datetimepicker">
-																<div class="input-group-text"><i class="fa fa-calendar"></i></div>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-										</div>
-											<button type="submit" class="btn btn-success" id="submit_on"
-											>SUBMIT</button>
-											
-											
-<script type="text/javascript">
-     $(function () {
-                $('#datetimepicker7, #datetimepicker8').datetimepicker({
-                    format: 'HH:mm'
-                });
-           
-        $("#datetimepicker7").on("change.datetimepicker", function (e) {
-            $('#datetimepicker8').datetimepicker('minDate', e.date);
-        });
-        $("#datetimepicker8").on("change.datetimepicker", function (e) {
-            $('#datetimepicker7').datetimepicker('maxDate', e.date);
-        });
-    });
-</script>
-</script>
+                            $("#datetimepicker7").on("change.datetimepicker", function (e) {
+                                $('#datetimepicker8').datetimepicker('minDate', e.date);
+                            });
+                            $("#datetimepicker8").on("change.datetimepicker", function (e) {
+                                $('#datetimepicker7').datetimepicker('maxDate', e.date);
+                            });
+                        });
+                    </script>
 </body>
 
 </html>
