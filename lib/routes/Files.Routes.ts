@@ -199,7 +199,7 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
     const [count] = await Models.Files.update(
       { OnDisplay: show },
       {
-        where: { id: fileId, DisplayID: displayId, OnDisplay: !show }
+        where: { id: fileId, DisplayID: displayId, OnDisplay: show }
       }
     );
     if (count === 0) return res.json({ success: false });
