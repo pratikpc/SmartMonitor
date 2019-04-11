@@ -65,10 +65,24 @@ $.getJSON("/display/", function(data) {
         var butDel = document.createElement("a");
         butDel.classList.add("btn", "btn-primary");
         butDel.setAttribute("role", "button");
-        butDel.onclick = function() {
+        butDel.setAttribute("data-id", id);
+        butDel.setAttribute("data-file", iden2);
+        butDel.setAttribute("data-OnDisplay", dispstat);
+
+        butDel.onclick = function(objectClicked) {
+          var button = objectClicked.target;
+          var fileId = button.getAttribute("data-file");
+          var displayId = button.getAttribute("data-id");
           $.ajax({
-            url: "/files/remove" + $.param({ file: iden2, id: id }),
-            type: "DELETE"
+            url: "/files/remove" + "?" + $.param({ file: fileId, id: displayId }),
+            type: "DELETE",
+            success: function(data) {
+              const success = Boolean(data.success);
+              if (success === false) {
+                console.error("Unable to Delete");
+                return;
+              }
+            }
           });
         };
         butDel.innerText = "Delete";
