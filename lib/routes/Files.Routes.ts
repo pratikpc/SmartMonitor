@@ -196,11 +196,14 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
     const displayId = Number(params.id);
     const show = Boolean(params.show);
 
+    console.log(params);
+
     const [count] = await Models.Files.update(
       { OnDisplay: show },
       {
-        where: { id: fileId, DisplayID: displayId, OnDisplay: show }
+        where: { id: fileId, DisplayID: displayId }
       }
+
     );
     if (count === 0) return res.json({ success: false });
 
@@ -231,6 +234,7 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
   }
   return res.sendStatus(404);
 });
+
 
 Files.delete(
   "/download/file",
