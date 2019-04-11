@@ -194,14 +194,14 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
     const params = RoutesCommon.GetParameters(req);
     const fileId = Number(params.file);
     const displayId = Number(params.id);
-    const show = Boolean(params.show);
+    const show = String(params.show) === "true";
 
-    console.log(params);
+    console.log(params, {fileId: fileId, displayId: displayId, show: show});
 
     const [count] = await Models.Files.update(
       { OnDisplay: show },
       {
-        where: { id: fileId, DisplayID: displayId }
+        where: { id: fileId, DisplayID: displayId, OnDisplay: !show }
       }
 
     );
