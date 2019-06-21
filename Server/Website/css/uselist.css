@@ -1,0 +1,56 @@
+
+@import url('https://fonts.googleapis.com/css?family=Numans');
+html,
+body {
+	height: 100%;
+	background-color: #252525;
+	/* background-attachment: fixed;
+	background-size: cover; */
+    color:white;
+	font-family: 'Numans', sans-serif;
+}
+
+.container {
+	height: auto;
+	align-content: center;
+}
+
+#tabtab{
+    margin: auto;
+	width: 100%;
+}
+
+.table th{
+    text-align: center;
+}
+.table td{
+    text-align: center;
+}
+#card {
+	margin-top: 5%;
+	margin-bottom: 5%;
+	padding: 15px 15px 0px 15px ;
+	width: 50%;
+	background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+#card-body{
+    position: relative;
+    margin: 10px;
+    /* overflow-x: hidden;
+    overflow-y: visible; */
+
+}
+
+.input-group-prepend span {
+	width: 50px;
+	background-color: #FFC312;
+	color: black;
+	border: 0 !important;
+}
+
+input:focus {
+	outline: 0 0 0 0 !important;
+	box-shadow: 0 0 0 0 !important;
+}
+

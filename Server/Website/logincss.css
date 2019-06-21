@@ -1,42 +1,47 @@
+/* Made with love by Mutiullah Samim*/
 
 @import url('https://fonts.googleapis.com/css?family=Numans');
 html,
 body {
-	height: 100%;
-	background-image: url('pexels-photo-953214.jpeg');
-	background-attachment: fixed;
+	background-image: url('http://getwallpapers.com/wallpaper/full/a/5/d/544750.jpg');
 	background-size: cover;
-    color:white;
+	background-repeat: no-repeat;
+	height: 100%;
 	font-family: 'Numans', sans-serif;
 }
 
-img {
-    max-width: 100%;
-    max-height: 100%;
-}
 .container {
-	height: auto;
+	height: 100%;
 	align-content: center;
 }
 
-.btn-primary {
-    margin: 2px;
-}
-
-#card {
-	margin-top: 5%;
-	margin-bottom: 5%;
-	padding: 15px 15px 15px ;
-	width: 75%;
+.card {
+	height: 370px;
+	margin-top: auto;
+	margin-bottom: auto;
+	width: 400px;
 	background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
-#card-body{
-    position: relative;
-    margin: 10px;
-    /* overflow-x: hidden;
-    overflow-y: visible; */
+.social_icon span {
+	font-size: 60px;
+	margin-left: 10px;
+	color: #FFC312;
+}
 
+.social_icon span:hover {
+	color: white;
+	cursor: pointer;
+}
+
+.card-header h3 {
+	color: white;
+}
+
+.social_icon {
+	position: absolute;
+	right: 20px;
+	top: -45px;
 }
 
 .input-group-prepend span {
@@ -71,4 +76,12 @@ input:focus {
 .login_btn:hover {
 	color: black;
 	background-color: white;
+}
+
+.links {
+	color: white;
+}
+
+.links a {
+	margin-left: 4px;
 }

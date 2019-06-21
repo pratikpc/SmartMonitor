@@ -276,8 +276,10 @@ public class FXMain extends Application {
     }
 
     void CloseConnections() throws Exception {
-        this.mediaPlayer.dispose();
-        this.sqlFiles.Close();
+        if (this.mediaPlayer != null)
+            this.mediaPlayer.dispose();
+        if (this.sqlFiles != null)
+            this.sqlFiles.Close();
         if (mqttClient.isConnected()) {
             mqttClient.disconnect();
             mqttClient.close(true);

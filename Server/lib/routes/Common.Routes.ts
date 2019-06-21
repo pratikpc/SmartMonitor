@@ -170,10 +170,10 @@ export namespace RoutesCommon {
     // Get First 2 Array Elements
     const arr = decimal.split(":");
     if (arr.length !== 2) return 0;
-    const hh = Number(decimal[0]);
-    const mm = Number(decimal[1]);
+    const hh = Number(arr[0]);
+    const mm = Number(arr[1]);
     return hh * 100 + mm;
-  }
+  } 
 
   export function GenerateThumbnailAsync(
     location: string,

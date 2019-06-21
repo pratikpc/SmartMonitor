@@ -36,7 +36,6 @@
 <script type="application/javascript">
     function ShowError(msg) {
         document.getElementById("errorid").innerText = msg;
-        console.log(msg);
     }
     $("#addForm").submit(function (e) {
         const name = document.getElementById("name").value;
@@ -47,7 +46,6 @@
             dataType: "json",
             data: { name: name },
             success: function (data) {
-                console.log(data);
                 const success = Boolean(data.success);
                 if (success === false)
                     return ShowError("Unable to Add User!!!");
