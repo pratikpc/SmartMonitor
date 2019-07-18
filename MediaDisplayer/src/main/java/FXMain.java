@@ -261,7 +261,7 @@ public class FXMain extends Application {
         stage.setScene(scene);
         stage.setResizable(false);
         // Disable Full Screen during Debugging
-//        stage.setFullScreen(true);
+        stage.setFullScreen(true);
         stage.setMaximized(true);
         // Set the title of the Stage
         stage.setTitle(Constants.AppName);
