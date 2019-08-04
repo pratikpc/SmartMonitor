@@ -141,8 +141,13 @@ public class FXMain extends Application {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     final Vector<Medium> media = sqlFiles.Load();
-                    if (media.isEmpty())
+                    System.out.println("Queue Size " + media.size());
+                    if (media.isEmpty()) {
+                        this.imageView.setVisible(false);
+                        this.mediaView.setVisible(false);
+                        TimeUnit.SECONDS.sleep(5);
                         continue;
+                    }
                     // Use this to Iterate over positions
                     if (CurrentMedium >= media.size())
                         CurrentMedium = 0;
@@ -211,10 +216,11 @@ public class FXMain extends Application {
             RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
-            ServerInteractor.DownloadNewFiles(configuration);
             sqlFiles = new SQLFiles(configuration);
+            ServerInteractor.DownloadNewFiles(configuration);
             // Update SQL Files List
             sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
+
             SetupDisplayThread(stage);
         } catch (Exception ex) {
             ex.printStackTrace(errorStream);
