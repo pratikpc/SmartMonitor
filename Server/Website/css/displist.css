@@ -20,11 +20,10 @@ img {
 }
 
 .btn-primary {
-	margin: 2px;
-	min-width: 82px;
+    margin: 2px;
 }
 
-/* #card {
+#card {
 	margin-top: 5%;
 	margin-bottom: 5%;
 	padding: 15px 15px 15px ;
@@ -37,13 +36,9 @@ img {
     margin: 10px;
     /* overflow-x: hidden;
     overflow-y: visible; */
-/*
-} */
 
-#accordion .ui-accordion-header {
-	font-size: 1.15em;
-  }
+}
 
 #acc-div{
-	background-color: white;
+	background-color: black;
 }
