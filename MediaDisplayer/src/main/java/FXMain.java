@@ -299,13 +299,17 @@ public class FXMain extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-        // Stop the Display Loop
-        if (this.displayThread != null) {
-            this.displayThread.interrupt();
-            this.displayThread.join();
+        try {
+            // Stop the Display Loop
+            if (this.displayThread != null) {
+                this.displayThread.interrupt();
+                this.displayThread.join();
+            }
+            CloseConnections();
+            Utils.Terminate();
+            errorStream.close();
+        }catch(Exception ex){
+            ex.printStackTrace(errorStream);
         }
-        CloseConnections();
-        Utils.Terminate();
-        errorStream.close();
     }
 }

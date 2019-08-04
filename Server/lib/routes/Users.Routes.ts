@@ -35,9 +35,6 @@ Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
   return res.redirect("/");
 });
 
-Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {
-  return res.render("addUser.html");
-});
 Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => {
   return res.render("userlist.html");
 });
@@ -46,13 +43,15 @@ Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => {
 Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
+
     const name = String(params.name);
+    if (name == null) return res.json({ success: false, password: null });
+    if (name === "") return res.json({ success: false, password: null });
+
+
     const count_users = await Model.Users.count({ where: { Name: name } });
 
     if (count_users !== 0) return res.json({ success: false, password: null });
-
-    if (name == null) return res.json({ success: false, password: null });
-    if (name === "") return res.json({ success: false, password: null });
 
     // Generate Random Pass Key
     const pass_key = randomBytes(10).toString("hex");
