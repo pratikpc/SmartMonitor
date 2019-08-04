@@ -16,7 +16,9 @@ export const SequelizeSql = new Sequelize({
   port: Config.DB.Port,
   database: Config.DB.AdminName,
   dialect: Config.DB.Dialect,
-  operatorsAliases: Config.DB.operatorsAliases
+  operatorsAliases: Config.DB.operatorsAliases,
+  // Set logging to False to disable logging
+  logging: true
 });
 
 async function CreateDatabaseIfNotExists(db_name: string) {
