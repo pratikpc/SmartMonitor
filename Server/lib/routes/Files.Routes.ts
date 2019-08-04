@@ -161,7 +161,10 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   });
 
   if (count === 0) return res.json({ success: false });
-  else return res.json({ success: true });
+
+  RoutesCommon.SendMqttClientUpdateSignal(displayId);
+
+  return res.json({ success: true });
 });
 
 Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
