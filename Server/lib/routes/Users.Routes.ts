@@ -32,7 +32,7 @@ Users.post("/login/json", passport.authenticate("app"), (req, res) => {
 // Uri for Logout
 Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
   req.logout();
-  return res.redirect("/user/login");
+  return res.redirect("/");
 });
 
 Users.get("/add/", RoutesCommon.IsAdmin, async (req, res) => {

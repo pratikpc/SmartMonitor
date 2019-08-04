@@ -18,7 +18,7 @@ app.engine('.html', require('ejs').renderFile);
 app.set("views", "./Views");
 app.use(express.static("./Website"));
 
-Models.RunSynchronisation().then(() => {});
+Models.RunSynchronisation().then(() => { });
 PassportModelsGenerate(app);
 
 app.use(cors.default());
@@ -38,6 +38,14 @@ app.use("/files", Routes.Files);
 
 app.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
   return res.render("displist.html");
+});
+
+app.get("/navbar", RoutesCommon.IsAuthenticated, (req, res) => {
+  console.log(req.user.Authority);
+  if (req.user.Authority === "ADMIN")
+    return res.render("navbaradmin.html");
+  else
+    return res.render("navbarnormal.html");
 });
 
 app.get("/", (req, res) => {

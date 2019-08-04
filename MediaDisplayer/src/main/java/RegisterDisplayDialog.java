@@ -41,7 +41,7 @@ public class RegisterDisplayDialog {
             if (!Utils.IsDirectoryEmpty(path))
                 return null;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
             return null;
         }
         return path;
