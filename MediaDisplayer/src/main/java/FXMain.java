@@ -66,7 +66,7 @@ class Configuration {
 public class FXMain extends Application {
     private final ImageView imageView = new ImageView();
     private final MediaView mediaView = new MediaView();
-    private PrintStream errorStream;
+
     private int CurrentMedium = 0;
     private SQLFiles sqlFiles;
 
@@ -106,7 +106,7 @@ public class FXMain extends Application {
                         sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace(errorStream);
+                    ex.printStackTrace();
                 }
             }
 
@@ -202,7 +202,7 @@ public class FXMain extends Application {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // restore interrupted status
             } catch (Exception ex) {
-                ex.printStackTrace(errorStream);
+                ex.printStackTrace();
             }
         });
     }
@@ -212,8 +212,7 @@ public class FXMain extends Application {
     public void start(Stage stage) {
         // Any Error in High Priority Actions indicates Need to Terminate Stage
         try {
-            errorStream = new PrintStream(new File("error.txt"));
-            RunFXLoginSetup();
+             RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
             sqlFiles = new SQLFiles(configuration);
@@ -223,7 +222,7 @@ public class FXMain extends Application {
 
             SetupDisplayThread(stage);
         } catch (Exception ex) {
-            ex.printStackTrace(errorStream);
+            ex.printStackTrace();
             stage.close();
             Platform.exit();
             return;
@@ -260,7 +259,7 @@ public class FXMain extends Application {
                     CloseConnections();
                     stage.close();
                 } catch (Exception ex) {
-                    ex.printStackTrace(errorStream);
+                    ex.printStackTrace();
                     return;
                 }
             }
@@ -313,9 +312,8 @@ public class FXMain extends Application {
             }
             CloseConnections();
             Utils.Terminate();
-            errorStream.close();
         }catch(Exception ex){
-            ex.printStackTrace(errorStream);
+            ex.printStackTrace();
         }
     }
 }
