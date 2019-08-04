@@ -3,10 +3,9 @@
 html,
 body {
 	height: 100%;
-	background-color: #252525;
 	/* background-attachment: fixed;
 	background-size: cover; */
-    color:white;
+    color:black;
 	font-family: 'Numans', sans-serif;
 }
 
