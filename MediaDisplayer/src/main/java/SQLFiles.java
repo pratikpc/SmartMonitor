@@ -18,7 +18,7 @@ class SQLInteractor {
         return connection.createStatement().executeUpdate(sql);
     }
 
-    public void Close() throws Exception {
+    public void Close() throws SQLException {
         if (!this.connection.isClosed())
             this.connection.close();
     }
@@ -33,8 +33,9 @@ class SQLInteractor {
 public class SQLFiles extends SQLInteractor {
     private Configuration configuration;
 
-    public SQLFiles(final Configuration configuration) throws SQLException {
+    public SQLFiles(final Configuration configuration) throws SQLException, ClassNotFoundException {
         this.configuration = configuration;
+        Class.forName("org.sqlite.JDBC");
         this.connection = this.configuration.GetSQLDBConnection();
 
         final String tableNew = "CREATE TABLE IF NOT EXISTS " + Constants.DB.FileT + "("
