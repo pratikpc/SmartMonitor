@@ -19,10 +19,10 @@ $.getJSON("/display/", function(data) {
 
         var gridDiv = document.createElement("div");
         gridDiv.setAttribute("data-file", curFileId);
-        gridDiv.classList.add("col-lg-3", "col-md-4", "col-6");
+        gridDiv.classList.add("col-lg-3", "col-md-4", "col-6","text-center");
 
         var aBlock = document.createElement("a");
-        aBlock.classList.add("d-block", "mb-4");
+        aBlock.classList.add("d-block", "mb-2");
 
         var imgBlock = document.createElement("img");
         var imgpath = "/files/thumbnail?file=" + curFileId + "&id=" + curDisplayId;
@@ -31,7 +31,7 @@ $.getJSON("/display/", function(data) {
         aBlock.classList.add("img-fluid", "img-thumbnail");
 
         var butHide = document.createElement("a");
-        butHide.classList.add("btn", "btn-primary");
+        butHide.classList.add("btn", "btn-primary","mb-4");
         butHide.setAttribute("role", "button");
         butHide.setAttribute("data-id", curDisplayId);
         butHide.setAttribute("data-file", curFileId);
@@ -65,7 +65,7 @@ $.getJSON("/display/", function(data) {
         };
 
         var butDel = document.createElement("a");
-        butDel.classList.add("btn", "btn-primary");
+        butDel.classList.add("btn", "btn-primary","mb-4");
         butDel.setAttribute("role", "button");
         butDel.setAttribute("data-id", curDisplayId);
         butDel.setAttribute("data-file", curFileId);
