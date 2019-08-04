@@ -20,6 +20,7 @@
     <script src="/js/custom-filer.js" type="text/javascript"></script>
     <script src="/js/jquery.fileuploads.init.js" type="text/javascript"></script>
     <script src="/js/dropzone.js"></script>
+
     <link rel="stylesheet" type="text/css" href="/css/dropzone.css">
     <link rel="stylesheet" type="text/css" href="/css/checkbox.css">
     <link rel="stylesheet" type="text/css" href="/css/basic.css">
@@ -28,7 +29,7 @@
     <!-- Required Fremwork -->
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
     <!-- jquery file upload Frame work -->
-    <link rel="stylesheet" type="text/css" href="/css/jquery.filer.css" >
+    <link rel="stylesheet" type="text/css" href="/css/jquery.filer.css">
     <link rel="stylesheet" type="text/css" href="/css/jquery.filer-dragdropbox-theme.css">
     <!-- themify-icons line icon -->
     <link rel="stylesheet" type="text/css" href="/css/themify-icons.css">
@@ -61,31 +62,29 @@
         }
 
         body {
-        background: rgb(243, 244, 245);
-        height: 100%;
-        color: rgb(100, 108, 127);
-        line-height: 1.4rem;
-        font-family: Roboto, "Open Sans", sans-serif;
-        font-size: 20px;
-        font-weight: 300;
-        text-rendering: optimizeLegibility;
+            background: rgb(243, 244, 245);
+            height: 100%;
+            color: rgb(100, 108, 127);
+            line-height: 1.4rem;
+            font-family: Roboto, "Open Sans", sans-serif;
+            font-size: 20px;
+            font-weight: 300;
+            text-rendering: optimizeLegibility;
         }
 
-        h1 
-        { 
-        text-align: center; 
+        h1 {
+            text-align: center;
         }
 
-    .dropzone {
-        background: white;
-        border-radius: 5px;
-        border: 2px dashed rgb(0, 135, 247);
-        border-image: none;
-        max-width: 1500px;
-        margin-left: auto;
-        margin-right: auto;
+        .dropzone {
+            background: white;
+            border-radius: 5px;
+            border: 2px dashed rgb(0, 135, 247);
+            border-image: none;
+            max-width: 1500px;
+            margin-left: auto;
+            margin-right: auto;
         }
-
     </style>
 </head>
 
@@ -131,10 +130,8 @@
     <div id="pcoded" class="pcoded">
         <div class="pcoded-overlay-box"></div>
         <div class="pcoded-container navbar-wrapper">
-
             <nav class="navbar header-navbar pcoded-header">
                 <div class="navbar-wrapper">
-
                     <div class="navbar-logo">
                         <a class="mobile-menu" id="mobile-collapse" href="#!">
                             <i class="feather icon-menu"></i>
@@ -182,88 +179,52 @@
 
             <!-- Left Navigation bar -->
             <div class="pcoded-main-container">
-                <div class="pcoded-wrapper">
-                    <nav class="pcoded-navbar">
-                        <div class="pcoded-inner-navbar main-menu">
-                            <div class="pcoded-navigatio-lavel">Control Panel</div>
-                            <ul class="pcoded-item pcoded-left-item">
-                                <li class="">
-                                    <a href="upload">
-                                        <span class="pcoded-micon"><i class="feather icon-upload-cloud"></i></span>
-                                        <span class="pcoded-mtext">Media Upload</span>
-                                    </a>
-                                </li>
-                                <li class=" ">
-                                    <a href="form-picker.htm">
-                                        <span class="pcoded-micon"><i class="feather icon-edit-1"></i></span>
-                                        <span class="pcoded-mtext">Form Picker</span>
-                                    </a>
-                                </li>
-                                <li class=" ">
-                                    <a href="form-select.htm">
-                                        <span class="pcoded-micon"><i class="feather icon-feather"></i></span>
-                                        <span class="pcoded-mtext">Form Select</span>
-                                    </a>
-                                </li>
-                                <li class=" ">
-                                    <a href="form-masking.htm">
-                                        <span class="pcoded-micon"><i class="feather icon-shield"></i></span>
-                                        <span class="pcoded-mtext">Form Masking</span>
-                                    </a>
-                                </li>
-                                <li class=" ">
-                                    <a href="form-wizard.htm">
-                                        <span class="pcoded-micon"><i class="feather icon-tv"></i></span>
-                                        <span class="pcoded-mtext">Form Wizard</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </nav>
-                    <!-- Left Navigation Bar Ends -->
+                <div class="pcoded-wrapper pcoded-navbar"  id="left-navbar-container">
+                </div>
+                <!-- Left Navigation Bar Ends -->
 
-                    <!-- Page Content Starts Here -->
-                    <form enctype="multipart/form-data" method="POST" action="/files/upload" id="formValue">
-                        <div class="pcoded-content">
-                            <div class="pcoded-inner-content">
-                                <!-- Main-body start -->
-                                <div class="main-body">
-                                    <div class="page-wrapper">
-                                        <!-- Page-header start -->
-                                        <div class="page-header">
-                                            <div class="row align-items-end">
-                                                <div class="col-lg-8">
-                                                    <div class="page-header-title">
-                                                        <div class="d-inline">
-                                                            <h4>File Upload</h4>
-                                                        </div>
+                <!-- Page Content Starts Here -->
+                <form enctype="multipart/form-data" method="POST" action="/files/upload" id="formValue">
+                    <div class="pcoded-content">
+                        <div class="pcoded-inner-content">
+                            <!-- Main-body start -->
+                            <div class="main-body">
+                                <div class="page-wrapper">
+                                    <!-- Page-header start -->
+                                    <div class="page-header">
+                                        <div class="row align-items-end">
+                                            <div class="col-lg-8">
+                                                <div class="page-header-title">
+                                                    <div class="d-inline">
+                                                        <h4>File Upload</h4>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Page-header end -->
-                                        <!-- Page-body start -->
-                                        <div class="page-body">
-                                            <!-- File upload card start -->
-                                            <div class="card">
-                                                <div class="card-header">
-                                                    <h5> </h5>
-                                                    <div class="card-header-right">
-                                                        <ul class="list-unstyled card-option">
-                                                            <li><i class="feather icon-maximize full-card"></i></li>
-                                                            <li><i class="feather icon-minus minimize-card"></i></li>
-                                                        </ul>
-                                                    </div>
+                                    </div>
+                                    <!-- Page-header end -->
+                                    <!-- Page-body start -->
+                                    <div class="page-body">
+                                        <!-- File upload card start -->
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5> </h5>
+                                                <div class="card-header-right">
+                                                    <ul class="list-unstyled card-option">
+                                                        <li><i class="feather icon-maximize full-card"></i></li>
+                                                        <li><i class="feather icon-minus minimize-card"></i>
+                                                        </li>
+                                                    </ul>
                                                 </div>
-                                                <div class="card-block">
-                                                    <div class="dropzone-previews dropzone" id="my-awesome-dropzone">
+                                            </div>
+                                            <div class="card-block">
+                                                <div class="dropzone-previews dropzone" id="my-awesome-dropzone">
                                                     <div class="fallback">
-                                                        <input type="file" accept="image/*,video/*"
-                                                        name='files'
-                                                        multiple id="customFile">
-                                                    </div>
+                                                        <input type="file" accept="image/*,video/*" name='files'
+                                                            multiple id="customFile">
                                                     </div>
                                                 </div>
+                                            </div>
 
                                             <!-- </div> -->
                                             <!-- File upload card end -->
@@ -271,64 +232,70 @@
                                         <!-- Displays to upload image onto start -->
                                         <p style="margin-top:50px;">Select displays to upload image to:</p>
                                         <ul class="ks-cboxtags">
-                                        <li><div id="Displays"></div></li>
+                                            <li>
+                                                <div id="Displays"></div>
+                                            </li>
                                         </ul>
                                         <!-- Displays to upload image onto end -->
                                         <!-- Page-body end -->
                                         <!-- Time Period -->
                                         <div style="text-align: center;margin-bottom: 100px">
                                             <p>Time Period : </p>
-                                            <input type="text" name="showTime" value="00" class="Inputbox" id="showTime">
+                                            <input type="text" name="showTime" value="00" class="Inputbox"
+                                                id="showTime">
                                         </div>
-                <!-- Time Period Ends -->
-                <!-- Linked TimePicker -->
-                <div class="container">
-                    <div class="row justify-content-around">
-                        <div class='col-4'>
-                            <div class="form-group">
-                                <div id="datetimepicker7" data-target-input="nearest">
-                                    <input type="text" class="form-control datetimepicker-input"
-                                        data-target="#datetimepicker7" name="startTime" placeholder="00:00" id="startTime" />
-                                    <div class="input-group-append" data-target="#datetimepicker7"
-                                        data-toggle="datetimepicker">
-                                        <div class="input-group-text">
+                                        <!-- Time Period Ends -->
+                                        <!-- Linked TimePicker -->
+                                        <div class="container">
+                                            <div class="row justify-content-around">
+                                                <div class='col-4'>
+                                                    <div class="form-group">
+                                                        <div id="datetimepicker7" data-target-input="nearest">
+                                                            <input type="text" class="form-control datetimepicker-input"
+                                                                data-target="#datetimepicker7" name="startTime"
+                                                                placeholder="00:00" id="startTime" />
+                                                            <div class="input-group-append"
+                                                                data-target="#datetimepicker7"
+                                                                data-toggle="datetimepicker">
+                                                                <div class="input-group-text">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p>
+                                                    TO
+                                                </p>
+                                                <div class='col-4'>
+                                                    <div class="form-group">
+                                                        <div id="datetimepicker8" data-target-input="nearest">
+                                                            <input type="text" class="form-control datetimepicker-input"
+                                                                data-target="#datetimepicker8" name="endTime"
+                                                                placeholder="00:00" id="endTime" />
+                                                            <div class="input-group-append"
+                                                                data-target="#datetimepicker8"
+                                                                data-toggle="datetimepicker">
+                                                                <div class="input-group-text">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+                                        <!-- Linked TimePicker Ends -->
+                                        <button type="submit" class="btn btn-success" id="submit_on"
+                                            style="margin-left: 50%;margin-top: 100px">SUBMIT</button>
                                     </div>
                                 </div>
+                                <!-- Main-body end -->
                             </div>
-                        </div>
-                        <p>
-                            TO
-                        </p>
-                        <div class='col-4'>
-                            <div class="form-group">
-                                <div id="datetimepicker8" data-target-input="nearest">
-                                    <input type="text" class="form-control datetimepicker-input"
-                                        data-target="#datetimepicker8" name="endTime" placeholder="00:00" id="endTime" />
-                                    <div class="input-group-append" data-target="#datetimepicker8"
-                                        data-toggle="datetimepicker">
-                                        <div class="input-group-text">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Linked TimePicker Ends -->
-                <button type="submit" class="btn btn-success" id="submit_on"
-                    style="margin-left: 50%;margin-top: 100px">SUBMIT</button>
+                            <!-- </div> -->
+                </form>
             </div>
         </div>
-        <!-- Main-body end -->
     </div>
-    <!-- </div> -->
-    </form>
-    </div>
-    </div>
-    </div>
-    </div>
-    
+
 
     <!-- Required Jquery -->
     <!-- <script type="text/javascript" src="/js/jquery.min.js"></script> -->
@@ -349,7 +316,7 @@
     <script src="/js/vartical-layout.min.js"></script>
     <script src="/js/jquery.mCustomScrollbar.concat.min.js"></script>
     <script type="text/javascript" src="/js/script.js"></script>
-    
+
     <script type="text/javascript">
         $(function () {
             $('#datetimepicker7, #datetimepicker8').datetimepicker({
@@ -394,8 +361,8 @@
                         e.stopPropagation();
                         myDropzone.processQueue();
                     });
-                    
-                   // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
+
+                    // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
                     // of the sending event because uploadMultiple is set to true.
                     this.on("sendingmultiple", function (data, xhr, formData) {
                         // Gets triggered when the form is actually being sent.
@@ -404,11 +371,11 @@
                         var checked = document.querySelectorAll("input[name='ids']:checked");
                         checked.forEach(check_box => formData.append("ids", check_box.value));
 
-                        formData.append("showTime", document.getElementById("showTime")["value"]);  
+                        formData.append("showTime", document.getElementById("showTime")["value"]);
                         formData.append("startTime", document.getElementById("startTime")["value"]);
                         formData.append("endTime", document.getElementById("endTime")["value"]);
                     });
-                    
+
                     this.on("successmultiple", function (files, response) {
                         // Gets triggered when the files have successfully been sent.
                         // Redirect user or notify of success.
@@ -417,7 +384,7 @@
                         // Gets triggered when there was an error sending the files.
                         // Maybe show form again, and notify user of error
                     });
-                
+
                     this.on("addedfile", function () {
                         $('#submit_on').show();
                     });
