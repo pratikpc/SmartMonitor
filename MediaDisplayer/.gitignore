@@ -135,3 +135,5 @@ dist/
 /paho*/\*.lck
 
 /props
+
+/error.txt

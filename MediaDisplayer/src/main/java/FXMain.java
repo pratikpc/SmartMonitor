@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -9,7 +10,8 @@ import javafx.stage.Stage;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
-import java.io.PrintWriter;
+import java.io.File;
+import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -51,7 +53,8 @@ class Configuration {
         return Utils.GetAbsolutePath(this.StoragePath, names);
     }
 
-    public Connection GetSQLDBConnection() throws SQLException {
+    public Connection GetSQLDBConnection() throws SQLException, ClassNotFoundException {
+        Class.forName("org.sqlite.JDBC");
         return DriverManager.getConnection("jdbc:sqlite:" + this.GetAbsolutePathFromStorage("database", "files.db"));
     }
 
@@ -61,9 +64,9 @@ class Configuration {
 }
 
 public class FXMain extends Application {
-    private PrintWriter printWriter;
     private final ImageView imageView = new ImageView();
     private final MediaView mediaView = new MediaView();
+    private PrintStream errorStream;
     private int CurrentMedium = 0;
     private SQLFiles sqlFiles;
 
@@ -73,11 +76,11 @@ public class FXMain extends Application {
 
     private MediaPlayer mediaPlayer;
 
-    void SetupConfiguration() throws Exception {
+    private void SetupConfiguration() throws Exception {
         configuration = new Configuration(new PropertiesDeal().loadProperties());
     }
 
-    void SetupMQTT() throws MqttException {
+    private void SetupMQTT() throws MqttException {
         mqttClient = new MqttClient(configuration.GetMqttLink(), MqttAsyncClient.generateClientId(), configuration.GetMqttDefaultStorageLocation());
         mqttClient.connect();
         mqttClient.subscribe("/display/" + configuration.Id);
@@ -103,7 +106,7 @@ public class FXMain extends Application {
                         sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace(printWriter);
+                    ex.printStackTrace(errorStream);
                 }
             }
 
@@ -114,11 +117,11 @@ public class FXMain extends Application {
         });
     }
 
-    void RunFXLoginSetup() throws Exception {
+    private void RunFXLoginSetup() throws Exception {
         RunFXLoginSetup(null);
     }
 
-    void RunFXLoginSetup(final Properties props) throws Exception {
+    private void RunFXLoginSetup(final Properties props) throws Exception {
         final PropertiesDeal propertiesDeal = new PropertiesDeal();
         while (true) {
             final Properties p = propertiesDeal.loadProperties();
@@ -132,7 +135,7 @@ public class FXMain extends Application {
         }
     }
 
-    void SetupDisplayThread(final Stage stage) {
+    private void SetupDisplayThread(final Stage stage) {
         displayThread = new Thread(() -> {
 
             try {
@@ -187,14 +190,14 @@ public class FXMain extends Application {
                             break;
                     }
                 }
-                if(this.mediaPlayer != null){
-                this.mediaPlayer.stop();
-                this.mediaPlayer.dispose();
+                if (this.mediaPlayer != null) {
+                    this.mediaPlayer.stop();
+                    this.mediaPlayer.dispose();
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // restore interrupted status
             } catch (Exception ex) {
-                ex.printStackTrace(printWriter);
+                ex.printStackTrace(errorStream);
             }
         });
     }
@@ -204,7 +207,7 @@ public class FXMain extends Application {
     public void start(Stage stage) {
         // Any Error in High Priority Actions indicates Need to Terminate Stage
         try {
-            printWriter = new PrintWriter("error.txt");
+            errorStream = new PrintStream(new File("error.txt"));
             RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
@@ -214,8 +217,9 @@ public class FXMain extends Application {
             sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
             SetupDisplayThread(stage);
         } catch (Exception ex) {
-            ex.printStackTrace(printWriter);
+            ex.printStackTrace(errorStream);
             stage.close();
+            Platform.exit();
             return;
         }
 
@@ -252,7 +256,7 @@ public class FXMain extends Application {
                     propertiesDeal.deleteProperties();
                     stage.close();
                 } catch (Exception ex) {
-                    ex.printStackTrace(printWriter);
+                    ex.printStackTrace(errorStream);
                     return;
                 }
             }
@@ -281,7 +285,7 @@ public class FXMain extends Application {
         displayThread.start();
     }
 
-    void CloseConnections() throws Exception {
+    private void CloseConnections() throws Exception {
         if (this.mediaPlayer != null)
             this.mediaPlayer.dispose();
         if (this.sqlFiles != null)
@@ -302,6 +306,6 @@ public class FXMain extends Application {
         }
         CloseConnections();
         Utils.Terminate();
-        printWriter.close();
+        errorStream.close();
     }
 }

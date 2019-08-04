@@ -137,7 +137,7 @@ public class RegisterDisplayDialog {
                                 return;
                             }
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            // ex.printStackTrace();
                         }
                     }
                     this.Done = false;
