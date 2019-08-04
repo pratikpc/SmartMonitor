@@ -246,14 +246,12 @@ public class FXMain extends Application {
                 if (!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Reset?"))
                     return;
                 try {
-                    ServerInteractor.DeleteDisplay(configuration);
-                    CloseConnections();
                     // Stop the Media Player to Ensure Media Files get Cleaned too
-                    this.mediaPlayer.stop();
-                    this.mediaPlayer.dispose();
                     Utils.ClearDirectory(configuration.StoragePath);
                     PropertiesDeal propertiesDeal = new PropertiesDeal();
                     propertiesDeal.deleteProperties();
+                    ServerInteractor.DeleteDisplay(configuration);
+                    CloseConnections();
                     stage.close();
                 } catch (Exception ex) {
                     ex.printStackTrace(errorStream);
@@ -286,8 +284,10 @@ public class FXMain extends Application {
     }
 
     private void CloseConnections() throws Exception {
-        if (this.mediaPlayer != null)
+        if (this.mediaPlayer != null) {
+            this.mediaPlayer.stop();
             this.mediaPlayer.dispose();
+        }
         if (this.sqlFiles != null)
             this.sqlFiles.Close();
         if (this.mqttClient != null && this.mqttClient.isConnected()) {
