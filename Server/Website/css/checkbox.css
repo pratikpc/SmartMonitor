@@ -4,6 +4,7 @@ ul.ks-cboxtags {
 }
 ul.ks-cboxtags li{
   display: inline;
+  padding: 2vw;
 }
 ul.ks-cboxtags li label{
     display: inline-block;

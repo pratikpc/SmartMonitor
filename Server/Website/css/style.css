@@ -10199,7 +10199,7 @@ table thead .border-bottom-info th, table tbody .border-bottom-info th, table tb
 }
 
 .pcoded .pcoded-navbar[navbar-theme="theme1"] .pcoded-navigatio-lavel {
-    color: #404E67;
+    color: rgb(190, 190, 190);
     border-bottom-color: transparent
 }
 
