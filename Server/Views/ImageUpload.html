@@ -58,7 +58,9 @@
         }
 
         #Displays {
-            padding: 2rem;
+            overflow: auto;
+            max-height: 25vh;
+            max-width: 80vw;
         }
 
         body {
@@ -81,7 +83,9 @@
             border-radius: 5px;
             border: 2px dashed rgb(0, 135, 247);
             border-image: none;
-            max-width: 1500px;
+            max-width: 80vw;
+            height: 10vw;
+            max-height: 12vw;
             margin-left: auto;
             margin-right: auto;
         }
@@ -90,96 +94,50 @@
 
 <body>
     <!-- Pre-loader start -->
-    <!-- <div class="theme-loader">
-    <div class="ball-scale">
-        <div class='contain'>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
-            </div>
-            <div class="ring">
-                <div class="frame"></div>
+    <div class="theme-loader">
+        <div class="ball-scale">
+            <div class='contain'>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
             </div>
         </div>
     </div>
-</div> -->
     <!-- Pre-loader end -->
     <div id="pcoded" class="pcoded">
         <div class="pcoded-overlay-box"></div>
         <div class="pcoded-container navbar-wrapper">
-            <nav class="navbar header-navbar pcoded-header">
-                <div class="navbar-wrapper">
-                    <div class="navbar-logo">
-                        <a class="mobile-menu" id="mobile-collapse" href="#!">
-                            <i class="feather icon-menu"></i>
-                        </a>
-                        <a href="index-1.htm">
-                            <img class="img-fluid" src="/images/logo.png" alt="Theme-Logo">
-                        </a>
-                        <a class="mobile-options">
-                            <i class="feather icon-more-horizontal"></i>
-                        </a>
-                    </div>
-
-                    <div class="navbar-container container-fluid">
-                        <ul class="nav-left">
-                            <li>
-                                <a href="#!" onclick="javascript:toggleFullScreen()">
-                                    <i class="feather icon-maximize full-screen"></i>
-                                </a>
-                            </li>
-                        </ul>
-                        <ul class="nav-right">
-                            <li class="user-profile header-notification">
-                                <div class="dropdown-primary dropdown">
-                                    <div class="dropdown-toggle" data-toggle="dropdown">
-                                        <img src="/images/avatar-4.jpg" class="img-radius" alt="User-Profile-Image">
-                                        <span>User</span>
-                                        <i class="feather icon-chevron-down"></i>
-                                    </div>
-                                    <ul class="show-notification profile-notification dropdown-menu"
-                                        data-dropdown-in="fadeIn" data-dropdown-out="fadeOut">
-                                        <li>
-                                            <a href="/user/logout">
-                                                <i class="feather icon-log-out"></i> Logout
-                                            </a>
-                                        </li>
-                                    </ul>
-
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-
 
             <!-- Left Navigation bar -->
             <div class="pcoded-main-container">
-                <div class="pcoded-wrapper pcoded-navbar"  id="left-navbar-container">
+                <div class="pcoded-wrapper pcoded-navbar" id="left-navbar-container">
                 </div>
                 <!-- Left Navigation Bar Ends -->
 
@@ -230,67 +188,65 @@
                                             <!-- File upload card end -->
                                         </div>
                                         <!-- Displays to upload image onto start -->
-                                        <p style="margin-top:50px;">Select displays to upload image to:</p>
-                                        <ul class="ks-cboxtags">
-                                            <li>
-                                                <div id="Displays"></div>
-                                            </li>
-                                        </ul>
+                                        <div class="form-group">
+                                            <div class="form-row">Select displays to upload image to:</div>
+                                            <ul id="Displays" class="list-group ks-cboxtags">
+                                            </ul>
+                                        </div>
                                         <!-- Displays to upload image onto end -->
                                         <!-- Page-body end -->
                                         <!-- Time Period -->
-                                        <div style="text-align: center;margin-bottom: 100px">
-                                            <p>Time Period : </p>
-                                            <input type="text" name="showTime" value="00" class="Inputbox"
-                                                id="showTime">
+                                        <div class="form-group">
+                                            <label for="showTime"
+                                                class="form-group row h-100 justify-content-center align-items-center">
+                                                Time Period : </div>
+                                        <div class="form-group row h-100 justify-content-center align-items-center">
+                                            <input type="text" name="showTime" value="00" class="Inputbox" id="showTime"
+                                                required />
                                         </div>
-                                        <!-- Time Period Ends -->
-                                        <!-- Linked TimePicker -->
-                                        <div class="container">
-                                            <div class="row justify-content-around">
-                                                <div class='col-4'>
-                                                    <div class="form-group">
-                                                        <div id="datetimepicker7" data-target-input="nearest">
-                                                            <input type="text" class="form-control datetimepicker-input"
-                                                                data-target="#datetimepicker7" name="startTime"
-                                                                placeholder="00:00" id="startTime" />
-                                                            <div class="input-group-append"
-                                                                data-target="#datetimepicker7"
-                                                                data-toggle="datetimepicker">
-                                                                <div class="input-group-text">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <p>
-                                                    TO
-                                                </p>
-                                                <div class='col-4'>
-                                                    <div class="form-group">
-                                                        <div id="datetimepicker8" data-target-input="nearest">
-                                                            <input type="text" class="form-control datetimepicker-input"
-                                                                data-target="#datetimepicker8" name="endTime"
-                                                                placeholder="00:00" id="endTime" />
-                                                            <div class="input-group-append"
-                                                                data-target="#datetimepicker8"
-                                                                data-toggle="datetimepicker">
-                                                                <div class="input-group-text">
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                    </div>
+                                    <!-- Time Period Ends -->
+                                    <!-- Linked TimePicker -->
+                                    <!-- https://stackoverflow.com/questions/18672452/left-align-and-right-align-within-div-in-bootstrap -->
+                                    <div class="container d-flex justify-content-between form-group">
+                                        <div class="form-group">
+                                            <div id="datetimepicker7" data-target-input="nearest">
+                                                <input type="text" class="form-control datetimepicker-input"
+                                                    data-target="#datetimepicker7" name="startTime" placeholder="00:00"
+                                                    id="startTime" required />
+                                                <div class="input-group-append" data-target="#datetimepicker7"
+                                                    data-toggle="datetimepicker">
+                                                    <div class="input-group-text">
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Linked TimePicker Ends -->
-                                        <button type="submit" class="btn btn-success" id="submit_on"
-                                            style="margin-left: 50%;margin-top: 100px">SUBMIT</button>
+                                        <div class="align-self-center form-col">
+                                            TO
+                                        </div>
+                                        <div class="form-group">
+                                            <div id="datetimepicker8" data-target-input="nearest">
+                                                <input type="text" class="form-control datetimepicker-input"
+                                                    data-target="#datetimepicker8" name="endTime" placeholder="00:00"
+                                                    id="endTime" required />
+                                                <div class="input-group-append" data-target="#datetimepicker8"
+                                                    data-toggle="datetimepicker">
+                                                    <div class="input-group-text">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Main-body end -->
+                                <!-- Linked TimePicker Ends -->
+                                <div class="form-row text-center  justify-content-center"> <button type="submit"
+                                        class="btn btn-success" id="submit_on">SUBMIT</button>
+                                </div>
                             </div>
-                            <!-- </div> -->
+                        </div>
+                        <!-- Main-body end -->
+                    </div>
+                    <!-- </div> -->
                 </form>
             </div>
         </div>
@@ -316,6 +272,7 @@
     <script src="/js/vartical-layout.min.js"></script>
     <script src="/js/jquery.mCustomScrollbar.concat.min.js"></script>
     <script type="text/javascript" src="/js/script.js"></script>
+    <script type="text/javascript" src="/js/navbar-load.js"></script>
 
     <script type="text/javascript">
         $(function () {
@@ -332,23 +289,50 @@
             });
         });
 
-        $(function () {
-            $("div#left-navbar-container").load("/navbar");
-        });
+        function DisableSubmitButton() {
+            const submit = document.getElementById("submit_on");
+            submit.setAttribute('disabled', 'disabled');
+            submit.classList.remove("btn-success");
+            submit.classList.add("btn-danger");
+            submit.setAttribute("title", "Please Select Displays and Images to Upload");
+        }
+        function EnableSubmitButton() {
+            const submit = document.getElementById("submit_on");
+            submit.removeAttribute('disabled');
+            submit.classList.remove("btn-danger");
+            submit.classList.add("btn-success");
+            submit.removeAttribute("title");
+        }
+
+        function VerifyIfSubmitEnabled() {
+            const myDropzone = document.querySelector("#my-awesome-dropzone").dropzone;
+            const filesCount = myDropzone.files.length;
+            const displaysSelected = document.querySelectorAll("input[name='ids'][type=checkbox]:checked").length;
+            console.log(displaysSelected);
+
+            if (filesCount > 0 && displaysSelected > 0)
+                EnableSubmitButton();
+            else
+                DisableSubmitButton();
+        }
 
         $(document).ready(function () {
             Dropzone.options.fileUpload = {
                 url: '/files/upload'
             }
             Dropzone.options.myAwesomeDropzone = {
-                // The configuration we've talked about above
                 autoProcessQueue: false,
                 uploadMultiple: true,
+                addRemoveLinks: true,
+                dictRemoveFileConfirmation: "Do you really want to remove?",
                 url: '/files/upload',
                 parallelUploads: 100,
+                preventDuplicates: true,
                 acceptedFiles: "image/*, video/*",
+                dictInvalidFileType: "Upload only Image or Videos",
                 maxFiles: 100,
-                paramName: function (n) { return 'files'; },  // Don't enumerate the transfers
+                // input[name='files']
+                paramName: function (n) { return 'files'; },
 
                 // The setting up of the dropzone
                 init: function () {
@@ -364,7 +348,7 @@
 
                     // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
                     // of the sending event because uploadMultiple is set to true.
-                    this.on("sendingmultiple", function (data, xhr, formData) {
+                    myDropzone.on("sendingmultiple", function (data, xhr, formData) {
                         // Gets triggered when the form is actually being sent.
                         // Hide the success button or the complete form.
 
@@ -376,20 +360,23 @@
                         formData.append("endTime", document.getElementById("endTime")["value"]);
                     });
 
-                    this.on("successmultiple", function (files, response) {
+                    myDropzone.on("successmultiple", function (files, response) {
                         // Gets triggered when the files have successfully been sent.
                         // Redirect user or notify of success.
                     });
-                    this.on("errormultiple", function (files, response) {
+                    myDropzone.on("errormultiple", function (files, response) {
                         // Gets triggered when there was an error sending the files.
                         // Maybe show form again, and notify user of error
                     });
 
-                    this.on("addedfile", function () {
-                        $('#submit_on').show();
+                    myDropzone.on("addedfile", function () {
+                        VerifyIfSubmitEnabled();
+                    });
+                    myDropzone.on("removedfile", function (file) {
+                        VerifyIfSubmitEnabled();
                     });
 
-                    $('#submit_on').hide();
+                    DisableSubmitButton();
 
                 }
 
