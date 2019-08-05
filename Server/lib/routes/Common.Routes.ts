@@ -30,8 +30,8 @@ const storage = multer.diskStorage({
 });
 export const upload = multer.default({
   storage: storage,
-  // Set File Size Limit of 25 MB
-  limits: { fileSize: 1024 * 1024 * 25 }
+  // Set File Size Limit of 50 MB
+  limits: { fileSize: 1024 * 1024 * 50 }
 });
 
 export namespace RoutesCommon {
