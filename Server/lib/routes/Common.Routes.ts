@@ -75,19 +75,19 @@ export namespace RoutesCommon {
     next: NextFunction
   ) {
     if (req.isAuthenticated()) return next();
-    res.redirect("/user/login");
+    return res.redirect("/");
   }
 
   // Check if User is Admin
   export function IsAdmin(req: Request, res: Response, next: NextFunction) {
     if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
-    res.redirect("/user/login");
+    return res.redirect("/");
   }
 
   // Check if User is Not Admin
   export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
     if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
-    res.redirect("/user/login");
+    return res.redirect("/");
   }
 
   export function SendMqttMessage(id: number, message: string): void {

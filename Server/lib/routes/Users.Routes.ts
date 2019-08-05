@@ -17,7 +17,7 @@ Users.get("/login/", (req, res) => {
 // If not, Perform Redirection
 Users.post(
   "/login/",
-  passport.authenticate("app", { failureRedirect: "/user/login/" }),
+  passport.authenticate("app", { failureRedirect: "/" }),
   (req, res) => {
     const authority = String(req.user!.Authority);
     return res.redirect("/files/upload");

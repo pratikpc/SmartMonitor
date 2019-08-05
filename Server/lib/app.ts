@@ -49,5 +49,5 @@ app.get("/navbar", RoutesCommon.IsAuthenticated, (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  return res.redirect("/user/login");
+  return res.render("login.html");
 });
