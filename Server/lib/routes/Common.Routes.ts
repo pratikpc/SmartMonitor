@@ -242,6 +242,11 @@ export namespace RoutesCommon {
     });
   }
 
+  export function NoCaching(res: Response){
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    return res;
+  }
+
   export function VideoChangeFormatToH264(
     location: string,
     videoName: string,

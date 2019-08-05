@@ -7,7 +7,7 @@ import passport = require("passport");
 export const Displays = Router();
 
 Displays.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
-  return res.render("displist.html");
+  return RoutesCommon.NoCaching(res).render("displist.html");
 });
 
 Displays.post("/add/", passport.authenticate("app"), async (req, res) => {

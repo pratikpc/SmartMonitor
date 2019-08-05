@@ -168,7 +168,7 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
 });
 
 Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
-  return res.render("ImageUpload.html");
+  return RoutesCommon.NoCaching(res).render("ImageUpload.html");
 });
 
 Files.post(

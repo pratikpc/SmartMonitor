@@ -36,7 +36,7 @@ Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
 });
 
 Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => {
-  return res.render("userlist.html");
+  return RoutesCommon.NoCaching(res).render("userlist.html");
 });
 
 // This is the Uri for Registration of a new user
