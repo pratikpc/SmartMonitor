@@ -15,11 +15,11 @@
     <!-- Favicon icon -->
     <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
 
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script src="/js/jquery.filer.min.js"></script>
-    <script src="/js/custom-filer.js" type="text/javascript"></script>
-    <script src="/js/jquery.fileuploads.init.js" type="text/javascript"></script>
-    <script src="/js/dropzone.js"></script>
+    <script type='text/javascript' src="/js/jquery.min.js"></script>
+    <script type='text/javascript' src="/js/jquery.filer.min.js"></script>
+    <script type='text/javascript' src="/js/custom-filer.js" type="text/javascript"></script>
+    <script type='text/javascript' src="/js/jquery.fileuploads.init.js" type="text/javascript"></script>
+    <script type='text/javascript' src="/js/dropzone.js"></script>
 
     <link rel="stylesheet" type="text/css" href="/css/dropzone.css">
     <link rel="stylesheet" type="text/css" href="/css/checkbox.css">
@@ -44,8 +44,8 @@
     <link rel="stylesheet" type="text/css" href="/css/all.css">
 
     <script type='text/javascript' src="/js/moment.min.js"></script>
-
     <script type='text/javascript' src="/js/moment.js"></script>
+
     <script type="text/javascript" src="/js/tempusdominus-bootstrap-4.min.js"></script>
     <link type='text/css' rel="stylesheet" href="/css/tempusdominus-bootstrap-4.min.css" />
 
@@ -315,74 +315,64 @@
             else
                 DisableSubmitButton();
         }
+        Dropzone.options.myAwesomeDropzone = {
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            addRemoveLinks: true,
+            dictRemoveFileConfirmation: "Do you really want to remove?",
+            url: '/files/upload',
+            parallelUploads: 100,
+            preventDuplicates: true,
+            acceptedFiles: "image/*, video/*",
+            dictInvalidFileType: "Upload only Image or Videos",
+            maxFiles: 100,
+            // input[name='files']
+            paramName: function (n) { return 'files'; },
 
-        $(document).ready(function () {
-            Dropzone.options.fileUpload = {
-                url: '/files/upload'
+            // The setting up of the dropzone
+            init: function () {
+                var myDropzone = this;
+
+                // First change the button to actually tell Dropzone to process the queue.
+                document.getElementById("submit_on").addEventListener("click", function (e) {
+                    // Make sure that the form isn't actually being sent.
+                    e.preventDefault();
+                    e.stopPropagation();
+                    myDropzone.processQueue();
+                });
+
+                // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
+                // of the sending event because uploadMultiple is set to true.
+                myDropzone.on("sendingmultiple", function (data, xhr, formData) {
+                    // Gets triggered when the form is actually being sent.
+                    // Hide the success button or the complete form.
+
+                    var checked = document.querySelectorAll("input[name='ids']:checked");
+                    checked.forEach(check_box => formData.append("ids", check_box.value));
+
+                    formData.append("showTime", document.getElementById("showTime")["value"]);
+                    formData.append("startTime", document.getElementById("startTime")["value"]);
+                    formData.append("endTime", document.getElementById("endTime")["value"]);
+                });
+
+                myDropzone.on("successmultiple", function (files, response) {
+                    // Gets triggered when the files have successfully been sent.
+                    // Redirect user or notify of success.
+                });
+                myDropzone.on("errormultiple", function (files, response) {
+                    // Gets triggered when there was an error sending the files.
+                    // Maybe show form again, and notify user of error
+                });
+
+                myDropzone.on("addedfile", function () {
+                    VerifyIfSubmitEnabled();
+                });
+                myDropzone.on("removedfile", function (file) {
+                    VerifyIfSubmitEnabled();
+                });
             }
-            Dropzone.options.myAwesomeDropzone = {
-                autoProcessQueue: false,
-                uploadMultiple: true,
-                addRemoveLinks: true,
-                dictRemoveFileConfirmation: "Do you really want to remove?",
-                url: '/files/upload',
-                parallelUploads: 100,
-                preventDuplicates: true,
-                acceptedFiles: "image/*, video/*",
-                dictInvalidFileType: "Upload only Image or Videos",
-                maxFiles: 100,
-                // input[name='files']
-                paramName: function (n) { return 'files'; },
-
-                // The setting up of the dropzone
-                init: function () {
-                    var myDropzone = this;
-
-                    // First change the button to actually tell Dropzone to process the queue.
-                    document.getElementById("submit_on").addEventListener("click", function (e) {
-                        // Make sure that the form isn't actually being sent.
-                        e.preventDefault();
-                        e.stopPropagation();
-                        myDropzone.processQueue();
-                    });
-
-                    // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
-                    // of the sending event because uploadMultiple is set to true.
-                    myDropzone.on("sendingmultiple", function (data, xhr, formData) {
-                        // Gets triggered when the form is actually being sent.
-                        // Hide the success button or the complete form.
-
-                        var checked = document.querySelectorAll("input[name='ids']:checked");
-                        checked.forEach(check_box => formData.append("ids", check_box.value));
-
-                        formData.append("showTime", document.getElementById("showTime")["value"]);
-                        formData.append("startTime", document.getElementById("startTime")["value"]);
-                        formData.append("endTime", document.getElementById("endTime")["value"]);
-                    });
-
-                    myDropzone.on("successmultiple", function (files, response) {
-                        // Gets triggered when the files have successfully been sent.
-                        // Redirect user or notify of success.
-                    });
-                    myDropzone.on("errormultiple", function (files, response) {
-                        // Gets triggered when there was an error sending the files.
-                        // Maybe show form again, and notify user of error
-                    });
-
-                    myDropzone.on("addedfile", function () {
-                        VerifyIfSubmitEnabled();
-                    });
-                    myDropzone.on("removedfile", function (file) {
-                        VerifyIfSubmitEnabled();
-                    });
-
-                    DisableSubmitButton();
-
-                }
-
-            };
-
-        });  
+        };
+        DisableSubmitButton();
     </script>
 </body>
 
