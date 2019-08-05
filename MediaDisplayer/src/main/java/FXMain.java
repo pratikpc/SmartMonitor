@@ -141,7 +141,6 @@ public class FXMain extends Application {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     final Vector<Medium> media = sqlFiles.Load();
-                    System.out.println("Queue Size " + media.size());
                     if (media.isEmpty()) {
                         this.imageView.setVisible(false);
                         this.mediaView.setVisible(false);
