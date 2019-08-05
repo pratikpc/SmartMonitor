@@ -51,7 +51,6 @@ $.getJSON("/display/", function(data) {
             success: function(data) {
               const success = Boolean(data.success);
               if (success === false) {
-                console.error("Unable to hide");
                 return;
               }
               if (button.innerText === "Hide")
@@ -59,7 +58,6 @@ $.getJSON("/display/", function(data) {
               else button.innerText = "Hide";
             },
             error: function(jqXHR, exception) {
-              console.error("Unable to hide ", jqXHR, exception);
             }
           });
         };
@@ -80,7 +78,6 @@ $.getJSON("/display/", function(data) {
             success: function(data) {
               const success = Boolean(data.success);
               if (success === false) {
-                console.error("Unable to Delete");
                 return;
               }
             }

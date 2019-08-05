@@ -52,11 +52,6 @@
     <script type="text/javascript" src="/js/rasplistgen.js"></script>
 
     <style>
-        * {
-            padding: 0;
-            margin: 0;
-        }
-
         #Displays {
             overflow: auto;
             max-height: 25vh;
@@ -308,7 +303,6 @@
             const myDropzone = document.querySelector("#my-awesome-dropzone").dropzone;
             const filesCount = myDropzone.files.length;
             const displaysSelected = document.querySelectorAll("input[name='ids'][type=checkbox]:checked").length;
-            console.log(displaysSelected);
 
             if (filesCount > 0 && displaysSelected > 0)
                 EnableSubmitButton();
