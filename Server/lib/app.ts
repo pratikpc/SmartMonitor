@@ -49,5 +49,7 @@ app.get("/navbar", RoutesCommon.IsAuthenticated, (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  return res.render("login.html");
+  if (req.isUnauthenticated()) return res.render("login.html");
+  const authority = req.user.Authority;
+  return res.redirect("/files/upload");
 });
