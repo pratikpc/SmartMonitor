@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SmartDisplay </title>
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="XYZ123">
+    <meta name="description" content="#">
+    <meta name="keywords"
+        content="Admin , Responsive, Landing, Bootstrap, App, Template, Mobile, iOS, Android, apple, creative app">
+    <meta name="author" content="#">
+    <!-- Favicon icon -->
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+
+    <script type='text/javascript' src="/js/jquery.min.js"></script>
+    <script type='text/javascript' src="/js/jquery.filer.min.js"></script>
+    <script type='text/javascript' src="/js/custom-filer.js" type="text/javascript"></script>
+    <script type='text/javascript' src="/js/jquery.fileuploads.init.js" type="text/javascript"></script>
+    <script type='text/javascript' src="/js/dropzone.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/css/dropzone.css">
+    <link rel="stylesheet" type="text/css" href="/css/checkbox.css">
+    <link rel="stylesheet" type="text/css" href="/css/basic.css">
+    <!-- Google font-->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" rel="stylesheet">
+    <!-- Required Fremwork -->
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+    <!-- jquery file upload Frame work -->
+    <link rel="stylesheet" type="text/css" href="/css/jquery.filer.css">
+    <link rel="stylesheet" type="text/css" href="/css/jquery.filer-dragdropbox-theme.css">
+    <!-- themify-icons line icon -->
+    <link rel="stylesheet" type="text/css" href="/css/themify-icons.css">
+    <!-- ico font -->
+    <link rel="stylesheet" type="text/css" href="/css/icofont.css">
+    <!-- feather Awesome -->
+    <link rel="stylesheet" type="text/css" href="/css/feather.css">
+    <!-- Style.css -->
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+
+    <link rel="stylesheet" type="text/css" href="/css/jquery.mCustomScrollbar.css">
+    <link rel="stylesheet" type="text/css" href="/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/css/scroll.css">
+
+
+    <script type='text/javascript' src="/js/moment.min.js"></script>
+    <script type='text/javascript' src="/js/moment.js"></script>
+
+    <script type="text/javascript" src="/js/tempusdominus-bootstrap-4.min.js"></script>
+    <link type='text/css' rel="stylesheet" href="/css/tempusdominus-bootstrap-4.min.css" />
+
+    <script type="text/javascript" src="/js/rasplistgen.js"></script>
+
+    <style>
+        #Displays {
+            overflow: auto;
+            height: 10vh;
+            max-height: 25vh;
+            max-width: 80vw;
+        }
+
+        body {
+            background: rgb(243, 244, 245);
+            height: 100%;
+            color: rgb(100, 108, 127);
+            line-height: 1.4rem;
+            font-family: Roboto, "Open Sans", sans-serif;
+            font-size: 20px;
+            font-weight: 300;
+            text-rendering: optimizeLegibility;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .dropzone {
+            background: white;
+            border-radius: 5px;
+            border: 2px dashed rgb(0, 135, 247);
+            border-image: none;
+            max-width: 80vw;
+            height: 10vw;
+            max-height: 12vw;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Pre-loader start -->
+    <div class="theme-loader">
+        <div class="ball-scale">
+            <div class='contain'>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+                <div class="ring">
+                    <div class="frame"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Pre-loader end -->
+    <div id="pcoded" class="pcoded">
+        <div class="pcoded-overlay-box"></div>
+        <div class="pcoded-container navbar-wrapper">
+
+            <!-- Left Navigation bar -->
+            <div class="pcoded-main-container">
+                <div class="pcoded-wrapper pcoded-navbar" id="left-navbar-container">
+                </div>
+                <!-- Left Navigation Bar Ends -->
+
+                <!-- Page Content Starts Here -->
+                <form enctype="multipart/form-data" method="POST" action="/files/upload" id="formValue">
+                    <div class="pcoded-content">
+                        <div class="pcoded-inner-content">
+                            <!-- Main-body start -->
+                            <div class="main-body">
+                                <div class="page-wrapper">
+                                    <!-- Page-header start -->
+                                    <div class="page-header">
+                                        <div class="row align-items-end">
+                                            <div class="col-lg-8">
+                                                <div class="page-header-title">
+                                                    <div class="d-inline">
+                                                        <h4>File Upload</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Page-header end -->
+                                    <!-- Page-body start -->
+                                    <div class="page-body">
+                                        <!-- File upload card start -->
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5> </h5>
+                                                <div class="card-header-right">
+                                                    <ul class="list-unstyled card-option">
+                                                        <li><i class="feather icon-maximize full-card"></i></li>
+                                                        <li><i class="feather icon-minus minimize-card"></i>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="card-block">
+                                                <div class="dropzone-previews dropzone" id="my-awesome-dropzone">
+                                                    <div class="fallback">
+                                                        <input type="file" accept="image/*,video/*" name='files'
+                                                            multiple id="customFile">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- </div> -->
+                                            <!-- File upload card end -->
+                                        </div>
+                                        <!-- Displays to upload image onto start -->
+                                        <div class="form-group">
+                                            <div class="form-row">Select displays to upload image to:</div>
+                                            <ul id="Displays" class="ist-inline ks-cboxtags">
+                                            </ul>
+                                        </div>
+                                        <!-- Displays to upload image onto end -->
+                                        <!-- Page-body end -->
+                                        <!-- Time Period -->
+                                        <div class="form-group">
+                                            <label for="showTime"
+                                                class="form-group row h-100 justify-content-center align-items-center">
+                                                Time Period : </div>
+                                        <div class="form-group row h-100 justify-content-center align-items-center">
+                                            <input type="text" name="showTime" value="10" class="Inputbox" id="showTime"
+                                                required />
+                                        </div>
+                                    </div>
+                                    <!-- Time Period Ends -->
+                                    <!-- Linked TimePicker -->
+                                    <!-- https://stackoverflow.com/questions/18672452/left-align-and-right-align-within-div-in-bootstrap -->
+                                    <div class="container d-flex justify-content-between form-group">
+                                        <div class="form-group">
+                                            <div id="datetimepicker7" data-target-input="nearest">
+                                                <input type="text" class="form-control datetimepicker-input"
+                                                    data-target="#datetimepicker7" name="startTime" placeholder="00:00"
+                                                    id="startTime" required />
+                                                <div class="input-group-append" data-target="#datetimepicker7"
+                                                    data-toggle="datetimepicker">
+                                                    <div class="input-group-text">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="align-self-center form-col">
+                                            TO
+                                        </div>
+                                        <div class="form-group">
+                                            <div id="datetimepicker8" data-target-input="nearest">
+                                                <input type="text" class="form-control datetimepicker-input"
+                                                    data-target="#datetimepicker8" name="endTime" placeholder="00:00"
+                                                    id="endTime" required />
+                                                <div class="input-group-append" data-target="#datetimepicker8"
+                                                    data-toggle="datetimepicker">
+                                                    <div class="input-group-text">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Linked TimePicker Ends -->
+                                <div class="form-row text-center  justify-content-center"> <button type="submit"
+                                        class="btn btn-success" id="submit_on">SUBMIT</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Main-body end -->
+                    </div>
+                    <!-- </div> -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Required Jquery -->
+    <!-- <script type="text/javascript" src="/js/jquery.min.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/popper.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <!-- jquery slimscroll js -->
+    <script type="text/javascript" src="/js/jquery.slimscroll.js"></script>
+    <!-- modernizr js -->
+    <script type="text/javascript" src="/js/modernizr.js"></script>
+    <script type="text/javascript" src="/js/css-scrollbars.js"></script>
+    <!-- jquery file upload js -->
+    <!-- <script src="/js/jquery.filer.min.js"></script>
+    <script src="/js/custom-filer.js" type="text/javascript"></script>
+    <script src="/js/jquery.fileuploads.init.js" type="text/javascript"></script> -->
+    <!-- Custom js -->
+    <script src="/js/pcoded.min.js"></script>
+    <script src="/js/vartical-layout.min.js"></script>
+    <script src="/js/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script type="text/javascript" src="/js/script.js"></script>
+    <script type="text/javascript" src="/js/navbar-load.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            $('#datetimepicker7, #datetimepicker8').datetimepicker({
+                format: 'HH:mm',
+                useCurrent: false
+            });
+
+            $("#datetimepicker7").on("change.datetimepicker", function (e) {
+                $('#datetimepicker8').datetimepicker('minDate', e.date);
+            });
+            $("#datetimepicker8").on("change.datetimepicker", function (e) {
+                $('#datetimepicker7').datetimepicker('maxDate', e.date);
+            });
+        });
+
+        function DisableSubmitButton() {
+            const submit = document.getElementById("submit_on");
+            submit.setAttribute('disabled', 'disabled');
+            submit.classList.remove("btn-success");
+            submit.classList.add("btn-danger");
+            submit.setAttribute("title", "Please Select Displays and Images to Upload");
+        }
+        function EnableSubmitButton() {
+            const submit = document.getElementById("submit_on");
+            submit.removeAttribute('disabled');
+            submit.classList.remove("btn-danger");
+            submit.classList.add("btn-success");
+            submit.removeAttribute("title");
+        }
+
+        function VerifyIfSubmitEnabled() {
+            const myDropzone = document.querySelector("#my-awesome-dropzone").dropzone;
+            const filesCount = myDropzone.files.length;
+            const displaysSelected = document.querySelectorAll("input[name='ids'][type=checkbox]:checked").length;
+
+            if (filesCount > 0 && displaysSelected > 0)
+                EnableSubmitButton();
+            else
+                DisableSubmitButton();
+        }
+        Dropzone.options.myAwesomeDropzone = {
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            addRemoveLinks: true,
+            dictRemoveFileConfirmation: "Do you really want to remove?",
+            url: '/files/upload',
+            parallelUploads: 100,
+            preventDuplicates: true,
+            acceptedFiles: "image/*, video/*",
+            dictInvalidFileType: "Upload only Image or Videos",
+            maxFiles: 100,
+            // input[name='files']
+            paramName: function (n) { return 'files'; },
+
+            // The setting up of the dropzone
+            init: function () {
+                var myDropzone = this;
+
+                // First change the button to actually tell Dropzone to process the queue.
+                document.getElementById("submit_on").addEventListener("click", function (e) {
+                    // Make sure that the form isn't actually being sent.
+                    e.preventDefault();
+                    e.stopPropagation();
+                    myDropzone.processQueue();
+                });
+
+                // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
+                // of the sending event because uploadMultiple is set to true.
+                myDropzone.on("sendingmultiple", function (data, xhr, formData) {
+                    // Gets triggered when the form is actually being sent.
+                    // Hide the success button or the complete form.
+
+                    var checked = document.querySelectorAll("input[name='ids']:checked");
+                    checked.forEach(check_box => formData.append("ids", check_box.value));
+
+                    formData.append("showTime", document.getElementById("showTime")["value"]);
+                    formData.append("startTime", document.getElementById("startTime")["value"]);
+                    formData.append("endTime", document.getElementById("endTime")["value"]);
+                });
+
+                myDropzone.on("successmultiple", function (files, response) {
+                    // Gets triggered when the files have successfully been sent.
+                    // Redirect user or notify of success.
+
+                    // As files have been successfully sent,
+                    // Refresh page
+                    window.location.reload();
+                });
+                myDropzone.on("errormultiple", function (files, response) {
+                    // Gets triggered when there was an error sending the files.
+                    // Maybe show form again, and notify user of error
+                });
+
+                myDropzone.on("addedfile", function () {
+                    VerifyIfSubmitEnabled();
+                });
+                myDropzone.on("removedfile", function (file) {
+                    VerifyIfSubmitEnabled();
+                });
+            }
+        };
+        DisableSubmitButton();
+    </script>
+</body>
+
+</html>
