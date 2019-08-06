@@ -13,14 +13,14 @@ Files.post(
   async (req, res) => {
     try {
       const files = req.files as any[];
-      if (files.length === 0) return res.redirect("/files/upload");
+      if (files.length === 0) return res.status(422).send("Upload Failed");
 
       const params = RoutesCommon.GetParameters(req);
-      if (params == null) return res.redirect("/files/upload");
+      if (params == null) return res.status(422).send("Upload Failed");
 
       const startTime = RoutesCommon.TimeToDecimal(params.startTime);
       const endTime = RoutesCommon.TimeToDecimal(params.endTime);
-      if (startTime > endTime) return res.redirect("/files/upload");
+      if (startTime > endTime) return res.status(422).send("Upload Failed");
 
       const showTime = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
         params.showTime,
@@ -28,7 +28,7 @@ Files.post(
       );
 
       const displayIDs = RoutesCommon.ToArray(params.ids);
-      if (displayIDs.length === 0) return res.redirect("/files/upload");
+      if (displayIDs.length === 0) return res.status(422).send("Upload Failed");
 
       // Iterate over all the files
       files.forEach(async file => {
@@ -143,10 +143,10 @@ Files.post(
         });
       });
 
-      return res.redirect("/files/upload");
+      return res.status(200).redirect("/files/upload");
     } catch (error) {
       console.error(error);
-      return res.redirect("/files/upload");
+      return res.status(422).send("Upload Failed");
     }
   }
 );
