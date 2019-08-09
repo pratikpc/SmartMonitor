@@ -46,19 +46,6 @@ public class ServerInteractor {
         return new JSONObject(json).optBoolean("success", false);
     }
 
-    public static boolean DeleteDisplay(Configuration configuration) throws Exception {
-        final URIBuilder ub = new URIBuilder(configuration.GetURL("display"))
-                .addParameter("id", Integer.toString(configuration.Id))
-                .addParameter("key", configuration.IdentifierKey);
-        final String url = ub.toString();
-
-        final String json = executor.execute(Request.Delete(url)
-                .connectTimeout(1000)
-                .socketTimeout(1000))
-                .returnContent().asString();
-        return new JSONObject(json).optBoolean("success", false);
-    }
-
     public static void DownloadNewFiles(Configuration configuration) throws Exception {
         final List<NameValuePair> form = Form.form()
                 .add("id", Integer.toString(configuration.Id))

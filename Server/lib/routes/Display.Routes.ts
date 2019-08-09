@@ -162,7 +162,7 @@ Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
   });
 });
 
-Displays.delete("/", RoutesCommon.ValidateActualDisplay, async (req, res) => {
+Displays.delete("/", RoutesCommon.IsAdmin, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
     if (params == null)

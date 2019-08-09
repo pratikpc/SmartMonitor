@@ -211,7 +211,7 @@ public class FXMain extends Application {
     public void start(Stage stage) {
         // Any Error in High Priority Actions indicates Need to Terminate Stage
         try {
-             RunFXLoginSetup();
+            RunFXLoginSetup();
             SetupConfiguration();
             SetupMQTT();
             sqlFiles = new SQLFiles(configuration);
@@ -245,27 +245,11 @@ public class FXMain extends Application {
 
         scene.setOnKeyReleased(keyEvent -> {
             final KeyCode keyCode = keyEvent.getCode();
-            // Pressing R Button will Reset the Entire Process
-            if (keyCode == KeyCode.R) {
-                if (!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Reset?"))
-                    return;
-                try {
-                    // Stop the Media Player to Ensure Media Files get Cleaned too
-                    Utils.ClearDirectory(configuration.StoragePath);
-                    PropertiesDeal propertiesDeal = new PropertiesDeal();
-                    propertiesDeal.deleteProperties();
-                    ServerInteractor.DeleteDisplay(configuration);
-                    CloseConnections();
-                    stage.close();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    return;
-                }
-            }
             if (keyCode == KeyCode.X || keyCode == KeyCode.ESCAPE) {
                 if (!Utils.CreateConfirmationDialog(Constants.AppName, "Are you sure you want to Exit?"))
                     return;
                 stage.close();
+                Platform.exit();
             }
         });
 
