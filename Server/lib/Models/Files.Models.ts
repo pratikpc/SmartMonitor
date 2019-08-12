@@ -78,17 +78,13 @@ export class Files extends Model<Files> {
   public GetThumbnailFileLocation(): string {
     return join(
       this.Location,
-      Files.GetThumbnailFileName(this.Name, this.Extension, this.MediaType)
+      Files.GetThumbnailFileName(this.Name)
     );
   }
   public static GetThumbnailFileName(
-    Name: string,
-    Extension: string,
-    MediaType: string
+    Name: string
   ): string {
-    if (MediaType === "IMAGE") return "thumb-" + Name + "." + Extension;
-    // For Videos
-    else return "thumb-" + Name + ".png";
+    return "thumb-" + Name + ".png";
   }
 
   private GetFileLocation(): string {

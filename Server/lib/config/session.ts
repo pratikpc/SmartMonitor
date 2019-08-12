@@ -4,10 +4,10 @@ export const Session = {
     expires: true,
     // Max Time for Cookie Existence
     // In MilliSeconds
-    maxAge: 24 * 60 * 60 * 60 * 1000,
+    maxAge: 4 * 24 * 60 * 60 * 1000,
     secure: false
   },
   name: "Smart Monitor",
-  resave: true,
+  resave: false,
   saveUninitialized: true
 };

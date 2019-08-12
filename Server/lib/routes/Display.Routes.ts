@@ -2,7 +2,7 @@ import * as Models from "../Models/Models";
 import { randomBytes } from "crypto";
 import { Router } from "express";
 import { RoutesCommon } from "./Common.Routes";
-import passport = require("passport");
+import passport from "passport";
 
 export const Displays = Router();
 

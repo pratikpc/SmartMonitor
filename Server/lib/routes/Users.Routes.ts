@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import * as Model from "../Models/Users.Model";
 import { randomBytes } from "crypto";
-import passport = require("passport");
+import passport from "passport";
 import { RoutesCommon } from "./Common.Routes";
 
 export const Users = Router();

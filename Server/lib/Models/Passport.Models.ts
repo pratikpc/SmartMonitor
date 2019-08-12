@@ -5,14 +5,14 @@ import passport from "passport";
 import * as Config from "../config/session";
 import { Strategy } from "passport-local";
 
-import * as Model from "../Models/Models";
+import * as Models from "./Models";
 
 export function PassportModelsGenerate(app: Express.Application) {
   const SequelizeSessionStore = require("connect-session-sequelize")(Store);
   const sessionStore = new SequelizeSessionStore({
-    db: Model.SequelizeSql,
-    checkExpirationInterval: 15 * 60 * 1000,
-    expiration: 24 * 60 * 60 * 60 * 1000
+    db: Models.SequelizeSql,
+    checkExpirationInterval: 24 * 60 * 60 * 1000,
+    expiration: 10 * 24 * 60 * 60 * 1000
   });
   app.use(
     ExpressSession({
@@ -21,7 +21,6 @@ export function PassportModelsGenerate(app: Express.Application) {
       resave: Config.Session.resave,
       saveUninitialized: Config.Session.saveUninitialized,
       secret: Config.Session.secret,
-      // store: new FileStore()
       store: sessionStore
     })
   );
@@ -43,7 +42,7 @@ export function PassportModelsGenerate(app: Express.Application) {
       async (req, name, password, done) => {
         try {
           if (!name || !password) return done(null, null);
-          const user = await Model.Users.findOne({
+          const user = await Models.Users.findOne({
             where: {
               Name: name
             }
@@ -61,7 +60,7 @@ export function PassportModelsGenerate(app: Express.Application) {
           const authority: string = user.Authority;
           return done(
             null,
-            new Model.UserViewModel(user.id, user.Name, user.Authority)
+            new Models.UserViewModel(user.id, user.Name, user.Authority)
           );
         } catch (error) {
           return done(error, null);
@@ -70,18 +69,18 @@ export function PassportModelsGenerate(app: Express.Application) {
     )
   );
 
-  passport.serializeUser((user: Model.UserViewModel, done) => {
+  passport.serializeUser((user: Models.UserViewModel, done) => {
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await Model.Users.findByPk(id);
+      const user = await Models.Users.findByPk(id);
       if (user == null) return done(null, undefined);
       else
         return done(
           null,
-          new Model.UserViewModel(user.id, user.Name, user.Authority)
+          new Models.UserViewModel(user.id, user.Name, user.Authority)
         );
     } catch (error) {
       done(error, undefined);

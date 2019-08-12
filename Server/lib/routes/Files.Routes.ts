@@ -48,7 +48,7 @@ Files.post(
             extension
           );
           const oldPath = Path.join(location, name + "." + extension);
-          fs.unlink(oldPath, () => {});
+          await RoutesCommon.RemoveFileAsync(oldPath);
 
           if (!converted) return;
 
@@ -77,7 +77,7 @@ Files.post(
         // Same File Found
         if (fileSame) {
           const path = Path.join(location, name + "." + extension);
-          fs.unlink(path, () => {});
+          await RoutesCommon.RemoveFileAsync(path);
 
           name = fileSame.Name;
           extension = fileSame.Extension;
@@ -92,12 +92,12 @@ Files.post(
         // As it's New File
         // Generate Thumbnail
         if (!fileSame)
-          RoutesCommon.GenerateThumbnailAsync(
+          await RoutesCommon.GenerateThumbnailAsync(
             location,
             name,
             extension,
             mediaType,
-            Models.Files.GetThumbnailFileName(name, extension, mediaType)
+            Models.Files.GetThumbnailFileName(name)
           );
 
         displayIDs.forEach(async displayId => {
@@ -151,6 +151,27 @@ Files.post(
   }
 );
 
+async function RemoveAllOutdatedFilesAbsentInDatabase(storageLocation: string) {
+  const FilesInDBObj: any = await Models.Files.aggregate('PathToFile', 'DISTINCT', { plain: false });
+  let FilesInDB: string[] = FilesInDBObj.map((file: any) => file.DISTINCT).sort();
+
+  let FilesInDir = await RoutesCommon.ListOfFiles(storageLocation);
+  // Remove all Thumbnails from list
+  FilesInDir = FilesInDir.filter(file => !file.includes("/thumb-")).sort();
+
+  const FilesToRemoveDiscludingThumbnails = FilesInDir.filter((file) => !FilesInDB.includes(file));
+  const FilesToRemove: string[] = [];
+
+  for (const file of FilesToRemoveDiscludingThumbnails) {
+    FilesToRemove.push(file);
+    const pathData = Path.parse(file);
+    const thumnNailName = Models.Files.GetThumbnailFileName(pathData.name);
+    const thumbNailPath = Path.join(pathData.dir, thumnNailName);
+    FilesToRemove.push(thumbNailPath);
+  }
+  RoutesCommon.RemoveFilesAsync(FilesToRemove);
+}
+
 Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const fileId = Number(params.file);
@@ -163,7 +184,7 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   if (count === 0) return res.json({ success: false });
 
   RoutesCommon.SendMqttClientUpdateSignal(displayId);
-
+  RemoveAllOutdatedFilesAbsentInDatabase("./uploads");
   return res.json({ success: true });
 });
 
@@ -253,7 +274,8 @@ Files.delete(
     );
 
     if (count === 0) return res.json({ success: false });
-    else return res.json({ success: true });
+    RemoveAllOutdatedFilesAbsentInDatabase("./uploads");
+    return res.json({ success: true });
   }
 );
 

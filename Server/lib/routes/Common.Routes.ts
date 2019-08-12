@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import * as mqtt from "mqtt";
 import { createHash, randomBytes } from "crypto";
-import { createReadStream, existsSync, mkdirSync, statSync } from "fs";
+import * as fs from "fs";
+import { promises as FsPromises } from "fs";
 import { join, extname } from "path";
 import * as Models from "../Models/Models";
 import ffmpeg = require("fluent-ffmpeg");
@@ -9,11 +10,13 @@ import * as multer from "multer";
 import * as mime from "mime";
 import * as sharp from "sharp";
 import * as Config from "../config/Config";
+import * as Path from "path";
+import * as process from "process";
 
 const storage = multer.diskStorage({
-  destination: (request: any, file: any, callback: any) => {
-    const dir = "./uploads";
-    if (!existsSync(dir)) mkdirSync(dir);
+  destination: async (request: any, file: any, callback: any) => {
+    const dir = Path.resolve(String(process.env.INIT_CWD), 'uploads');
+    await RoutesCommon.CreateDirectoryIfNotExistsAsync(dir);
     callback(null, dir);
   },
   filename: (request: any, file: any, callback: any) => {
@@ -22,7 +25,7 @@ const storage = multer.diskStorage({
       const name = randomBytes(12).toString("hex");
       const ext = extname(file.originalname);
       fileName = name + ext;
-      if (!existsSync(fileName)) break;
+      if (!fs.existsSync(fileName)) break;
     }
 
     callback(null, fileName);
@@ -40,6 +43,47 @@ export namespace RoutesCommon {
   MqttClient.on("connect", async () => {
     console.log("Mqtt Connected ", Config.Mqtt.Url);
   });
+
+
+  export async function CreateDirectoryIfNotExistsAsync(location: string) {
+    return new Promise<void>((resolve, reject) => {
+      FsPromises.access(location, fs.constants.R_OK).then(() => {
+        resolve();
+        // Do Nothing if Exists
+      }).catch((err) => {
+        FsPromises.mkdir(location)
+          .then(() => { resolve(); })
+          .catch((err) => { reject(err) });
+      });
+    });
+  }
+
+
+  export async function RemoveFileAsync(location: string) {
+      await FsPromises.unlink(location);
+  }
+
+  export function RemoveFilesAsync(locations: string[]) {
+    const removalAsyncs: Promise<void>[] = [];
+    for (const location of locations) {
+      removalAsyncs.push(RemoveFileAsync(location));
+    }
+    return Promise.all(removalAsyncs);
+  }
+
+  export function ListOfFiles(location: string) {
+    return new Promise<string[]>((resolve, reject) => {
+      fs.readdir(location, (err, files) => {
+        if (err)
+          reject(err);
+        else {
+          // Convert to Absolute paths
+          files = files.map(file => Path.resolve(location, file));
+          resolve(files);
+        }
+      })
+    });
+  }
 
   export function ValidateActualDisplay(
     req: Request,
@@ -105,7 +149,7 @@ export namespace RoutesCommon {
   export function GetSHA256FromFileAsync(path: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const hash = createHash("sha256");
-      const rs = createReadStream(path);
+      const rs = fs.createReadStream(path);
       rs.on("error", reject);
       rs.on("data", chunk => hash.update(chunk));
       rs.on("end", () => resolve(hash.digest("hex")));
@@ -113,7 +157,7 @@ export namespace RoutesCommon {
   }
 
   export function GetFileSizeInBytes(filename: string) {
-    const stats = statSync(filename);
+    const stats = fs.statSync(filename);
     const fileSizeInBytes = stats["size"];
     return fileSizeInBytes;
   }
@@ -173,7 +217,7 @@ export namespace RoutesCommon {
     const hh = Number(arr[0]);
     const mm = Number(arr[1]);
     return hh * 100 + mm;
-  } 
+  }
 
   export function GenerateThumbnailAsync(
     location: string,
@@ -242,7 +286,7 @@ export namespace RoutesCommon {
     });
   }
 
-  export function NoCaching(res: Response){
+  export function NoCaching(res: Response) {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     return res;
   }

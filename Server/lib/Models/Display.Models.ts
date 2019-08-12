@@ -5,9 +5,7 @@ import {
   AllowNull,
   DataType,
   CreatedAt,
-  ForeignKey,
-  BeforeValidate
-} from "sequelize-typescript";
+  ForeignKey} from "sequelize-typescript";
 
 import { Users } from "./Users.Model";
 
