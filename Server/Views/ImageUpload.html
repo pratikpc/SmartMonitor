@@ -318,11 +318,13 @@
             addRemoveLinks: true,
             dictRemoveFileConfirmation: "Do you really want to remove?",
             url: '/files/upload',
-            parallelUploads: 100,
+            parallelUploads: 10,
             preventDuplicates: true,
             acceptedFiles: "image/*, video/*",
             dictInvalidFileType: "Upload only Image or Videos",
-            maxFiles: 100,
+            dictRemoveFile: "Remove", // TEXT Displayed below Image to Remove
+            maxFiles: 10,
+            maxFilesize: 25, //25 MB
             // input[name='files']
             paramName: function (n) { return 'files'; },
 
