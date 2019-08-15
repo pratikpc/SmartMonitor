@@ -1,11 +1,14 @@
+function IfDockerisedOrSelectDefault(dockerValue: any, defValue: string) {
+  return process.env.APP_IS_DOCKERISED ? String(dockerValue) : defValue;
+}
 export const DB = {
-  Dialect: "postgres",
-  ProjectName: "smartdisplay",
-  AdminName: "postgres",
-  Host: "localhost",
-  UserName: "postgres",
-  Port: 5432,
-  Password: "postgres",
+  Dialect: String(process.env.DatabaseDialect),
+  ProjectName: String(process.env.DatabaseProjectName),
+  DatabaseName: String(process.env.DatabaseName),
+  Host: IfDockerisedOrSelectDefault(process.env.DatabaseHost, "localhost"),
+  UserName: String(process.env.DatabaseUserName),
+  Port: Number(process.env.DatabasePort),
+  Password: String(process.env.DatabasePassword),
   // Removes Warnings Regarding String Operators
   // This is indeed a security risk and is introduced by a feature which is
   // As of Now, unused by us

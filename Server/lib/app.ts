@@ -1,7 +1,15 @@
+import * as dotenv from "dotenv"
+
+// If No import taking place from .env file
+// Use this to ensure that dotenv file is loaded
+if (!process.env.Dialect){
+  dotenv.config();
+}
+
 import express from "express";
 import * as bodyParser from "body-parser";
-import * as Routes from "./routes/Routes";
 import * as Models from "./Models/Sequelize";
+import * as Routes from "./routes/Routes";
 import * as cors from "cors";
 import { PassportModelsGenerate } from "./Models/Passport.Models";
 import { RoutesCommon } from "./routes/Common.Routes";
@@ -16,7 +24,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Specify Path of Website Static Contents
 app.engine('.html', require('ejs').renderFile);
 app.set("views", "./Views");
-app.use(express.static("./Website"));
+app.set('view engine', 'ejs');
+
+// Only Enable if our app is not dockerised
+// In Dockerised App, static files are served by
+// NGINX
+// Thus reducing the load on server
+if(!process.env.APP_IS_DOCKERISED){
+  app.use("/static/", express.static("./Website"));
+}
 
 Models.RunSynchronisation().then(() => { });
 PassportModelsGenerate(app);
@@ -45,6 +61,5 @@ app.get("/navbar", RoutesCommon.IsAuthenticated, (req, res) => {
 
 app.get("/", (req, res) => {
   if (req.isUnauthenticated()) return res.render("login.html");
-  const authority = req.user.Authority;
   return res.redirect("/files/upload");
 });

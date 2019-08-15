@@ -1,11 +1,11 @@
 ﻿
 @font-face {
   font-family: "feather";
-  src: url('/fonts/feather.hxd'); /* IE9*/
-  src: url('/fonts/feather.hxd') format('embedded-opentype'), /* IE6-IE8 */
-  url('/fonts/feather.woff') format('woff'), /* chrome, firefox */
-  url('/fonts/feather.ttf') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+*/
-  url('/fonts/feather.svg') format('svg'); /* iOS 4.1- */
+  src: url('/static/fonts/feather.hxd'); /* IE9*/
+  src: url('/static/fonts/feather.hxd') format('embedded-opentype'), /* IE6-IE8 */
+  url('/static/fonts/feather.woff') format('woff'), /* chrome, firefox */
+  url('/static/fonts/feather.ttf') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+*/
+  url('/static/fonts/feather.svg') format('svg'); /* iOS 4.1- */
 }
 
 .feather {

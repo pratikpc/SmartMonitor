@@ -1,22 +1,10 @@
-import { networkInterfaces } from "os";
+import { GetIP } from "./Config.Common";
 
 function GetMqttAddress() {
-  const interfaces = networkInterfaces();
-  for (const devName in interfaces) {
-    const iface = interfaces[devName];
-
-    for (let i = 0; i < iface.length; i++) {
-      const alias = iface[i];
-      if (
-        alias.family === "IPv4" &&
-        alias.address !== "127.0.0.1" &&
-        !alias.internal
-      )
-        return "tcp://" + alias.address + ":1883/";
-    }
+  if (process.env.MQTT_URI_CONNECTOR) {
+    return "tcp://" + process.env.MQTT_URI_CONNECTOR + ":1883/";
   }
-
-  return "tcp://127.0.0.1:1883";
+  return "tcp://" + GetIP() + ":1883/";
 }
 
 export const Mqtt = {

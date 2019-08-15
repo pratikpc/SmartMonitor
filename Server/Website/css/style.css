@@ -938,13 +938,13 @@ button.close {
     margin: -7px 0 0 -15px;
     width: 30px;
     height: 20px;
-    background: url("../images/tooltip/tooltip1.svg") center center no-repeat;
+    background: url("/static/images/tooltip/tooltip1.svg") center center no-repeat;
     background-size: 100%
 }
 
 .tooltip-content3 {
     position: absolute;
-    background: url("../images/tooltip/shape1.svg") center bottom no-repeat;
+    background: url("/static/images/tooltip/shape1.svg") center bottom no-repeat;
     background-size: 100% 100%;
     z-index: 9999;
     width: 200px;
@@ -1079,7 +1079,6 @@ button.close {
     padding: 40px;
     -webkit-transform: translate3d(0, 100%, 0);
     transform: translate3d(0, 100%, 0);
-    webkit-transition: -webkit-transform 0.3s;
     -webkit-transition: -webkit-transform 0.3s;
     transition: -webkit-transform 0.3s;
     transition: transform 0.3s;
@@ -1124,7 +1123,7 @@ a.mytooltip {
 }
 
 .jstree-default>.jstree-container-ul .jstree-loading>.jstree-ocl {
-    background: url("../pages/treeview/throbber.gif") center center no-repeat
+    background: url("/static/pages/treeview/throbber.gif") center center no-repeat
 }
 
 .jFiler-theme-default .jFiler-input-button {
@@ -14360,12 +14359,12 @@ td.highlight {
 }
 
 td.details-control {
-    background: url("../images/details_open.png") no-repeat center center;
+    background: url("/static/images/details_open.png") no-repeat center center;
     cursor: pointer
 }
 
 tr.shown td.details-control {
-    background: url("../images/details_close.png") no-repeat center center
+    background: url("/static/images/details_close.png") no-repeat center center
 }
 
 #row-select .selected, #row-delete .selected {
@@ -15871,7 +15870,7 @@ table.footable-paging-center>tfoot>tr.footable-paging>td {
 .login-block {
     padding: 30px 0;
     margin: 0 auto;
-    background: url(/images/bg.jpg) no-repeat;
+    background: url("/static/images/bg.jpg") no-repeat;
     background-size: cover;
     min-height: 100vh;
     display: -webkit-box;
@@ -16038,7 +16037,7 @@ table.footable-paging-center>tfoot>tr.footable-paging>td {
 }
 
 .chat-bg {
-    background-image: url("../images/chat-bg.jpg");
+    background-image: url("/static/images/chat-bg.jpg");
     background-size: cover;
     background-blend-mode: overlay;
     background-color: rgba(255, 255, 255, 0.45)
@@ -21743,7 +21742,7 @@ span.value {
 }
 
 #task-container li.complete:before {
-    background: url("../images/complete.png") no-repeat;
+    background: url("/static/images/complete.png") no-repeat;
     position: absolute;
     top: 5px;
     right: 5px;
@@ -23507,5 +23506,3 @@ span.value {
     outline: 0;
     padding: 22px 18px;
 }
-
-/*# sourceMappingURL=style.css.map */

@@ -14,7 +14,7 @@ export const SequelizeSql = new Sequelize({
   username: Config.DB.UserName,
   password: Config.DB.Password,
   port: Config.DB.Port,
-  database: Config.DB.AdminName,
+  database: Config.DB.ProjectName,
   dialect: Config.DB.Dialect,
   operatorsAliases: Config.DB.operatorsAliases,
   // Set logging to False to disable logging
@@ -27,7 +27,7 @@ async function CreateDatabaseIfNotExists(db_name: string) {
     user: Config.DB.UserName,
     password: Config.DB.Password,
     port: Config.DB.Port,
-    database: Config.DB.AdminName
+    database: Config.DB.DatabaseName
   });
   const client = await pool.connect();
 
@@ -44,23 +44,23 @@ async function CreateDatabaseIfNotExists(db_name: string) {
     await client.query("CREATE DATABASE " + db_name);
   }
   client.release();
-  pool.end();
+  await pool.end();
 }
 
 export async function RunSynchronisation() {
   // First End up Creating the Database
   // In admin Database
-  await CreateDatabaseIfNotExists(process.env.DB_PROJ_NAME!);
+  await CreateDatabaseIfNotExists(Config.DB.ProjectName);
   // Authenticate if Entered Information is correct
   await SequelizeSql.authenticate();
 
   SequelizeSql.addModels([Displays, Users, Files]);
   // End up creating the Table
   // If it does not exist
-  Users.sync({ force: false }).then(async () => {
-    // Insert the Default Value for User if not already present
-    await Users.InsertIfNotExists(Users.DefaultUser);
-  });
+  await Users.sync({ force: false });
+  // Insert the Default Value for User if not already present
+  await Users.InsertIfNotExists(Users.DefaultUser);
+  
   await Files.sync({ force: false });
   await Displays.sync({ force: false });
 }

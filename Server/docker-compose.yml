@@ -1,0 +1,54 @@
+# docker-compose.yml
+version: "3.7"
+services:
+
+  proxy-frontend:
+    container_name: proxy-frontend
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: App.Dockerfile
+      target: proxy-frontend
+    ports:
+      - 8000:8000
+    links:
+      - app-backend
+
+  app-backend:
+    container_name: app-backend
+    build:
+      context: ./
+      dockerfile: App.Dockerfile
+      target: app-backend
+    depends_on:
+      - database
+      - mqtt
+    env_file:
+      - ./.env
+    environment: 
+      - APP_IS_DOCKERISED=YES
+      - MQTT_URI_CONNECTOR=mqtt
+    links:
+      - database
+      - mqtt
+    command: npm run deploy
+
+  database:
+    container_name: database
+    image: postgres:alpine
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_PASSWORD=${DatabasePassword}
+      - POSTGRES_USER=${DatabaseUserName}
+      - POSTGRES_DB=${DatabaseName}
+
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto:latest
+    restart: unless-stopped
+    expose:
+      - "1883"
+    ports:
+      - "1883:1883"
