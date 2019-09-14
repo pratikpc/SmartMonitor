@@ -28,6 +28,8 @@ services:
     environment: 
       - APP_IS_DOCKERISED=YES
       - MQTT_URI_CONNECTOR=mqtt
+    volumes:
+      - data:/app/uploads
     links:
       - database
       - mqtt
@@ -43,7 +45,8 @@ services:
       - POSTGRES_PASSWORD=${DatabasePassword}
       - POSTGRES_USER=${DatabaseUserName}
       - POSTGRES_DB=${DatabaseName}
-
+    volumes:
+      - data:/var/lib/postgresql/data
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:latest
@@ -52,3 +55,6 @@ services:
       - "1883"
     ports:
       - "1883:1883"
+
+volumes:
+  data:

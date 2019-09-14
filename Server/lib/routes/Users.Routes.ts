@@ -8,7 +8,7 @@ export const Users = Router();
 
 Users.get("/login/", (req, res) => {
   if (req.isUnauthenticated()) return res.render("login.html");
-  const authority = req.user.Authority;
+  const authority = String(req.user!.Authority);
   return res.redirect("/files/upload");
 });
 // This is the Uri
@@ -73,9 +73,11 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
 // This is the Uri for Updation of a User's details
 // Get Old Password
 // And Set Change to New Password
-Users.put("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
+// Logically under REST rules it would be under PUT
+// But it's probably not a good idea.
+Users.post("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
   try {
-    const id = Number(req.user.id);
+    const id = Number(req.user!.id);
 
     const params = RoutesCommon.GetParameters(req);
     const old_pass = String(params.old);
@@ -99,6 +101,15 @@ Users.put("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
   } catch (error) {
     return res.json({ success: false });
   }
+});
+
+// Use this to find Details of Current User
+Users.get("/current/", async (req, res) => {
+  const authority = String(req.user!.Authority);
+  const name = String(req.user!.Name);
+  const id = Number(req.user!.id);
+
+  return res.json({ id: id, Name: name, Authority: authority });
 });
 
 // This is Uri to access List of Non Admin Users
@@ -141,3 +152,4 @@ Users.get("/:id", RoutesCommon.IsAdmin, async (req, res) => {
     });
   }
 });
+
