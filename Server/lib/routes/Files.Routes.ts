@@ -92,7 +92,7 @@ Files.post(
 
         // As it's New File
         // Generate Thumbnail
-        if (!fileSame)
+        if (!fileSame) {
           await RoutesCommon.GenerateThumbnailAsync(
             location,
             name,
@@ -101,9 +101,11 @@ Files.post(
             Models.Files.GetThumbnailFileName(name)
           );
 
-          if(extension === "gif"){
+          if (extension === "gif") {
             showTime = RoutesCommon.GIFDuration(location, name, extension, showTime);
           }
+
+        }
 
         displayIDs.forEach(async displayId => {
           if (AlreadyPresentIDs.includes(displayId))

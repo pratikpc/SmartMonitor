@@ -226,16 +226,16 @@ export namespace RoutesCommon {
     // As ArrayBugger is also a UINt8Array buffer
     const buffer = new Uint8Array(nodeBuffer).buffer;
     const info = GIFInfo(buffer);
-    console.log(info.animated, info.duration);
-    if (info.animated)
+    if (info.animated){
       // Duration Returned is in Millis
       // Converted to seconds
       // As we are using Seconds
       return Number(info.duration) / 1000.0;
+    }
     return showTime;
   }
 
-  export function GenerateThumbnailAsync(
+  export async function GenerateThumbnailAsync(
     location: string,
     name: string,
     extension: string,
@@ -246,7 +246,7 @@ export namespace RoutesCommon {
   ) {
     const filename = name + "." + extension;
     if (mediaType === "VIDEO")
-      return GenerateThumbnailVideoAsync(
+      return await GenerateThumbnailVideoAsync(
         location,
         filename,
         thumbnailName,
@@ -254,7 +254,7 @@ export namespace RoutesCommon {
         height
       );
     if (mediaType === "IMAGE")
-      return GenerateThumbnailImageAsync(
+      return await GenerateThumbnailImageAsync(
         location,
         filename,
         thumbnailName,
@@ -271,7 +271,7 @@ export namespace RoutesCommon {
   ) {
     const sourceName = join(location, imageName);
     const destName = join(location, thumbnailName);
-    console.log(destName, location, thumbnailName);
+
     return await sharp
       .default(sourceName)
       .resize(width, height, {
