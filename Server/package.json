@@ -35,6 +35,7 @@
     "express-session": "^1.16.2",
     "express-validator": "^5.3.1",
     "fluent-ffmpeg": "^2.1.2",
+    "gif-info": "^1.0.1",
     "jsonwebtoken": "^8.5.1",
     "mime": "^2.4.4",
     "mqtt": "^2.18.8",

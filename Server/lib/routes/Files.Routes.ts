@@ -22,7 +22,8 @@ Files.post(
       const endTime = RoutesCommon.TimeToDecimal(params.endTime);
       if (startTime > endTime) return res.status(422).send("Upload Failed");
 
-      const showTime = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
+      // We can change showTime if it's a GIF
+      let showTime = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
         params.showTime,
         0 /*Default Time Set*/
       );
@@ -32,7 +33,7 @@ Files.post(
 
       // Iterate over all the files
       files.forEach(async file => {
-        let extension = Path.extname(file.filename).substr(1); // Ignores Dot
+        let extension = Path.extname(file.filename).substr(1).toLowerCase(); // Ignores Dot
         let mediaType = RoutesCommon.GetFileMediaType(extension);
 
         if (!mediaType) return;
@@ -99,6 +100,10 @@ Files.post(
             mediaType,
             Models.Files.GetThumbnailFileName(name)
           );
+
+          if(extension === "gif"){
+            showTime = RoutesCommon.GIFDuration(location, name, extension, showTime);
+          }
 
         displayIDs.forEach(async displayId => {
           if (AlreadyPresentIDs.includes(displayId))

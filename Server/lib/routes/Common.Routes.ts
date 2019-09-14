@@ -12,6 +12,7 @@ import * as sharp from "sharp";
 import * as Config from "../config/Config";
 import * as Path from "path";
 import * as process from "process";
+const GIFInfo = require('gif-info');
 
 const storage = multer.diskStorage({
   destination: async (request: any, file: any, callback: any) => {
@@ -60,7 +61,7 @@ export namespace RoutesCommon {
 
 
   export async function RemoveFileAsync(location: string) {
-      await FsPromises.unlink(location);
+    await FsPromises.unlink(location);
   }
 
   export function RemoveFilesAsync(locations: string[]) {
@@ -219,6 +220,21 @@ export namespace RoutesCommon {
     return hh * 100 + mm;
   }
 
+  export function GIFDuration(location: string, name: string, extension: string, showTime: number) {
+    const path = Path.join(location, name + "." + extension);
+    const nodeBuffer = fs.readFileSync(path);
+    // As ArrayBugger is also a UINt8Array buffer
+    const buffer = new Uint8Array(nodeBuffer).buffer;
+    const info = GIFInfo(buffer);
+    console.log(info.animated, info.duration);
+    if (info.animated)
+      // Duration Returned is in Millis
+      // Converted to seconds
+      // As we are using Seconds
+      return Number(info.duration) / 1000.0;
+    return showTime;
+  }
+
   export function GenerateThumbnailAsync(
     location: string,
     name: string,
@@ -228,28 +244,25 @@ export namespace RoutesCommon {
     width: number = Config.Thumbnail.Width,
     height: number = Config.Thumbnail.Height
   ) {
-    if (mediaType === "VIDEO") {
-      const videoName = name + "." + extension;
-      const wxh = width + "x" + height;
+    const filename = name + "." + extension;
+    if (mediaType === "VIDEO")
       return GenerateThumbnailVideoAsync(
         location,
-        videoName,
-        thumbnailName,
-        wxh
-      );
-    }
-    if (mediaType === "IMAGE") {
-      const imageName = name + "." + extension;
-      return GenerateThumbnailImageAsync(
-        location,
-        imageName,
+        filename,
         thumbnailName,
         width,
         height
       );
-    }
+    if (mediaType === "IMAGE")
+      return GenerateThumbnailImageAsync(
+        location,
+        filename,
+        thumbnailName,
+        width,
+        height
+      );
   }
-  function GenerateThumbnailImageAsync(
+  async function GenerateThumbnailImageAsync(
     location: string,
     imageName: string,
     thumbnailName: string,
@@ -258,7 +271,8 @@ export namespace RoutesCommon {
   ) {
     const sourceName = join(location, imageName);
     const destName = join(location, thumbnailName);
-    return sharp
+    console.log(destName, location, thumbnailName);
+    return await sharp
       .default(sourceName)
       .resize(width, height, {
         kernel: sharp.kernel.nearest,
@@ -266,23 +280,30 @@ export namespace RoutesCommon {
         position: "right top"
       })
       .toFile(destName);
+    ;
   }
-  function GenerateThumbnailVideoAsync(
+  async function GenerateThumbnailVideoAsync(
     location: string,
     videoName: string,
     thumbnailName: string,
-    size: string,
+    width: Number,
+    height: Number,
     moment: string = "50%"
   ) {
     const videoPath = join(location, videoName);
+    const wxh = width + "x" + height;
 
-    ffmpeg(videoPath).thumbnails({
-      count: 1,
-      filename: thumbnailName,
-      folder: location,
-      size: size,
-      // Take Thumbnail at Half Time
-      timestamps: [moment]
+    return await new Promise<boolean>((resolve, reject) => {
+      ffmpeg(videoPath).thumbnails({
+        count: 1,
+        filename: thumbnailName,
+        folder: location,
+        size: wxh,
+        // Take Thumbnail at Half Time
+        timestamps: [moment]
+      })
+        .on("end", () => resolve(true))
+        .on("error", err => reject(err));
     });
   }
 
