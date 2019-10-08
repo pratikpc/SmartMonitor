@@ -40,6 +40,6 @@ public class Medium {
     }
 
     public void DelayTillMediumShowDone() throws Exception {
-        TimeUnit.MILLISECONDS.sleep(TImeInMillisForWhichToShowMedium());
+        TimeUnit.MILLISECONDS.sleep(TImeInMillisForWhichToShowMedium() - 200);
     }
 }

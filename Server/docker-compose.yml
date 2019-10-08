@@ -45,6 +45,7 @@ services:
       - POSTGRES_PASSWORD=${DatabasePassword}
       - POSTGRES_USER=${DatabaseUserName}
       - POSTGRES_DB=${DatabaseName}
+      - PGDATA=/var/lib/postgresql/data/db-files/
     volumes:
       - data:/var/lib/postgresql/data
   mqtt:
@@ -57,4 +58,4 @@ services:
       - "1883:1883"
 
 volumes:
-  data:
+  data: {}
