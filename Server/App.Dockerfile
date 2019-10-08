@@ -1,4 +1,28 @@
-FROM nginx:alpine as proxy-frontend
+FROM nginx:alpine as proxy-frontend-base
+# Timezone
+ENV TIMEZONE Asia/Jakarta
+
+# Let's roll
+RUN	apk update && \
+	apk upgrade && \
+	apk add --update openssl nginx && \
+	apk add --update tzdata && \
+	cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
+	echo "${TIMEZONE}" > /etc/timezone && \
+	mkdir /etc/nginx/certificates && \
+	apk del tzdata
+
+RUN	openssl req \
+		-x509 \
+		-newkey rsa:2048 \
+		-keyout /etc/nginx/certificates/key.pem \
+		-out /etc/nginx/certificates/cert.pem \
+		-days 365 \
+		-nodes \
+		-subj /CN=localhost
+
+
+FROM proxy-frontend-base as proxy-frontend
 ADD ./Configuration/nginx.conf /etc/nginx/
 COPY ./Website /var/www/html/static/
 EXPOSE 8000
