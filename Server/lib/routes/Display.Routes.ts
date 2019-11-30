@@ -6,6 +6,11 @@ import passport from "passport";
 
 export const Displays = Router();
 
+// This is a temporary page
+// Features needed to be added on /display/list page
+Displays.get("/adddisp", RoutesCommon.IsAdmin, (req, res) => {
+  return res.render("adddisp.html");
+});
 Displays.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
   return RoutesCommon.NoCaching(res).render("displist.html");
 });
