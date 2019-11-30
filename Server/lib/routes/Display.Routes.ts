@@ -10,21 +10,13 @@ Displays.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
   return RoutesCommon.NoCaching(res).render("displist.html");
 });
 
-Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
-  if (req.isUnauthenticated())
-    return res.json({
-      success: false
-    });
-
-  const userId = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
-    req.user.id,
-    0 /*User ID never less than this*/
-  );
+Displays.post("/", RoutesCommon.IsAdmin, async (req, res) => {
+  const userId = RoutesCommon.GetUser(req).id;
 
   const params = RoutesCommon.GetParameters(req);
-  const displayName = params.displayname;
+  const displayName = String(params.displayname).trim().toLowerCase();
 
-  if (!displayName || !userId)
+  if (!displayName || displayName == "" || !userId)
     return res.json({
       success: false
     });
@@ -35,7 +27,39 @@ Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
     IdentifierKey: randomBytes(20).toString("hex")
   });
 
-  if (newDisplay == null)
+  const success = newDisplay != null;
+  return res.json({
+    success: success
+  });
+
+});
+
+// Add from Application
+Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
+if (req.isUnauthenticated())
+    return res.json({
+      success: false
+    });
+
+  const userId = RoutesCommon.GetUser(req).id;
+
+  const params = RoutesCommon.GetParameters(req);
+  const displayName = String(params.displayname).trim().toLowerCase();
+
+  if (!displayName || !userId)
+    return res.json({
+      success: false
+    });
+
+  const display = await Models.Displays.findOne({
+    where: {
+      CreatingUserID: userId,
+      Name: displayName
+    }
+  }
+  );
+
+  if (display == null)
     return res.json({
       success: false
     });
@@ -43,16 +67,16 @@ Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
   return res.json({
     success: true,
     data: {
-      id: newDisplay.id,
-      Name: newDisplay.Name,
-      CreatingUserID: newDisplay.CreatingUserID,
-      IdentifierKey: newDisplay.IdentifierKey
+      id: display.id,
+      Name: display.Name,
+      CreatingUserID: display.CreatingUserID,
+      IdentifierKey: display.IdentifierKey
     }
   });
 });
 
 Displays.put("/", RoutesCommon.IsAdmin, async (req, res) => {
-  const userId = Number(req.user.id);
+  const userId = Number(RoutesCommon.GetUser(req).id);
 
   const params = RoutesCommon.GetParameters(req);
 

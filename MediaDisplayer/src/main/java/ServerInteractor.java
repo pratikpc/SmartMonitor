@@ -32,20 +32,6 @@ public class ServerInteractor {
                 .saveContent(new File(configuration.GetAbsolutePathFromStorage(fileName)));
     }
 
-    private static boolean DeleteDownload(Configuration configuration, int fileId) throws Exception {
-        final URIBuilder ub = new URIBuilder(configuration.GetURL("files/download/file"))
-                .addParameter("id", Integer.toString(configuration.Id))
-                .addParameter("key", configuration.IdentifierKey)
-                .addParameter("file", Integer.toString(fileId));
-        final String url = ub.toString();
-
-        final String json = executor.execute(Request.Delete(url)
-                .connectTimeout(1000)
-                .socketTimeout(1000))
-                .returnContent().asString();
-        return new JSONObject(json).optBoolean("success", false);
-    }
-
     public static void DownloadNewFiles(Configuration configuration) throws Exception {
         final List<NameValuePair> form = Form.form()
                 .add("id", Integer.toString(configuration.Id))
@@ -60,6 +46,8 @@ public class ServerInteractor {
         final JSONObject obj = new JSONObject(json);
         if (!obj.optBoolean("success", false))
             return;
+
+        final SQLFiles sqlFiles = new SQLFiles(configuration);
         final JSONArray files = obj.getJSONArray("data");
         for (int i = 0; i < files.length(); ++i) {
             final JSONObject file = files.getJSONObject(i);
@@ -69,25 +57,9 @@ public class ServerInteractor {
             final String extension = file.getString("Extension");
             final String fileName = name + "." + extension;
 
-            GetDownload(configuration, id, fileName);
-            DeleteDownload(configuration, id);
+            if (!sqlFiles.IDExists(id))
+                GetDownload(configuration, id, fileName);
         }
-    }
-
-    public static boolean IsUserAuthenticated(Configuration configuration, final String username, final String password) throws Exception {
-        final List<NameValuePair> form = Form.form()
-                .add("name", username)
-                .add("pass", password)
-                .build();
-
-        final String json = executor.execute(Request.Post(configuration.GetURL("user/login/json"))
-                .connectTimeout(1000)
-                .body(Utils.AddToForm(form))
-                .socketTimeout(1000))
-                .returnContent().asString();
-
-        final JSONObject jsonObject = new JSONObject(json);
-        return (jsonObject != null && jsonObject.optBoolean("success", false));
     }
 
     public static JSONArray GetFileDownloadList(final Configuration configuration) throws Exception {
@@ -123,6 +95,7 @@ public class ServerInteractor {
                 .body(Utils.AddToForm(form))
                 .socketTimeout(1000))
                 .returnContent().asString();
+
         final JSONObject jsonObject = new JSONObject(json);
         boolean success = jsonObject.optBoolean("success", false) || jsonObject.isNull("data");
         if (!success)

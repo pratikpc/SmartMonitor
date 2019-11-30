@@ -5,13 +5,15 @@ import {
   AllowNull,
   DataType,
   CreatedAt,
-  ForeignKey} from "sequelize-typescript";
+  ForeignKey,
+  Unique} from "sequelize-typescript";
 
 import { Users } from "./Users.Model";
 
 @Table
 export class Displays extends Model<Displays> {
   @AllowNull(false)
+  @Unique
   @Column(DataType.TEXT)
   Name!: string;
 
@@ -27,4 +29,5 @@ export class Displays extends Model<Displays> {
   @CreatedAt
   @Column
   CreationDate!: Date;
+
 }

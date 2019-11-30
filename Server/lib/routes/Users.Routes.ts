@@ -8,7 +8,7 @@ export const Users = Router();
 
 Users.get("/login/", (req, res) => {
   if (req.isUnauthenticated()) return res.render("login.html");
-  const authority = String(req.user!.Authority);
+  const authority = String(RoutesCommon.GetUser(req).Authority);
   return res.redirect("/files/upload");
 });
 // This is the Uri
@@ -19,7 +19,7 @@ Users.post(
   "/login/",
   passport.authenticate("app", { failureRedirect: "/" }),
   (req, res) => {
-    const authority = String(req.user!.Authority);
+    const authority = String(RoutesCommon.GetUser(req).Authority);
     return res.redirect("/files/upload");
   }
 );
@@ -77,7 +77,7 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
 // But it's probably not a good idea.
 Users.post("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
   try {
-    const id = Number(req.user!.id);
+    const id = Number(RoutesCommon.GetUser(req).id);
 
     const params = RoutesCommon.GetParameters(req);
     const old_pass = String(params.old);
@@ -105,9 +105,9 @@ Users.post("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
 
 // Use this to find Details of Current User
 Users.get("/current/", async (req, res) => {
-  const authority = String(req.user!.Authority);
-  const name = String(req.user!.Name);
-  const id = Number(req.user!.id);
+  const authority = String(RoutesCommon.GetUser(req).Authority);
+  const name = String(RoutesCommon.GetUser(req).Name);
+  const id = Number(RoutesCommon.GetUser(req).id);
 
   return res.json({ id: id, Name: name, Authority: authority });
 });

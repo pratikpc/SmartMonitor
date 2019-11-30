@@ -199,26 +199,6 @@ Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
   return RoutesCommon.NoCaching(res).render("ImageUpload.html");
 });
 
-Files.post(
-  "/download/list",
-  RoutesCommon.ValidateActualDisplay,
-  async (req, res) => {
-    const params = RoutesCommon.GetParameters(req);
-    const displayId = Number(params.id);
-
-    const files = await Models.Files.findAll({
-      attributes: ["id", "Extension", "Name"],
-      where: { DisplayID: displayId, Downloaded: false }
-    });
-
-    const list: any[] = [];
-    files.forEach(file => {
-      list.push({ id: file.id, Name: file.Name, Extension: file.Extension });
-    });
-    return res.json({ success: true, data: list });
-  }
-);
-
 // Controls if File is Hidden or Not
 Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
   try {
@@ -264,25 +244,23 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
   return res.sendStatus(404);
 });
 
-
-Files.delete(
-  "/download/file",
+Files.post(
+  "/download/list",
   RoutesCommon.ValidateActualDisplay,
   async (req, res) => {
     const params = RoutesCommon.GetParameters(req);
-    const fileId = Number(params.file);
     const displayId = Number(params.id);
 
-    const [count] = await Models.Files.update(
-      { Downloaded: true },
-      {
-        where: { id: fileId, DisplayID: displayId, Downloaded: false }
-      }
-    );
+    const files = await Models.Files.findAll({
+      attributes: ["id", "Extension", "Name"],
+      where: { DisplayID: displayId, Downloaded: false }
+    });
 
-    if (count === 0) return res.json({ success: false });
-    RemoveAllOutdatedFilesAbsentInDatabase("./uploads");
-    return res.json({ success: true });
+    const list: any[] = [];
+    files.forEach(file => {
+      list.push({ id: file.id, Name: file.Name, Extension: file.Extension });
+    });
+    return res.json({ success: true, data: list });
   }
 );
 

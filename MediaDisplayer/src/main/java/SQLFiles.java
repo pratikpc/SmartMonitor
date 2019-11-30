@@ -71,6 +71,20 @@ public class SQLFiles extends SQLInteractor {
         return media;
     }
 
+    public boolean IDExists(int id) throws Exception {
+        Vector<Medium> media = new Vector<>();
+        final String select = "SELECT COUNT(id) from " + Constants.DB.FileT + " WHERE id=?";
+        final PreparedStatement preparedStatement = this.connection.prepareStatement(select);
+        preparedStatement.setInt(1, id);
+
+        final ResultSet resultSet = preparedStatement.executeQuery();
+        final int count = resultSet.getInt(1);
+
+        preparedStatement.close();
+        return count != 0;
+    }
+
+
     public int Clear() throws SQLException {
         final String sql = "DELETE FROM " + Constants.DB.FileT;
         return ExecuteSQLUpdate(sql);

@@ -45,18 +45,16 @@ export namespace RoutesCommon {
     console.log("Mqtt Connected ", Config.Mqtt.Url);
   });
 
+  export function GetUser(req: Request) {
+    return req.user! as Models.UserViewModel;
+  }
 
   export async function CreateDirectoryIfNotExistsAsync(location: string) {
-    return new Promise<void>((resolve, reject) => {
-      FsPromises.access(location, fs.constants.R_OK).then(() => {
-        resolve();
-        // Do Nothing if Exists
-      }).catch((err) => {
-        FsPromises.mkdir(location)
-          .then(() => { resolve(); })
-          .catch((err) => { reject(err) });
-      });
-    });
+    try{
+      await FsPromises.mkdir(location);
+    }catch(ex){
+      console.error(ex);
+    }
   }
 
 
@@ -125,13 +123,13 @@ export namespace RoutesCommon {
 
   // Check if User is Admin
   export function IsAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && req.user.Authority === "ADMIN") return next();
+    if (req.isAuthenticated() && RoutesCommon.GetUser(req).Authority === "ADMIN") return next();
     return res.redirect("/");
   }
 
   // Check if User is Not Admin
   export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && req.user.Authority !== "ADMIN") return next();
+    if (req.isAuthenticated() && RoutesCommon.GetUser(req).Authority !== "ADMIN") return next();
     return res.redirect("/");
   }
 
@@ -226,7 +224,7 @@ export namespace RoutesCommon {
     // As ArrayBugger is also a UINt8Array buffer
     const buffer = new Uint8Array(nodeBuffer).buffer;
     const info = GIFInfo(buffer);
-    if (info.animated){
+    if (info.animated) {
       // Duration Returned is in Millis
       // Converted to seconds
       // As we are using Seconds

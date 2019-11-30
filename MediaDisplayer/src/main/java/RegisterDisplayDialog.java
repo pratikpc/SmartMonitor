@@ -121,6 +121,7 @@ public class RegisterDisplayDialog {
                 event -> {
                     // Check whether some conditions are fulfilled
                     if (!loginButton.isDisabled()) {
+                        System.out.println("Hey this is world");
                         final String Name = this.username.getText().trim();
                         final String Password = this.password.getText().trim();
                         final String Server = this.server.getText().trim();
@@ -137,7 +138,7 @@ public class RegisterDisplayDialog {
                                 return;
                             }
                         } catch (Exception ex) {
-                            // ex.printStackTrace();
+//                            ex.printStackTrace();
                         }
                     }
                     this.Done = false;
