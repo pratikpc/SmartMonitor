@@ -70,12 +70,17 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
   }
 });
 
+// Display the Change Password Html Page
+Users.get("/changepass/", RoutesCommon.IsAuthenticated, (req, res) => {
+  return RoutesCommon.NoCaching(res).render("ChangePass.html");
+});
+
 // This is the Uri for Updation of a User's details
 // Get Old Password
 // And Set Change to New Password
 // Logically under REST rules it would be under PUT
 // But it's probably not a good idea.
-Users.post("/update/", RoutesCommon.IsAuthenticated, async (req, res) => {
+Users.post("/changepass/", RoutesCommon.IsAuthenticated, async (req, res) => {
   try {
     const id = Number(RoutesCommon.GetUser(req).id);
 
