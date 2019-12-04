@@ -7,7 +7,7 @@ import { Strategy } from "passport-local";
 
 import * as Models from "./Models";
 
-export function PassportModelsGenerate(app: Express.Application) {
+export async function PassportModelsGenerate(app: Express.Application) {
   const SequelizeSessionStore = require("connect-session-sequelize")(Store);
   const sessionStore = new SequelizeSessionStore({
     db: Models.SequelizeSql,
@@ -25,7 +25,7 @@ export function PassportModelsGenerate(app: Express.Application) {
     })
   );
 
-  sessionStore.sync();
+  await sessionStore.sync({ force: false });
 
   app.use(passport.initialize());
   app.use(passport.session());

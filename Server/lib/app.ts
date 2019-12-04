@@ -38,7 +38,7 @@ export async function App() {
   }
 
   await Models.RunSynchronisation();
-  PassportModelsGenerate(app);
+  await PassportModelsGenerate(app);
 
   app.use(cors.default());
   // middleware for json body parsing
