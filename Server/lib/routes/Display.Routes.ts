@@ -39,6 +39,11 @@ Displays.post("/", RoutesCommon.IsAdmin, async (req, res) => {
 
 });
 
+// If Display is Invalid, ValidateActualDisplay returns false
+Displays.post("/validate", RoutesCommon.ValidateActualDisplay, (req, res) => {
+  return res.json({success: true});
+});
+
 // Add from Application
 Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
 if (req.isUnauthenticated())

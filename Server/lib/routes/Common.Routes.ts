@@ -16,7 +16,7 @@ const GIFInfo = require('gif-info');
 
 const storage = multer.diskStorage({
   destination: async (request: any, file: any, callback: any) => {
-    const dir = Path.resolve(String(process.env.INIT_CWD), 'uploads');
+    const dir = Config.Server.MediaStorage;
     await RoutesCommon.CreateDirectoryIfNotExistsAsync(dir);
     callback(null, dir);
   },
@@ -41,7 +41,7 @@ export const upload = multer.default({
 export namespace RoutesCommon {
   export const MqttClient = mqtt.connect(Config.Mqtt.Url);
 
-  MqttClient.on("connect", async () => {
+  MqttClient.on("connect", () => {
     console.log("Mqtt Connected ", Config.Mqtt.Url);
   });
 
@@ -50,16 +50,33 @@ export namespace RoutesCommon {
   }
 
   export async function CreateDirectoryIfNotExistsAsync(location: string) {
-    try{
+    // If Directory exists, exception thrown
+    try {
       await FsPromises.mkdir(location);
-    }catch(ex){
-      console.error(ex);
+    } catch (ex) {
     }
   }
 
+  export async function FileExists(filepath: string) {
+    try {
+      await FsPromises.access(filepath);
+    } catch (ex) {
+      // If File Not exists, Exception Thrown
+      return false;
+    }
+    return true;
+  }
 
   export async function RemoveFileAsync(location: string) {
-    await FsPromises.unlink(location);
+    try {
+      await FsPromises.unlink(location);
+    } catch (ex) {
+    }
+  }
+
+  export async function ReadFileAtPath(location: string){
+    const buffer = await FsPromises.readFile(location);
+    return buffer;
   }
 
   export function RemoveFilesAsync(locations: string[]) {
@@ -70,18 +87,10 @@ export namespace RoutesCommon {
     return Promise.all(removalAsyncs);
   }
 
-  export function ListOfFiles(location: string) {
-    return new Promise<string[]>((resolve, reject) => {
-      fs.readdir(location, (err, files) => {
-        if (err)
-          reject(err);
-        else {
-          // Convert to Absolute paths
-          files = files.map(file => Path.resolve(location, file));
-          resolve(files);
-        }
-      })
-    });
+  export async function ListOfFiles(location: string) {
+    let paths = await FsPromises.readdir(location);
+    paths = paths.map(path => Path.resolve(location, path));
+    return paths;
   }
 
   export function ValidateActualDisplay(
@@ -145,8 +154,8 @@ export namespace RoutesCommon {
     SendMqttMessage(id, "UE");
   }
 
-  export function GetSHA256FromFileAsync(path: string): Promise<string> {
-    return new Promise((resolve, reject) => {
+  export function GetSHA256FromFileAsync(path: string) {
+    return new Promise<string>((resolve, reject) => {
       const hash = createHash("sha256");
       const rs = fs.createReadStream(path);
       rs.on("error", reject);
@@ -155,10 +164,9 @@ export namespace RoutesCommon {
     });
   }
 
-  export function GetFileSizeInBytes(filename: string) {
-    const stats = fs.statSync(filename);
-    const fileSizeInBytes = stats["size"];
-    return fileSizeInBytes;
+  export async function GetFileSizeInBytes(filename: string) {
+    const stats = await FsPromises.stat(filename);
+    return stats.size;
   }
 
   // Convert Given Data as Array of Type
@@ -218,9 +226,8 @@ export namespace RoutesCommon {
     return hh * 100 + mm;
   }
 
-  export function GIFDuration(location: string, name: string, extension: string, showTime: number) {
-    const path = Path.join(location, name + "." + extension);
-    const nodeBuffer = fs.readFileSync(path);
+  export async function GIFDuration(path: string, showTime: number) {
+    const nodeBuffer = await ReadFileAtPath(path);
     // As ArrayBugger is also a UINt8Array buffer
     const buffer = new Uint8Array(nodeBuffer).buffer;
     const info = GIFInfo(buffer);
@@ -260,6 +267,7 @@ export namespace RoutesCommon {
         height
       );
   }
+
   async function GenerateThumbnailImageAsync(
     location: string,
     imageName: string,
@@ -274,8 +282,7 @@ export namespace RoutesCommon {
       .default(sourceName)
       .resize(width, height, {
         kernel: sharp.kernel.nearest,
-        fit: "contain",
-        position: "right top"
+        fit: sharp.fit.fill
       })
       .toFile(destName);
     ;
@@ -331,9 +338,10 @@ export namespace RoutesCommon {
         .format("mp4")
         .videoCodec("libx264")
         .noAudio()
-        .saveToFile(videoDest)
+        .output(videoDest)
         .on("end", () => resolve(true))
-        .on("error", err => reject(err));
+        .on("error", err => reject(err))
+        .run();
     });
   }
 }

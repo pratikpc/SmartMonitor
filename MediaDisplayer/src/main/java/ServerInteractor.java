@@ -80,6 +80,25 @@ public class ServerInteractor {
         return jsonObject.getJSONArray("data");
     }
 
+    public static boolean ValidateDisplay(final Configuration configuration) throws Exception {
+        final List<NameValuePair> form = Form.form()
+                .add("id", Integer.toString(configuration.Id))
+                .add("key", configuration.IdentifierKey)
+                .build();
+
+        final String json = executor.execute(Request.Post(configuration.GetURL("display/validate"))
+                .connectTimeout(1000)
+                .body(Utils.AddToForm(form))
+                .socketTimeout(1000))
+                .returnContent().asString();
+
+        final JSONObject jsonObject = new JSONObject(json);
+        // If connection fails or no data returned
+        // Then we shall not show error
+        if(jsonObject == null)
+            return true;
+        return (jsonObject.optBoolean("success", false));
+    }
     public static boolean CreateNewRasPi(final String name, final String pass, final String location, final String Url, final String StoragePath) throws Exception {
         final List<NameValuePair> form = Form.form()
                 .add("name", name)

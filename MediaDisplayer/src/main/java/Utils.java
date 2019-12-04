@@ -22,18 +22,18 @@ public class Utils {
         return Paths.get(first, names).toAbsolutePath().normalize().toString();
     }
 
-    public static void ClearDirectory(final String fileOrDirectory) {
-        ClearDirectory(new File(fileOrDirectory));
+    public static void ClearFile(final String fileOrDirectory) {
+        ClearFile(new File(fileOrDirectory));
     }
 
     public static boolean ExistsDirectory(final String path) throws Exception {
         return Files.exists(Paths.get(path));
     }
 
-    public static void ClearDirectory(final File fileOrDirectory) {
+    public static void ClearFile(final File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())
-                ClearDirectory(child);
+                ClearFile(child);
 
         fileOrDirectory.delete();
     }

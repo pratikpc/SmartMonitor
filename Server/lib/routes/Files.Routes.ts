@@ -3,6 +3,7 @@ import { RoutesCommon, upload } from "./Common.Routes";
 import * as Models from "../Models/Models";
 import * as fs from "fs";
 import * as Path from "path";
+import * as Config from "../config/Config";
 
 export const Files = Router();
 
@@ -33,12 +34,15 @@ Files.post(
 
       // Iterate over all the files
       files.forEach(async file => {
-        let extension = Path.extname(file.filename).substr(1).toLowerCase(); // Ignores Dot
-        let mediaType = RoutesCommon.GetFileMediaType(extension);
+        // Path changed if path is a video
+        let filePath = String(file.path);
 
+        let extension = Path.extname(filePath).substr(1).toLowerCase(); // Ignores Dot
+
+        let mediaType = RoutesCommon.GetFileMediaType(extension);
         if (!mediaType) return;
 
-        let name = Path.basename(file.filename, Path.extname(file.filename));
+        let name = Path.basename(filePath, Path.extname(filePath));
         let location = file.destination;
 
         // Convert to Mp4 x264 For Java compatibility
@@ -48,27 +52,21 @@ Files.post(
             name,
             extension
           );
-          const oldPath = Path.join(location, name + "." + extension);
-          await RoutesCommon.RemoveFileAsync(oldPath);
 
-          if (!converted) return;
+          await RoutesCommon.RemoveFileAsync(filePath);
+          if (!converted) throw new Error("Video Conversion Failed");
 
           // We need to Add Video to name as then
           // We need to also convert MP4 Files to New Format
           // But we can't just write into the original file
           name = name + "video";
           extension = "mp4";
+          filePath = Path.join(location, name + "." + extension);
         }
         // Get File Hash
-        let fileHash = String(
-          await RoutesCommon.GetSHA256FromFileAsync(
-            Path.join(location, name + "." + extension)
-          )
-        );
+        let fileHash = await RoutesCommon.GetSHA256FromFileAsync(filePath);
         // Get File Size
-        let fileSize = RoutesCommon.GetFileSizeInBytes(
-          Path.join(location, name + "." + extension)
-        );
+        let fileSize = await RoutesCommon.GetFileSizeInBytes(filePath);
 
         const fileSame = await Models.Files.findOne({
           where: { FileSize: fileSize, FileHash: fileHash }
@@ -77,8 +75,7 @@ Files.post(
         const AlreadyPresentIDs: number[] = [];
         // Same File Found
         if (fileSame) {
-          const path = Path.join(location, name + "." + extension);
-          await RoutesCommon.RemoveFileAsync(path);
+          await RoutesCommon.RemoveFileAsync(filePath);
 
           name = fileSame.Name;
           extension = fileSame.Extension;
@@ -102,9 +99,8 @@ Files.post(
           );
 
           if (extension === "gif") {
-            showTime = RoutesCommon.GIFDuration(location, name, extension, showTime);
+            showTime = await RoutesCommon.GIFDuration(filePath, showTime);
           }
-
         }
 
         displayIDs.forEach(async displayId => {
@@ -150,9 +146,11 @@ Files.post(
         });
       });
 
+      await RemoveAllOutdatedFilesAbsentInDatabase(Config.Server.MediaStorage);
+
       return res.status(200).redirect("/files/upload");
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       return res.status(422).send("Upload Failed");
     }
   }
@@ -164,7 +162,8 @@ async function RemoveAllOutdatedFilesAbsentInDatabase(storageLocation: string) {
 
   let FilesInDir = await RoutesCommon.ListOfFiles(storageLocation);
   // Remove all Thumbnails from list
-  FilesInDir = FilesInDir.filter(file => !file.includes("/thumb-")).sort();
+  FilesInDir = FilesInDir.filter(file => !Path.basename(file).startsWith("thumb-"));
+  FilesInDir = FilesInDir.sort();
 
   const FilesToRemoveDiscludingThumbnails = FilesInDir.filter((file) => !FilesInDB.includes(file));
   const FilesToRemove: string[] = [];
@@ -176,7 +175,7 @@ async function RemoveAllOutdatedFilesAbsentInDatabase(storageLocation: string) {
     const thumbNailPath = Path.join(pathData.dir, thumnNailName);
     FilesToRemove.push(thumbNailPath);
   }
-  RoutesCommon.RemoveFilesAsync(FilesToRemove);
+  await RoutesCommon.RemoveFilesAsync(FilesToRemove);
 }
 
 Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
@@ -191,7 +190,7 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   if (count === 0) return res.json({ success: false });
 
   RoutesCommon.SendMqttClientUpdateSignal(displayId);
-  RemoveAllOutdatedFilesAbsentInDatabase("./uploads");
+  await RemoveAllOutdatedFilesAbsentInDatabase(Config.Server.MediaStorage);
   return res.json({ success: true });
 });
 

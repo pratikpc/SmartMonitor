@@ -37,6 +37,14 @@ class Configuration {
         Utils.CreateDirectoryIfNotExists(this.GetAbsolutePathFromStorage("paho"));
     }
 
+    public void Delete(){
+        Utils.ClearFile(this.StoragePath);
+        Utils.ClearFile(this.GetAbsolutePathFromStorage("database"));
+        Utils.ClearFile(this.GetAbsolutePathFromStorage("paho"));
+        PropertiesDeal propertiesDeal = new PropertiesDeal();
+        propertiesDeal.deleteProperties();
+    }
+
     public String GetURL(String Name) {
         return "http://" + URL + ":8000/" + Name;
     }
@@ -215,10 +223,14 @@ public class FXMain extends Application {
             SetupConfiguration();
             SetupMQTT();
             sqlFiles = new SQLFiles(configuration);
-            ServerInteractor.DownloadNewFiles(configuration);
-            // Update SQL Files List
-            sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
-
+            if (ServerInteractor.ValidateDisplay(configuration)) {
+                ServerInteractor.DownloadNewFiles(configuration);
+                // Update SQL Files List
+                sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
+            } else {
+                this.configuration.Delete();
+                throw new Exception("No such display exists");
+            }
             SetupDisplayThread(stage);
         } catch (Exception ex) {
             ex.printStackTrace();
