@@ -1,4 +1,4 @@
 export const Thumbnail = {
-  Width: 320,
-  Height: 240
+  Width: 160,
+  Height: 120
 };

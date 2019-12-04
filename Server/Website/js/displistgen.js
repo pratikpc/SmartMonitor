@@ -21,14 +21,13 @@ $.getJSON("/display/", function(data) {
         gridDiv.setAttribute("data-file", curFileId);
         gridDiv.classList.add("col-lg-3", "col-md-4", "col-6","text-center");
 
-        var aBlock = document.createElement("a");
-        aBlock.classList.add("d-block", "mb-2");
-
         var imgBlock = document.createElement("img");
         var imgpath = "/files/thumbnail?file=" + curFileId + "&id=" + curDisplayId;
+        imgBlock.classList.add("img-thumbnail", "rounded", "mx-auto", "d-block");
         imgBlock.setAttribute("src", imgpath);
+        imgBlock.setAttribute("width", "160");
+        imgBlock.setAttribute("height", "120");
         imgBlock.setAttribute("data-file", curFileId);
-        aBlock.classList.add("img-fluid", "img-thumbnail");
 
         var butHide = document.createElement("a");
         butHide.classList.add("btn", "btn-primary","mb-4");
@@ -86,8 +85,7 @@ $.getJSON("/display/", function(data) {
         };
         butDel.innerText = "Delete";
 
-        aBlock.appendChild(imgBlock);
-        gridDiv.appendChild(aBlock);
+        gridDiv.appendChild(imgBlock);
         gridDiv.appendChild(butHide);
         gridDiv.appendChild(butDel);
         rowDiv.appendChild(gridDiv);
