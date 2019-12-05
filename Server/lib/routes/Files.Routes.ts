@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { RoutesCommon } from "./Common.Routes";
+import { RoutesCommon, upload } from "./Common.Routes";
 import * as Models from "../Models/Models";
-import * as fs from "fs";
 import * as Path from "path";
 import * as Config from "../config/Config";
 
@@ -14,16 +13,11 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
   if (!mediaType) throw new Error("Unknown Media Type Error");
 
   let name = Path.basename(path, Path.extname(path));
-  let location = Path.dirname(path);
+  const location = Path.dirname(path);
 
   // Convert to Mp4 x264 For Java compatibility
   if (mediaType === "VIDEO") {
-    await RoutesCommon.VideoChangeFormatToH264(
-      location,
-      name,
-      extension
-    );
-
+    await RoutesCommon.VideoChangeFormatToH264(path);
     await RoutesCommon.File.RemoveSingle(path);
 
     // We need to Add Video to name as then
@@ -34,39 +28,29 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
     path = Path.join(location, name + "." + extension);
   }
   // Get File Hash
-  let fileHash = await RoutesCommon.GetSHA256FromFileAsync(path);
-  // Get File Size
-  let fileSize = await RoutesCommon.GetFileSizeInBytes(path);
+  const fileHash = await RoutesCommon.GetSHA256FromFileAsync(path);
 
   const fileSame = await Models.Files.findOne({
-    where: { FileSize: fileSize, FileHash: fileHash }
+    where: { FileHash: fileHash }
   });
 
   const AlreadyPresentIDs: number[] = [];
   // Same File Found
   if (fileSame) {
-    await RoutesCommon.File.RemoveSingle(path);
-
-    name = fileSame.Name;
     extension = fileSame.Extension;
-    location = fileSame.Location;
-    fileHash = fileSame.FileHash;
-    fileSize = fileSame.FileSize;
     mediaType = fileSame.MediaType;
 
     AlreadyPresentIDs.push(fileSame.DisplayID);
   }
-
-  // As it's New File
-  // Generate Thumbnail
-  if (!fileSame) {
+  else {
+    // As it's New File
+    // Generate Thumbnail
     await RoutesCommon.GenerateThumbnailAsync(
-      location,
-      name,
-      extension,
+      path,
       mediaType,
-      Models.Files.GetThumbnailFileName(name)
+      Models.Files.GetThumbnailFileName(path)
     );
+    await Models.Mongo.File.UploadSingle(Path.join(location, Models.Files.GetThumbnailFileName(name)), Models.Files.GetThumbnailFileName(fileHash));
 
     if (extension === "gif") {
       showTime = await RoutesCommon.GIFDuration(path, showTime);
@@ -89,12 +73,9 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
         },
         {
           where: {
-            Name: name,
             Extension: extension,
-            Location: location,
             DisplayID: displayId,
             FileHash: fileHash,
-            FileSize: fileSize,
             MediaType: mediaType!
           }
         }
@@ -103,12 +84,9 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
     }
     else {
       await Models.Files.create({
-        Name: name,
         Extension: extension,
-        Location: location,
         DisplayID: displayId,
         FileHash: fileHash,
-        FileSize: fileSize,
         MediaType: mediaType!,
         OnDisplay: true,
         TimeStart: startTime,
@@ -120,9 +98,12 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
       displaysWhereDownload.push(displayId);
     }
   }
+
+  if (!fileSame)
+    await Models.Mongo.File.UploadSingle(path, fileHash + "." + extension);
+
   return [displaysWhereUpdated, displaysWhereDownload];
 }
-
 async function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTime: number, startTime: number, endTime: number) {
   const promises: Promise<number[][]>[] = [];
   // Iterate over all the files
@@ -133,7 +114,7 @@ async function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTi
   }
   let displayWhereDownload: number[] = [];
   let displaysWhereUpdated: number[] = [];
-  
+
   // Merge all Display Details together
   // So we can send Signals
   const displays = await Promise.all(promises);
@@ -153,6 +134,8 @@ async function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTi
 
   await RoutesCommon.Mqtt.SendDownloadRequests(displayWhereDownload);
   await RoutesCommon.Mqtt.SendUpdateSignals(displaysWhereUpdated);
+
+  await RoutesCommon.File.RemoveAll(Config.Server.MediaStorage);
 }
 
 Files.post(
@@ -183,7 +166,7 @@ Files.post(
       const paths = files.map(value => value.path);
       await NewFilesAtPathAdded(paths, displayIDs, showTime, startTime, endTime);
 
-      await RemoveAllOutdatedFilesAbsentInDatabase(Config.Server.MediaStorage);
+      await RemoveFilesNotInDB();
 
       return res.status(200).redirect("/files/upload");
     } catch (err) {
@@ -193,32 +176,34 @@ Files.post(
   }
 );
 
-async function RemoveAllOutdatedFilesAbsentInDatabase(storageLocation: string) {
-  const FilesInDBObj: any = await Models.Files.aggregate('PathToFile', 'DISTINCT', { plain: false });
-  let FilesInDB: string[] = FilesInDBObj.map((file: any) => file.DISTINCT).sort();
+async function RemoveFilesNotInDB() {
+  const FilesInDBObj = await Models.Files.findAll();
+  let FilesInDB = FilesInDBObj.map(file => file.FileName);
+  FilesInDB = [...new Set(FilesInDB)].sort();
+  const FilesInDBThumbnails = FilesInDB.map(file => Models.Files.GetThumbnailFileName(file));
+  FilesInDB.push(...FilesInDBThumbnails);
 
-  let FilesInDir = await RoutesCommon.File.DirectoryList(storageLocation);
-  // Remove all Thumbnails from list
-  FilesInDir = FilesInDir.filter(file => !Path.basename(file).startsWith("thumb-"));
-  FilesInDir = FilesInDir.sort();
+  let FilesInMongo = await Models.Mongo.File.GetAll();
+  FilesInMongo = FilesInMongo.sort();
 
-  const FilesToRemoveDiscludingThumbnails = FilesInDir.filter((file) => !FilesInDB.includes(file));
-  const FilesToRemove: string[] = [];
+  // Only Remove Files not referenced by Database
+  // But are present in Mongo
+  const FilesToRemove = FilesInMongo.filter((file) => !FilesInDB.includes(file));
 
-  for (const file of FilesToRemoveDiscludingThumbnails) {
-    FilesToRemove.push(file);
-    const pathData = Path.parse(file);
-    const thumnNailName = Models.Files.GetThumbnailFileName(pathData.name);
-    const thumbNailPath = Path.join(pathData.dir, thumnNailName);
-    FilesToRemove.push(thumbNailPath);
-  }
-  await RoutesCommon.File.RemoveMultiple(FilesToRemove);
+  await Models.Mongo.File.RemoveMultiple(FilesToRemove);
 }
 
 Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const fileId = Number(params.file);
   const displayId = Number(params.id);
+
+  const FileToDelete = await Models.Files.findOne({
+    where: { id: fileId, DisplayID: displayId }
+  });
+
+  if (FileToDelete == null)
+    return;
 
   const count = await Models.Files.destroy({
     where: { id: fileId, DisplayID: displayId }
@@ -227,7 +212,7 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   if (count === 0) return res.json({ success: false });
 
   await RoutesCommon.Mqtt.SendUpdateSignal(displayId);
-  await RemoveAllOutdatedFilesAbsentInDatabase(Config.Server.MediaStorage);
+  await RemoveFilesNotInDB();
   return res.json({ success: true });
 });
 
@@ -272,12 +257,13 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
     });
     if (!file) return res.sendStatus(404);
 
-    const path = file.GetThumbnailFileLocation();
-    return res.download(path);
+    if (!(await Models.Mongo.File.Exists(file.ThumbnailName)))
+      return res.sendStatus(404);
+    await Models.Mongo.File.Download(res, file.ThumbnailName);
   } catch (err) {
     console.error(err);
+    return res.sendStatus(404);
   }
-  return res.sendStatus(404);
 });
 
 Files.post(
@@ -288,13 +274,13 @@ Files.post(
     const displayId = Number(params.id);
 
     const files = await Models.Files.findAll({
-      attributes: ["id", "Extension", "Name"],
+      attributes: ["id", "Extension", "FileHash"],
       where: { DisplayID: displayId, Downloaded: false }
     });
 
     const list: any[] = [];
     for (const file of files)
-      list.push({ id: file.id, Name: file.Name, Extension: file.Extension });
+      list.push({ id: file.id, Name: file.FileHash, Extension: file.Extension });
 
     return res.json({ success: true, data: list });
   }
@@ -309,14 +295,13 @@ Files.post(
     const displayId = Number(params.id);
 
     const file = await Models.Files.findOne({
-      attributes: ["PathToFile"],
       where: { id: fileId, DisplayID: displayId, Downloaded: false }
     });
 
     if (!file) return res.sendStatus(404);
-    const path = file.PathToFile;
-    if (fs.existsSync(path)) return res.download(path);
-    return res.sendStatus(404);
+    if (!(await Models.Mongo.File.Exists(file.FileName)))
+      return res.sendStatus(404);
+    await Models.Mongo.File.Download(res, file.FileName);
   }
 );
 
@@ -343,7 +328,7 @@ Files.post(
       for (const file of files)
         data.push({
           file: file.id,
-          Path: file.Name + "." + file.Extension,
+          Path: file.FileName,
           Start: file.TimeStart,
           End: file.TimeEnd,
           ShowTime: file.ShowTime,

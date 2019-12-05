@@ -1,6 +1,5 @@
-function IfDockerisedOrSelectDefault(dockerValue: any, defValue: string) {
-  return process.env.APP_IS_DOCKERISED ? String(dockerValue) : defValue;
-}
+import {IfDockerisedOrSelectDefault} from "./Config.Common";
+
 export const DB = {
   Dialect: String(process.env.DatabaseDialect),
   ProjectName: String(process.env.DatabaseProjectName),

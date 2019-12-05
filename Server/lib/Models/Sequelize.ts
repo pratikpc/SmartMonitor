@@ -8,6 +8,8 @@ import { Displays } from "./Display.Models";
 import { Users } from "./Users.Model";
 import { Files } from "./Files.Models";
 
+import {Mongo} from "./Mongo.Models";
+
 // Create the Connection
 export const SequelizeSql = new Sequelize({
   host: Config.DB.Host,
@@ -63,4 +65,7 @@ export async function RunSynchronisation() {
   
   await Files.sync({ force: false });
   await Displays.sync({ force: false });
+
+  // Mongo Connect to Database
+  await Mongo.Connect();
 }

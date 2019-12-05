@@ -3,7 +3,6 @@ import * as mqtt from "mqtt";
 import { createHash, randomBytes } from "crypto";
 import * as fs from "fs";
 import { promises as FsPromises } from "fs";
-import { join, extname } from "path";
 import * as Models from "../Models/Models";
 import ffmpeg = require("fluent-ffmpeg");
 import * as multer from "multer";
@@ -23,7 +22,7 @@ const storage = multer.diskStorage({
     let fileName = "";
     while (true) {
       const name = randomBytes(12).toString("hex");
-      const ext = extname(file.originalname);
+      const ext = Path.extname(file.originalname).toLowerCase();
       fileName = name + ext;
       if (!fs.existsSync(fileName)) break;
     }
@@ -60,6 +59,11 @@ export namespace RoutesCommon {
     export async function Read(location: string) {
       const buffer = await FsPromises.readFile(location);
       return buffer;
+    }
+
+    export async function RemoveAll(location: string) {
+      const files = await File.DirectoryList(location);
+      await RemoveMultiple(files);
     }
 
     export function RemoveMultiple(locations: string[]) {
@@ -266,27 +270,22 @@ export namespace RoutesCommon {
   }
 
   export function GenerateThumbnailAsync(
-    location: string,
-    name: string,
-    extension: string,
+    path: string,
     mediaType: string,
     thumbnailName: string,
     width: number = Config.Thumbnail.Width,
     height: number = Config.Thumbnail.Height
   ) {
-    const filename = name + "." + extension;
     if (mediaType === "VIDEO")
       return GenerateThumbnailVideoAsync(
-        location,
-        filename,
+        path,
         thumbnailName,
         width,
         height
       );
     if (mediaType === "IMAGE")
       return GenerateThumbnailImageAsync(
-        location,
-        filename,
+        path,
         thumbnailName,
         width,
         height
@@ -296,14 +295,13 @@ export namespace RoutesCommon {
   }
 
   function GenerateThumbnailImageAsync(
-    location: string,
-    imageName: string,
+    sourceName: string,
     thumbnailName: string,
     width: number,
     height: number
   ) {
-    const sourceName = join(location, imageName);
-    const destName = join(location, thumbnailName);
+
+    const destName = Path.join(Path.dirname(sourceName), thumbnailName);
 
     return sharp
       .default(sourceName)
@@ -314,21 +312,19 @@ export namespace RoutesCommon {
       .toFile(destName);
   }
   function GenerateThumbnailVideoAsync(
-    location: string,
-    videoName: string,
+    videoPath: string,
     thumbnailName: string,
     width: Number,
     height: Number,
     moment: string = "50%"
   ) {
-    const videoPath = join(location, videoName);
     const wxh = width + "x" + height;
 
     return new Promise<void>((resolve, reject) => {
       ffmpeg(videoPath).thumbnails({
         count: 1,
         filename: thumbnailName,
-        folder: location,
+        folder: Path.dirname(videoPath),
         size: wxh,
         // Take Thumbnail at Half Time
         timestamps: [moment]
@@ -344,16 +340,14 @@ export namespace RoutesCommon {
   }
 
   export function VideoChangeFormatToH264(
-    location: string,
-    videoName: string,
-    videoExt: string
+    videoSrc: string
   ) {
-    const videoSrc = join(location, videoName + "." + videoExt);
     // Append video to Hash of Name
     // Done because
     // For an MP4 file, we can't write into same file
     // Again
-    const videoDest = join(location, videoName + "video.mp4");
+    const videoSrcSplit = Path.parse(videoSrc);
+    const videoDest = Path.join(videoSrcSplit.dir, videoSrcSplit.name + "video.mp4");
 
     // Make this given function awaitable
     // This way, the interface becomes easier to implement
