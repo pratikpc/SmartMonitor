@@ -109,7 +109,7 @@ public class SQLFiles extends SQLInteractor {
         final int start = jsonObject.getInt("Start");
         final int end = jsonObject.getInt("End");
         final boolean display = jsonObject.optBoolean("OnDisplay", false);
-        final int showTime = jsonObject.optInt("ShowTime", 0);
+        final int showTime = jsonObject.optInt("ShowTime", 10);
         return Insert(id, path, start, end, showTime, display);
     }
 
