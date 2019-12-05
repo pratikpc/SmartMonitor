@@ -111,6 +111,18 @@ export namespace RoutesCommon {
     export function SendUpdateSignal(id: number) {
       return Mqtt.Send(id, "UE");
     }
+    export function SendUpdateSignals(ids: number[]) {
+      const promises: Promise<void>[] = [];
+      for (const id of ids)
+        promises.push(SendUpdateSignal(id));
+      return Promise.all(promises);
+    }
+    export function SendDownloadRequests(ids: number[]) {
+      const promises: Promise<void>[] = [];
+      for (const id of ids)
+        promises.push(SendDownloadRequest(id));
+      return Promise.all(promises);
+    }
   }
 }
 export namespace RoutesCommon {

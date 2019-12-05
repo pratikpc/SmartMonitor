@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { RoutesCommon, upload } from "./Common.Routes";
+import { RoutesCommon } from "./Common.Routes";
 import * as Models from "../Models/Models";
 import * as fs from "fs";
 import * as Path from "path";
@@ -11,7 +11,7 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
   let extension = Path.extname(path).substr(1).toLowerCase(); // Ignores Dot
 
   let mediaType = RoutesCommon.GetFileMediaType(extension);
-  if (!mediaType) return;
+  if (!mediaType) throw new Error("Unknown Media Type Error");
 
   let name = Path.basename(path, Path.extname(path));
   let location = Path.dirname(path);
@@ -73,6 +73,9 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
     }
   }
 
+  const displaysWhereDownload: number[] = [];
+  const displaysWhereUpdated: number[] = [];
+
   for (const displayId of displayIDs) {
     if (AlreadyPresentIDs.includes(displayId)) {
       // As File getting Reuploaded, rather than doing nothing, we assume
@@ -96,7 +99,7 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
           }
         }
       );
-      await RoutesCommon.Mqtt.SendUpdateSignal(displayId);
+      displaysWhereUpdated.push(displayId);
     }
     else {
       await Models.Files.create({
@@ -114,20 +117,42 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
         Downloaded: false
       });
 
-      await RoutesCommon.Mqtt.SendDownloadRequest(displayId);
+      displaysWhereDownload.push(displayId);
     }
   }
+  return [displaysWhereUpdated, displaysWhereDownload];
 }
 
-function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTime: number, startTime: number, endTime: number) {
-  const promises: Promise<void>[] = [];
+async function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTime: number, startTime: number, endTime: number) {
+  const promises: Promise<number[][]>[] = [];
   // Iterate over all the files
   for (const path of paths) {
     // Path changed if path is a video
     const promise = NewFileAtPathAdded(path, displayIDs, showTime, startTime, endTime);
     promises.push(promise);
   }
-  return Promise.all(promises);
+  let displayWhereDownload: number[] = [];
+  let displaysWhereUpdated: number[] = [];
+  
+  // Merge all Display Details together
+  // So we can send Signals
+  const displays = await Promise.all(promises);
+  for (const [updated, download] of displays) {
+    displayWhereDownload.push(...download);
+    displaysWhereUpdated.push(...updated);
+  }
+
+  // Contains all Unique Displays where Deletion and Updation Occured
+  displayWhereDownload = [...new Set(displayWhereDownload)];
+  displaysWhereUpdated = [...new Set(displaysWhereUpdated)];
+
+  // Now do not send Update Signal to Displays where Create Signal being sent
+  // This is because On Receiving Create Signal, the action of 
+  // Update Signal is Also Performed 
+  displaysWhereUpdated = displaysWhereUpdated.filter(display => !displayWhereDownload.includes(display));
+
+  await RoutesCommon.Mqtt.SendDownloadRequests(displayWhereDownload);
+  await RoutesCommon.Mqtt.SendUpdateSignals(displaysWhereUpdated);
 }
 
 Files.post(
