@@ -1,6 +1,7 @@
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.stage.DirectoryChooser;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 
@@ -17,6 +18,26 @@ public class Utils {
         final File directory = new File(path);
         if (!directory.exists()) directory.mkdirs();
     }
+
+    public static String DirectoryChooser(final String title, final String defaultPath) {
+        Utils.CreateDirectoryIfNotExists(defaultPath);
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle(title);
+        directoryChooser.setInitialDirectory(new File(defaultPath));
+        final File file = directoryChooser.showDialog(null);
+        if (file == null)
+            return null;
+        final String path = file.getAbsolutePath();
+        try {
+            if (!Utils.IsDirectoryEmpty(path))
+                return null;
+        } catch (Exception ex) {
+//            ex.printStackTrace();
+            return null;
+        }
+        return path;
+    }
+
 
     public static String GetAbsolutePath(final String first, final String... names) {
         return Paths.get(first, names).toAbsolutePath().normalize().toString();

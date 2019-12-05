@@ -4,10 +4,8 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.stage.DirectoryChooser;
 
 import javax.swing.filechooser.FileSystemView;
-import java.io.File;
 import java.util.Properties;
 
 
@@ -26,33 +24,12 @@ public class RegisterDisplayDialog {
         return Utils.GetAbsolutePath(homeDir, Constants.AppName);
     }
 
-    private String CreateFileChooser(final String title, final String defaultPath) {
-
-        Utils.CreateDirectoryIfNotExists(defaultPath);
-        final DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle(title);
-        directoryChooser.setInitialDirectory(new File(defaultPath));
-        final File file = directoryChooser.showDialog(null);
-        if (file == null)
-            return null;
-        final String path = file.getAbsolutePath();
-
-        try {
-            if (!Utils.IsDirectoryEmpty(path))
-                return null;
-        } catch (Exception ex) {
-            //ex.printStackTrace();
-            return null;
-        }
-        return path;
-    }
-
     private boolean IsTextInputEmpty(final TextInputControl field) {
         return field.getText().trim().isEmpty();
     }
 
     public void ShowDirSelector() {
-        String storageSelected = CreateFileChooser("Select Storage", storageDir.getText());
+        String storageSelected = Utils.DirectoryChooser("Select Storage", storageDir.getText());
         if (storageSelected != null)
             storageDir.setText(storageSelected);
     }
