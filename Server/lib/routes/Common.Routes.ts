@@ -11,13 +11,12 @@ import * as mime from "mime";
 import * as sharp from "sharp";
 import * as Config from "../config/Config";
 import * as Path from "path";
-import * as process from "process";
 const GIFInfo = require('gif-info');
 
 const storage = multer.diskStorage({
   destination: async (request: any, file: any, callback: any) => {
     const dir = Config.Server.MediaStorage;
-    await RoutesCommon.CreateDirectoryIfNotExistsAsync(dir);
+    await RoutesCommon.File.DirectoryCreate(dir);
     callback(null, dir);
   },
   filename: (request: any, file: any, callback: any) => {
@@ -39,58 +38,61 @@ export const upload = multer.default({
 });
 
 export namespace RoutesCommon {
+  export namespace File {
+
+    export async function Exists(filepath: string) {
+      try {
+        await FsPromises.access(filepath);
+      } catch (ex) {
+        // If File Not exists, Exception Thrown
+        return false;
+      }
+      return true;
+    }
+
+    export async function RemoveSingle(location: string) {
+      try {
+        await FsPromises.unlink(location);
+      } catch (ex) {
+      }
+    }
+
+    export async function Read(location: string) {
+      const buffer = await FsPromises.readFile(location);
+      return buffer;
+    }
+
+    export function RemoveMultiple(locations: string[]) {
+      const removalAsyncs: Promise<void>[] = [];
+      for (const location of locations) {
+        removalAsyncs.push(RemoveSingle(location));
+      }
+      return Promise.all(removalAsyncs);
+    }
+    export async function DirectoryCreate(location: string) {
+      // If Directory exists, exception thrown
+      try {
+        await FsPromises.mkdir(location);
+      } catch (ex) {
+      }
+    }
+
+    export async function DirectoryList(location: string) {
+      let paths = await FsPromises.readdir(location);
+      paths = paths.map(path => Path.resolve(location, path));
+      return paths;
+    }
+  }
+}
+export namespace RoutesCommon {
   export const MqttClient = mqtt.connect(Config.Mqtt.Url);
 
   MqttClient.on("connect", () => {
-    console.log("Mqtt Connected ", Config.Mqtt.Url);
+    console.log("Mqtt Connected", MqttClient.options.host);
   });
 
   export function GetUser(req: Request) {
     return req.user! as Models.UserViewModel;
-  }
-
-  export async function CreateDirectoryIfNotExistsAsync(location: string) {
-    // If Directory exists, exception thrown
-    try {
-      await FsPromises.mkdir(location);
-    } catch (ex) {
-    }
-  }
-
-  export async function FileExists(filepath: string) {
-    try {
-      await FsPromises.access(filepath);
-    } catch (ex) {
-      // If File Not exists, Exception Thrown
-      return false;
-    }
-    return true;
-  }
-
-  export async function RemoveFileAsync(location: string) {
-    try {
-      await FsPromises.unlink(location);
-    } catch (ex) {
-    }
-  }
-
-  export async function ReadFileAtPath(location: string){
-    const buffer = await FsPromises.readFile(location);
-    return buffer;
-  }
-
-  export function RemoveFilesAsync(locations: string[]) {
-    const removalAsyncs: Promise<void>[] = [];
-    for (const location of locations) {
-      removalAsyncs.push(RemoveFileAsync(location));
-    }
-    return Promise.all(removalAsyncs);
-  }
-
-  export async function ListOfFiles(location: string) {
-    let paths = await FsPromises.readdir(location);
-    paths = paths.map(path => Path.resolve(location, path));
-    return paths;
   }
 
   export function ValidateActualDisplay(
@@ -227,7 +229,7 @@ export namespace RoutesCommon {
   }
 
   export async function GIFDuration(path: string, showTime: number) {
-    const nodeBuffer = await ReadFileAtPath(path);
+    const nodeBuffer = await File.Read(path);
     // As ArrayBugger is also a UINt8Array buffer
     const buffer = new Uint8Array(nodeBuffer).buffer;
     const info = GIFInfo(buffer);
@@ -240,7 +242,7 @@ export namespace RoutesCommon {
     return showTime;
   }
 
-  export async function GenerateThumbnailAsync(
+  export function GenerateThumbnailAsync(
     location: string,
     name: string,
     extension: string,
@@ -251,7 +253,7 @@ export namespace RoutesCommon {
   ) {
     const filename = name + "." + extension;
     if (mediaType === "VIDEO")
-      return await GenerateThumbnailVideoAsync(
+      return GenerateThumbnailVideoAsync(
         location,
         filename,
         thumbnailName,
@@ -259,16 +261,18 @@ export namespace RoutesCommon {
         height
       );
     if (mediaType === "IMAGE")
-      return await GenerateThumbnailImageAsync(
+      return GenerateThumbnailImageAsync(
         location,
         filename,
         thumbnailName,
         width,
         height
       );
+    else
+      return null;
   }
 
-  async function GenerateThumbnailImageAsync(
+  function GenerateThumbnailImageAsync(
     location: string,
     imageName: string,
     thumbnailName: string,
@@ -278,16 +282,15 @@ export namespace RoutesCommon {
     const sourceName = join(location, imageName);
     const destName = join(location, thumbnailName);
 
-    return await sharp
+    return sharp
       .default(sourceName)
       .resize(width, height, {
         kernel: sharp.kernel.nearest,
         fit: sharp.fit.fill
       })
       .toFile(destName);
-    ;
   }
-  async function GenerateThumbnailVideoAsync(
+  function GenerateThumbnailVideoAsync(
     location: string,
     videoName: string,
     thumbnailName: string,
@@ -298,7 +301,7 @@ export namespace RoutesCommon {
     const videoPath = join(location, videoName);
     const wxh = width + "x" + height;
 
-    return await new Promise<boolean>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       ffmpeg(videoPath).thumbnails({
         count: 1,
         filename: thumbnailName,
@@ -307,7 +310,7 @@ export namespace RoutesCommon {
         // Take Thumbnail at Half Time
         timestamps: [moment]
       })
-        .on("end", () => resolve(true))
+        .on("end", () => resolve())
         .on("error", err => reject(err));
     });
   }
@@ -333,13 +336,13 @@ export namespace RoutesCommon {
     // This way, the interface becomes easier to implement
     // And Understand
     // And we can introduce a blocking call
-    return new Promise<boolean>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       ffmpeg(videoSrc)
         .format("mp4")
         .videoCodec("libx264")
         .noAudio()
         .output(videoDest)
-        .on("end", () => resolve(true))
+        .on("end", () => resolve())
         .on("error", err => reject(err))
         .run();
     });

@@ -7,144 +7,153 @@ import * as Config from "../config/Config";
 
 export const Files = Router();
 
+async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: number, startTime: number, endTime: number) {
+  let extension = Path.extname(path).substr(1).toLowerCase(); // Ignores Dot
+
+  let mediaType = RoutesCommon.GetFileMediaType(extension);
+  if (!mediaType) return;
+
+  let name = Path.basename(path, Path.extname(path));
+  let location = Path.dirname(path);
+
+  // Convert to Mp4 x264 For Java compatibility
+  if (mediaType === "VIDEO") {
+    await RoutesCommon.VideoChangeFormatToH264(
+      location,
+      name,
+      extension
+    );
+
+    await RoutesCommon.File.RemoveSingle(path);
+
+    // We need to Add Video to name as then
+    // We need to also convert MP4 Files to New Format
+    // But we can't just write into the original file
+    name = name + "video";
+    extension = "mp4";
+    path = Path.join(location, name + "." + extension);
+  }
+  // Get File Hash
+  let fileHash = await RoutesCommon.GetSHA256FromFileAsync(path);
+  // Get File Size
+  let fileSize = await RoutesCommon.GetFileSizeInBytes(path);
+
+  const fileSame = await Models.Files.findOne({
+    where: { FileSize: fileSize, FileHash: fileHash }
+  });
+
+  const AlreadyPresentIDs: number[] = [];
+  // Same File Found
+  if (fileSame) {
+    await RoutesCommon.File.RemoveSingle(path);
+
+    name = fileSame.Name;
+    extension = fileSame.Extension;
+    location = fileSame.Location;
+    fileHash = fileSame.FileHash;
+    fileSize = fileSame.FileSize;
+    mediaType = fileSame.MediaType;
+
+    AlreadyPresentIDs.push(fileSame.DisplayID);
+  }
+
+  // As it's New File
+  // Generate Thumbnail
+  if (!fileSame) {
+    await RoutesCommon.GenerateThumbnailAsync(
+      location,
+      name,
+      extension,
+      mediaType,
+      Models.Files.GetThumbnailFileName(name)
+    );
+
+    if (extension === "gif") {
+      showTime = await RoutesCommon.GIFDuration(path, showTime);
+    }
+  }
+
+  for (const displayId of displayIDs) {
+    if (AlreadyPresentIDs.includes(displayId))
+      // As File getting Reuploaded, rather than doing nothing, we assume
+      // It's user's instruction to show the file
+      await Models.Files.update(
+        {
+          OnDisplay: true,
+          TimeStart: startTime,
+          TimeEnd: endTime,
+          ShowTime: showTime
+        },
+        {
+          where: {
+            Name: name,
+            Extension: extension,
+            Location: location,
+            DisplayID: displayId,
+            FileHash: fileHash,
+            FileSize: fileSize,
+            MediaType: mediaType!
+          }
+        }
+      );
+    else
+      await Models.Files.create({
+        Name: name,
+        Extension: extension,
+        Location: location,
+        DisplayID: displayId,
+        FileHash: fileHash,
+        FileSize: fileSize,
+        MediaType: mediaType!,
+        OnDisplay: true,
+        TimeStart: startTime,
+        TimeEnd: endTime,
+        ShowTime: showTime,
+        Downloaded: false
+      });
+
+    RoutesCommon.SendMqttClientDownloadRequest(displayId);
+  }
+}
+
+function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTime: number, startTime: number, endTime: number) {
+  const promises: Promise<void>[] = [];
+  // Iterate over all the files
+  for (const path of paths) {
+    // Path changed if path is a video
+    const promise = NewFileAtPathAdded(path, displayIDs, showTime, startTime, endTime);
+    promises.push(promise);
+  }
+  return Promise.all(promises);
+}
+
 Files.post(
   "/upload",
   RoutesCommon.IsAuthenticated,
   upload.array("files"),
   async (req, res) => {
     try {
-      const files = req.files as any[];
+      const files = req.files as Express.Multer.File[];
       if (files.length === 0) return res.status(422).send("Upload Failed");
 
       const params = RoutesCommon.GetParameters(req);
       if (params == null) return res.status(422).send("Upload Failed");
+
+      const displayIDs = RoutesCommon.ToArray(params.ids);
+      if (displayIDs.length === 0) return res.status(422).send("Upload Failed");
 
       const startTime = RoutesCommon.TimeToDecimal(params.startTime);
       const endTime = RoutesCommon.TimeToDecimal(params.endTime);
       if (startTime > endTime) return res.status(422).send("Upload Failed");
 
       // We can change showTime if it's a GIF
-      let showTime = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
+      const showTime = RoutesCommon.ConvertStringToIntegralGreaterThanMin(
         params.showTime,
         0 /*Default Time Set*/
       );
 
-      const displayIDs = RoutesCommon.ToArray(params.ids);
-      if (displayIDs.length === 0) return res.status(422).send("Upload Failed");
-
-      // Iterate over all the files
-      files.forEach(async file => {
-        // Path changed if path is a video
-        let filePath = String(file.path);
-
-        let extension = Path.extname(filePath).substr(1).toLowerCase(); // Ignores Dot
-
-        let mediaType = RoutesCommon.GetFileMediaType(extension);
-        if (!mediaType) return;
-
-        let name = Path.basename(filePath, Path.extname(filePath));
-        let location = file.destination;
-
-        // Convert to Mp4 x264 For Java compatibility
-        if (mediaType === "VIDEO") {
-          const converted = await RoutesCommon.VideoChangeFormatToH264(
-            location,
-            name,
-            extension
-          );
-
-          await RoutesCommon.RemoveFileAsync(filePath);
-          if (!converted) throw new Error("Video Conversion Failed");
-
-          // We need to Add Video to name as then
-          // We need to also convert MP4 Files to New Format
-          // But we can't just write into the original file
-          name = name + "video";
-          extension = "mp4";
-          filePath = Path.join(location, name + "." + extension);
-        }
-        // Get File Hash
-        let fileHash = await RoutesCommon.GetSHA256FromFileAsync(filePath);
-        // Get File Size
-        let fileSize = await RoutesCommon.GetFileSizeInBytes(filePath);
-
-        const fileSame = await Models.Files.findOne({
-          where: { FileSize: fileSize, FileHash: fileHash }
-        });
-
-        const AlreadyPresentIDs: number[] = [];
-        // Same File Found
-        if (fileSame) {
-          await RoutesCommon.RemoveFileAsync(filePath);
-
-          name = fileSame.Name;
-          extension = fileSame.Extension;
-          location = fileSame.Location;
-          fileHash = fileSame.FileHash;
-          fileSize = fileSame.FileSize;
-          mediaType = fileSame.MediaType;
-
-          AlreadyPresentIDs.push(fileSame.DisplayID);
-        }
-
-        // As it's New File
-        // Generate Thumbnail
-        if (!fileSame) {
-          await RoutesCommon.GenerateThumbnailAsync(
-            location,
-            name,
-            extension,
-            mediaType,
-            Models.Files.GetThumbnailFileName(name)
-          );
-
-          if (extension === "gif") {
-            showTime = await RoutesCommon.GIFDuration(filePath, showTime);
-          }
-        }
-
-        displayIDs.forEach(async displayId => {
-          if (AlreadyPresentIDs.includes(displayId))
-            // As File getting Reuploaded, rather than doing nothing, we assume
-            // It's user's instruction to show the file
-            await Models.Files.update(
-              {
-                OnDisplay: true,
-                TimeStart: startTime,
-                TimeEnd: endTime,
-                ShowTime: showTime
-              },
-              {
-                where: {
-                  Name: name,
-                  Extension: extension,
-                  Location: location,
-                  DisplayID: displayId,
-                  FileHash: fileHash,
-                  FileSize: fileSize,
-                  MediaType: mediaType!
-                }
-              }
-            );
-          else
-            await Models.Files.create({
-              Name: name,
-              Extension: extension,
-              Location: location,
-              DisplayID: displayId,
-              FileHash: fileHash,
-              FileSize: fileSize,
-              MediaType: mediaType!,
-              OnDisplay: true,
-              TimeStart: startTime,
-              TimeEnd: endTime,
-              ShowTime: showTime,
-              Downloaded: false
-            });
-
-          RoutesCommon.SendMqttClientDownloadRequest(displayId);
-        });
-      });
+      const paths = files.map(value => value.path);
+      await NewFilesAtPathAdded(paths, displayIDs, showTime, startTime, endTime);
 
       await RemoveAllOutdatedFilesAbsentInDatabase(Config.Server.MediaStorage);
 
@@ -160,7 +169,7 @@ async function RemoveAllOutdatedFilesAbsentInDatabase(storageLocation: string) {
   const FilesInDBObj: any = await Models.Files.aggregate('PathToFile', 'DISTINCT', { plain: false });
   let FilesInDB: string[] = FilesInDBObj.map((file: any) => file.DISTINCT).sort();
 
-  let FilesInDir = await RoutesCommon.ListOfFiles(storageLocation);
+  let FilesInDir = await RoutesCommon.File.DirectoryList(storageLocation);
   // Remove all Thumbnails from list
   FilesInDir = FilesInDir.filter(file => !Path.basename(file).startsWith("thumb-"));
   FilesInDir = FilesInDir.sort();
@@ -175,7 +184,7 @@ async function RemoveAllOutdatedFilesAbsentInDatabase(storageLocation: string) {
     const thumbNailPath = Path.join(pathData.dir, thumnNailName);
     FilesToRemove.push(thumbNailPath);
   }
-  await RoutesCommon.RemoveFilesAsync(FilesToRemove);
+  await RoutesCommon.File.RemoveMultiple(FilesToRemove);
 }
 
 Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
@@ -256,9 +265,9 @@ Files.post(
     });
 
     const list: any[] = [];
-    files.forEach(file => {
+    for (const file of files)
       list.push({ id: file.id, Name: file.Name, Extension: file.Extension });
-    });
+
     return res.json({ success: true, data: list });
   }
 );
@@ -303,7 +312,7 @@ Files.post(
         order: [["id", "ASC"]]
       });
 
-      files.forEach(file => {
+      for (const file of files)
         data.push({
           file: file.id,
           Path: file.Name + "." + file.Extension,
@@ -312,7 +321,6 @@ Files.post(
           ShowTime: file.ShowTime,
           OnDisplay: file.OnDisplay
         });
-      });
 
       return res.json({ success: true, data: data });
     } catch (err) {
