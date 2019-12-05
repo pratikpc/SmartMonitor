@@ -74,7 +74,7 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
   }
 
   for (const displayId of displayIDs) {
-    if (AlreadyPresentIDs.includes(displayId))
+    if (AlreadyPresentIDs.includes(displayId)) {
       // As File getting Reuploaded, rather than doing nothing, we assume
       // It's user's instruction to show the file
       await Models.Files.update(
@@ -96,7 +96,9 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
           }
         }
       );
-    else
+      await RoutesCommon.Mqtt.SendUpdateSignal(displayId);
+    }
+    else {
       await Models.Files.create({
         Name: name,
         Extension: extension,
@@ -112,7 +114,8 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
         Downloaded: false
       });
 
-    RoutesCommon.SendMqttClientDownloadRequest(displayId);
+      await RoutesCommon.Mqtt.SendDownloadRequest(displayId);
+    }
   }
 }
 
@@ -198,7 +201,7 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
 
   if (count === 0) return res.json({ success: false });
 
-  RoutesCommon.SendMqttClientUpdateSignal(displayId);
+  await RoutesCommon.Mqtt.SendUpdateSignal(displayId);
   await RemoveAllOutdatedFilesAbsentInDatabase(Config.Server.MediaStorage);
   return res.json({ success: true });
 });
@@ -224,7 +227,7 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
     );
     if (count === 0) return res.json({ success: false });
 
-    RoutesCommon.SendMqttClientUpdateSignal(displayId);
+    await RoutesCommon.Mqtt.SendUpdateSignal(displayId);
 
     return res.json({ success: true });
   } catch (err) {

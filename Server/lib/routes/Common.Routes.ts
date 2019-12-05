@@ -85,12 +85,35 @@ export namespace RoutesCommon {
   }
 }
 export namespace RoutesCommon {
-  export const MqttClient = mqtt.connect(Config.Mqtt.Url);
+  export namespace Mqtt {
+    export const Client = mqtt.connect(Config.Mqtt.Url);
 
-  MqttClient.on("connect", () => {
-    console.log("Mqtt Connected", MqttClient.options.host);
-  });
+    export function Publish(topic: string, message: string | Buffer) {
+      return new Promise((resolve, reject) => {
+        Mqtt.Client.publish(topic, message, (err, result) => {
+          if (err) reject(err)
+          else resolve(result)
+        })
+      })
+    }
 
+    Mqtt.Client.on("connect", () => {
+      console.log("Mqtt Connected", Mqtt.Client.options.host);
+    });
+    export async function Send(id: number, message: string) {
+      if (Mqtt.Client.connected)
+        await Mqtt.Publish(Config.Mqtt.DisplayTopic(id), message);
+    }
+
+    export function SendDownloadRequest(id: number) {
+      return Mqtt.Send(id, "DN");
+    }
+    export function SendUpdateSignal(id: number) {
+      return Mqtt.Send(id, "UE");
+    }
+  }
+}
+export namespace RoutesCommon {
   export function GetUser(req: Request) {
     return req.user! as Models.UserViewModel;
   }
@@ -142,18 +165,6 @@ export namespace RoutesCommon {
   export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
     if (req.isAuthenticated() && RoutesCommon.GetUser(req).Authority !== "ADMIN") return next();
     return res.redirect("/");
-  }
-
-  export function SendMqttMessage(id: number, message: string): void {
-    if (MqttClient.connected)
-      MqttClient.publish(Config.Mqtt.DisplayTopic(id), message);
-  }
-
-  export function SendMqttClientDownloadRequest(id: number) {
-    SendMqttMessage(id, "DN");
-  }
-  export function SendMqttClientUpdateSignal(id: number) {
-    SendMqttMessage(id, "UE");
   }
 
   export function GetSHA256FromFileAsync(path: string) {
