@@ -8,68 +8,11 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 import org.eclipse.paho.client.mqttv3.*;
-import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
-import java.io.File;
-import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-class Configuration {
-    public final String IdentifierKey;
-    public final int Id;
-    public final String URL;
-    public final String StoragePath;
-    public final String Location;
-
-    public Configuration(final Properties props) {
-        this.Id = Integer.parseInt(props.getProperty("id"));
-        this.IdentifierKey = props.getProperty("IdentifierKey");
-        this.StoragePath = props.getProperty("StoragePath");
-        this.Location = props.getProperty("Name");
-        this.URL = props.getProperty("URLWeb");
-        Utils.CreateDirectoryIfNotExists(this.StoragePath);
-        Utils.CreateDirectoryIfNotExists(this.GetAbsolutePathFromStorage("database"));
-        Utils.CreateDirectoryIfNotExists(this.GetAbsolutePathFromStorage("paho"));
-    }
-
-    public void Delete(){
-        Utils.ClearFile(this.StoragePath);
-        Utils.ClearFile(this.GetAbsolutePathFromStorage("database"));
-        Utils.ClearFile(this.GetAbsolutePathFromStorage("paho"));
-        PropertiesDeal propertiesDeal = new PropertiesDeal();
-        propertiesDeal.deleteProperties();
-    }
-
-    public String GetURL(String Name) {
-        return "http://" + URL + ":8000/" + Name;
-    }
-
-    public String GetMqttLink() {
-        return "tcp://" + URL + ":1883";
-    }
-
-    public String GetAbsolutePathAsUriFromStorage(final String... names) throws Exception {
-        return Utils.ToUri(GetAbsolutePathFromStorage(names));
-    }
-
-    public String GetAbsolutePathFromStorage(final String... names) {
-        return Utils.GetAbsolutePath(this.StoragePath, names);
-    }
-
-    public Connection GetSQLDBConnection() throws SQLException, ClassNotFoundException {
-        Class.forName("org.sqlite.JDBC");
-        return DriverManager.getConnection("jdbc:sqlite:" + this.GetAbsolutePathFromStorage("database", "files.db"));
-    }
-
-    public MqttDefaultFilePersistence GetMqttDefaultStorageLocation() {
-        return new MqttDefaultFilePersistence(this.GetAbsolutePathFromStorage("paho"));
-    }
-}
 
 public class FXMain extends Application {
     private final ImageView imageView = new ImageView();
@@ -83,6 +26,13 @@ public class FXMain extends Application {
     private Thread displayThread;
 
     private MediaPlayer mediaPlayer;
+
+    private volatile Vector<Medium> media;
+
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     private void SetupConfiguration() throws Exception {
         configuration = new Configuration(new PropertiesDeal().loadProperties());
@@ -107,11 +57,13 @@ public class FXMain extends Application {
                         ServerInteractor.DownloadNewFiles(configuration);
                         // Update SQL Files List
                         sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
+                        media = sqlFiles.Load();
                     }
                     // Update Signal Received
                     if (msg.equals("UE")) {
                         // Update SQL Files List
                         sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
+                        media = sqlFiles.Load();
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -145,10 +97,8 @@ public class FXMain extends Application {
 
     private void SetupDisplayThread(final Stage stage) {
         displayThread = new Thread(() -> {
-
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    final Vector<Medium> media = sqlFiles.Load();
                     if (media.isEmpty()) {
                         this.imageView.setVisible(false);
                         this.mediaView.setVisible(false);
@@ -173,28 +123,34 @@ public class FXMain extends Application {
                             imageView.fitWidthProperty().bind(stage.widthProperty());
                             imageView.fitHeightProperty().bind(stage.heightProperty());
 
-                            medium.DelayTillMediumShowDone();
+                            TimeUnit.SECONDS.sleep(medium.ShowTime);
                             break;
                         case VIDEO:
                             mediaPlayer = new MediaPlayer(medium.Video);
                             imageView.setImage(null);
+
                             imageView.fitWidthProperty().unbind();
                             imageView.fitHeightProperty().unbind();
                             imageView.setFitWidth(0);
                             imageView.setFitHeight(0);
-                            mediaView.fitWidthProperty().bind(stage.widthProperty());
-                            mediaView.fitHeightProperty().bind(stage.heightProperty());
+
                             // Do this to Ensure that Video plays in Same Size as
                             // MediaView Object
+                            mediaView.fitWidthProperty().bind(stage.widthProperty());
+                            mediaView.fitHeightProperty().bind(stage.heightProperty());
+
                             mediaView.setMediaPlayer(mediaPlayer);
                             mediaPlayer.play();
+
                             imageView.setVisible(false);
                             mediaView.setVisible(true);
 
-                            // Delay for sometime till it can load Medium Details
-                            TimeUnit.MILLISECONDS.sleep(200);
-                            medium.DelayTillMediumShowDone();
-                            mediaPlayer.stop();
+                            CountDownLatch latch = new CountDownLatch(1);
+                            mediaPlayer.setOnEndOfMedia(() -> {
+                                latch.countDown();
+                            });
+                            // Halt till Latch Complete
+                            latch.await();
                             break;
                         default:
                             imageView.setVisible(false);
@@ -214,7 +170,6 @@ public class FXMain extends Application {
         });
     }
 
-
     @Override
     public void start(Stage stage) {
         // Any Error in High Priority Actions indicates Need to Terminate Stage
@@ -227,6 +182,7 @@ public class FXMain extends Application {
                 ServerInteractor.DownloadNewFiles(configuration);
                 // Update SQL Files List
                 sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
+                this.media = sqlFiles.Load();
             } else {
                 this.configuration.Delete();
                 throw new Exception("No such display exists");
@@ -307,12 +263,8 @@ public class FXMain extends Application {
             }
             CloseConnections();
             Utils.Terminate();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

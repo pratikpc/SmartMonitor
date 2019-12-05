@@ -3,7 +3,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -95,10 +94,11 @@ public class ServerInteractor {
         final JSONObject jsonObject = new JSONObject(json);
         // If connection fails or no data returned
         // Then we shall not show error
-        if(jsonObject == null)
+        if (jsonObject == null)
             return true;
         return (jsonObject.optBoolean("success", false));
     }
+
     public static boolean CreateNewRasPi(final String name, final String pass, final String location, final String Url, final String StoragePath) throws Exception {
         final List<NameValuePair> form = Form.form()
                 .add("name", name)
