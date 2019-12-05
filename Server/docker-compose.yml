@@ -29,10 +29,11 @@ services:
       - APP_IS_DOCKERISED=YES
       - MQTT_URI_CONNECTOR=mqtt
     volumes:
-      - data:/app/uploads
+      - app_data:/app/uploads
     links:
       - database
       - mqtt
+      - mongodb
     command: npm run deploy
 
   database:
@@ -47,7 +48,20 @@ services:
       - POSTGRES_DB=${DatabaseName}
       - PGDATA=/var/lib/postgresql/data/db-files/
     volumes:
-      - data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:latest
@@ -58,4 +72,6 @@ services:
       - "1883:1883"
 
 volumes:
-  data: {}
+  db_data: {}
+  mongo_data: {}
+  app_data: {}
