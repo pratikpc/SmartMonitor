@@ -1,7 +1,8 @@
 import * as MongoDB from "mongodb";
 import * as Config from "../config/Config";
 import { createReadStream } from "fs";
-import { parse } from "path";
+import {Readable} from "stream";
+import { Response } from "express";
 
 export namespace Mongo {
     export const Client = new MongoDB.MongoClient(Config.Mongo.Uri(), { useUnifiedTopology: true });
@@ -15,6 +16,16 @@ export namespace Mongo {
         Mongo.GridFsBucket = new MongoDB.GridFSBucket(Mongo.DB, { bucketName: Config.Mongo.Bucket });
         Mongo.GridFsCollection = Mongo.DB.collection(Config.Mongo.Bucket_Files);
         console.log("Mongo Connected at ", Config.Mongo.Uri());
+    }
+    export namespace File {
+        export namespace Stream {
+            export function Download(fileName: string) {
+                return Mongo.GridFsBucket.openDownloadStreamByName(fileName);
+            }
+            export function Upload(fileName: string) {
+                return Mongo.GridFsBucket.openUploadStream(fileName);
+            }
+        }
     }
 
     export namespace File {
@@ -32,7 +43,7 @@ export namespace Mongo {
         export function UploadSingle(path: string, fileName: string) {
             return new Promise<void>((resolve, reject) => {
                 createReadStream(path)
-                    .pipe(GridFsBucket.openUploadStream(fileName))
+                    .pipe(Mongo.File.Stream.Upload(fileName))
                     .on('error', (error: any) => {
                         reject(error)
                     }).
@@ -42,18 +53,32 @@ export namespace Mongo {
             });
         }
 
-        export function Download(res: any, fileName: string) {
+        export function DownloadFromStream(res: any, stream: Readable) {
             return new Promise<void>((resolve, reject) => {
-                return GridFsBucket.openDownloadStreamByName(fileName)
+                return stream
                     .pipe(res)
                     .on('error', (error: any) => {
                         res.sendStatus(404);
                         resolve();
                     }).
                     on('finish', function () {
-                        resolve()
+                        res.end();
+                        resolve();
                     });
             });
+        }
+        export async function AddParamsToStreamResponse(res: Response, fileName: string){
+            const file = await File.Get(fileName);
+            res.header('Content-Type', file.contentType);
+            res.header('Content-Length', file.length);
+        }
+        export async function DownloadSingle(res: Response, fileName: string) {
+            await AddParamsToStreamResponse(res, fileName);
+            const stream = Mongo.File.Stream.Download(fileName);
+            await DownloadFromStream(res, stream);
+        }
+        export function DownloadVideoFromStream(res: Response, fileName: string) {
+            return DownloadSingle(res, fileName);
         }
 
         export async function Get(fileName: string) {

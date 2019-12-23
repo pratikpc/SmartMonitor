@@ -20,7 +20,7 @@ export const SequelizeSql = new Sequelize({
   dialect: Config.DB.Dialect,
   operatorsAliases: Config.DB.operatorsAliases,
   // Set logging to False to disable logging
-  logging: true
+  logging: console.log
 });
 
 async function CreateDatabaseIfNotExists(db_name: string) {
@@ -49,7 +49,7 @@ async function CreateDatabaseIfNotExists(db_name: string) {
   await pool.end();
 }
 
-export async function RunSynchronisation() {
+export async function Setup() {
   // First End up Creating the Database
   // In admin Database
   await CreateDatabaseIfNotExists(Config.DB.ProjectName);

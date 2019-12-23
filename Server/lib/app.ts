@@ -37,7 +37,7 @@ export async function App() {
     app.use("/static/", express.static("./Website"));
   }
 
-  await Models.RunSynchronisation();
+  await Models.Setup();
   await PassportModelsGenerate(app);
 
   app.use(cors.default());
@@ -55,7 +55,7 @@ export async function App() {
   // Route via this as path for File Uploading and Downloading
   app.use("/files", Routes.Files);
 
-  app.get("/navbar", RoutesCommon.IsAuthenticated, (req, res) => {
+  app.get("/navbar", RoutesCommon.Validate.User, (req, res) => {
     if (RoutesCommon.GetUser(req).Authority === "ADMIN")
       return res.render("navbaradmin.html");
     else

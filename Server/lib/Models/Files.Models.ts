@@ -10,6 +10,7 @@ import {
 } from "sequelize-typescript";
 import { Displays } from "./Display.Models";
 import { parse } from "path";
+import * as mime from "mime";
 
 @Table
 export class Files extends Model<Files> {
@@ -42,10 +43,6 @@ export class Files extends Model<Files> {
   FileHash!: string;
 
   @AllowNull(false)
-  @Column(DataType.TEXT)
-  MediaType!: string;
-
-  @AllowNull(false)
   @Column(DataType.NUMERIC)
   TimeStart!: number;
 
@@ -56,6 +53,19 @@ export class Files extends Model<Files> {
   @AllowNull(false)
   @Column(DataType.NUMERIC)
   ShowTime!: number;
+
+  get MediaType() {
+    return Files.GetFileMediaType(this.Extension);
+  }
+
+  // Find Multimedia type based on File Extension
+  public static GetFileMediaType(ext: string): string | null {
+    const mimeType = mime.getType(ext);
+    if (!mimeType) return null;
+    if (mimeType.startsWith("image")) return "IMAGE";
+    if (mimeType.startsWith("video")) return "VIDEO";
+    return null;
+  }
 
   get FileName() {
     return this.FileHash + "." + this.Extension;

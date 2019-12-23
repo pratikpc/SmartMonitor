@@ -8,14 +8,14 @@ export const Displays = Router();
 
 // This is a temporary page
 // Features needed to be added on /display/list page
-Displays.get("/adddisp", RoutesCommon.IsAdmin, (req, res) => {
+Displays.get("/adddisp", RoutesCommon.Validate.Admin, (req, res) => {
   return res.render("adddisp.html");
 });
-Displays.get("/list", RoutesCommon.IsAuthenticated, (req, res) => {
-  return RoutesCommon.NoCaching(res).render("displist.html");
+Displays.get("/list", RoutesCommon.Validate.User, RoutesCommon.NoCaching, (req, res) => {
+  return res.render("displist.html");
 });
 
-Displays.post("/", RoutesCommon.IsAdmin, async (req, res) => {
+Displays.post("/", RoutesCommon.Validate.Admin, async (req, res) => {
   const userId = RoutesCommon.GetUser(req).id;
 
   const params = RoutesCommon.GetParameters(req);
@@ -40,13 +40,13 @@ Displays.post("/", RoutesCommon.IsAdmin, async (req, res) => {
 });
 
 // If Display is Invalid, ValidateActualDisplay returns false
-Displays.post("/validate", RoutesCommon.ValidateActualDisplay, (req, res) => {
-  return res.json({success: true});
+Displays.post("/validate", RoutesCommon.Validate.Display, (req, res) => {
+  return res.json({ success: true });
 });
 
 // Add from Application
 Displays.post("/add/", passport.authenticate("app"), async (req, res) => {
-if (req.isUnauthenticated())
+  if (req.isUnauthenticated())
     return res.json({
       success: false
     });
@@ -85,14 +85,14 @@ if (req.isUnauthenticated())
   });
 });
 
-Displays.put("/", RoutesCommon.IsAdmin, async (req, res) => {
+Displays.put("/", RoutesCommon.Validate.Admin, async (req, res) => {
   const userId = Number(RoutesCommon.GetUser(req).id);
 
   const params = RoutesCommon.GetParameters(req);
 
   const displayId = Number(params.displayid);
-  const displayKey = String(params.displaykey);
-  const newDisplayName = String(params.displayname);
+  const displayKey = String(params.displaykey).trim();
+  const newDisplayName = String(params.displayname).trim();
 
   const [count] = await Models.Displays.update(
     { Name: newDisplayName },
@@ -116,7 +116,7 @@ Displays.put("/", RoutesCommon.IsAdmin, async (req, res) => {
   });
 });
 
-Displays.get("/", RoutesCommon.IsAuthenticated, async (req, res) => {
+Displays.get("/", RoutesCommon.Validate.User, async (req, res) => {
   const displays = await Models.Displays.findAll({
     attributes: ["id", "Name"],
     order: [["id", "ASC"]]
@@ -128,7 +128,7 @@ Displays.get("/", RoutesCommon.IsAuthenticated, async (req, res) => {
   return res.json(list);
 });
 
-Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res) => {
+Displays.get("/:id", RoutesCommon.Validate.User, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
 
   if (params == null)
@@ -137,6 +137,12 @@ Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res) => {
       data: { id: null, name: null }
     });
   const id = Number(params.id);
+
+  if (!id)
+    return res.json({
+      success: false,
+      data: { id: null, name: null }
+    });
 
   try {
     const display = await Models.Displays.findByPk(id, {
@@ -161,7 +167,7 @@ Displays.get("/:id", RoutesCommon.IsAuthenticated, async (req, res) => {
   }
 });
 
-Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
+Displays.get("/:id/files", RoutesCommon.Validate.User, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
 
@@ -171,6 +177,13 @@ Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
         data: null
       });
     const id = Number(params.id);
+
+    if (!id)
+      return res.json({
+        success: false,
+        data: null
+      });
+
 
     const data: any[] = [];
     const files = await Models.Files.findAll({
@@ -196,14 +209,14 @@ Displays.get("/:id/files", RoutesCommon.IsAdmin, async (req, res) => {
   });
 });
 
-Displays.delete("/:id", RoutesCommon.IsAdmin, async (req, res) => {
+Displays.delete("/:id", RoutesCommon.Validate.Admin, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
     if (params == null)
-      return res.json({
-        success: false
-      });
+      return res.json({ success: false });
     const id = Number(params.id);
+    if (!id)
+      return res.json({ success: false });
 
     const displayDel = await Models.Displays.destroy({ where: { id: id } });
     await Models.Files.destroy({ where: { DisplayID: id } });
@@ -212,7 +225,5 @@ Displays.delete("/:id", RoutesCommon.IsAdmin, async (req, res) => {
   } catch (error) {
     console.error(error);
   }
-  return res.json({
-    success: false
-  });
+  return res.json({ success: false });
 });

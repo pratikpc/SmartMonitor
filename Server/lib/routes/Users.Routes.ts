@@ -25,29 +25,31 @@ Users.post(
 );
 
 Users.post("/login/json", passport.authenticate("app"), (req, res) => {
-  if (req.isAuthenticated()) return res.json({ success: true });
-  else return res.json({ success: false });
+  return res.json({ success: req.isAuthenticated() });
 });
 
 // Uri for Logout
-Users.all("/logout/", RoutesCommon.IsAuthenticated, (req, res) => {
+Users.all("/logout/", RoutesCommon.Validate.User, (req, res) => {
   req.logout();
   return res.redirect("/");
 });
 
-Users.get("/list/", RoutesCommon.IsAdmin, async (req, res) => {
-  return RoutesCommon.NoCaching(res).render("userlist.html");
+Users.get("/list/", RoutesCommon.Validate.Admin, RoutesCommon.NoCaching, async (req, res) => {
+  return res.render("userlist.html");
 });
 
 // This is the Uri for Registration of a new user
-Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
+Users.post("/add/", RoutesCommon.Validate.Admin, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
 
-    const name = String(params.name);
+    const name = String(params.name).trim();
     if (name == null) return res.json({ success: false, password: null });
     if (name === "") return res.json({ success: false, password: null });
 
+    let authority = String(params.authority).trim().toUpperCase();
+    if (authority == null || authority.trim() === "")
+      authority = "NORMAL";
 
     const count_users = await Model.Users.count({ where: { Name: name } });
 
@@ -55,7 +57,6 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
 
     // Generate Random Pass Key
     const pass_key = randomBytes(10).toString("hex");
-    const authority = "NORMAL";
     const new_user = await Model.Users.create({
       Name: name,
       Password: pass_key,
@@ -71,8 +72,8 @@ Users.post("/add/", RoutesCommon.IsAdmin, async (req, res) => {
 });
 
 // Display the Change Password Html Page
-Users.get("/changepass/", RoutesCommon.IsAuthenticated, (req, res) => {
-  return RoutesCommon.NoCaching(res).render("ChangePass.html");
+Users.get("/changepass/", RoutesCommon.Validate.User, RoutesCommon.NoCaching, (req, res) => {
+  return res.render("ChangePass.html");
 });
 
 // This is the Uri for Updation of a User's details
@@ -80,7 +81,7 @@ Users.get("/changepass/", RoutesCommon.IsAuthenticated, (req, res) => {
 // And Set Change to New Password
 // Logically under REST rules it would be under PUT
 // But it's probably not a good idea.
-Users.post("/changepass/", RoutesCommon.IsAuthenticated, async (req, res) => {
+Users.post("/changepass/", RoutesCommon.Validate.User, async (req, res) => {
   try {
     const id = Number(RoutesCommon.GetUser(req).id);
 
@@ -118,7 +119,7 @@ Users.get("/current/", async (req, res) => {
 });
 
 // This is Uri to access List of Non Admin Users
-Users.get("/", RoutesCommon.IsAdmin, async (req, res) => {
+Users.get("/", RoutesCommon.Validate.Admin, async (req, res) => {
   try {
     const users = await Model.Users.findAll({
       attributes: ["id", "Name"],
@@ -133,7 +134,7 @@ Users.get("/", RoutesCommon.IsAdmin, async (req, res) => {
     return res.json([]);
   }
 });
-Users.get("/:id", RoutesCommon.IsAdmin, async (req, res) => {
+Users.get("/:id", RoutesCommon.Validate.Admin, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
     const id = Number(params.id);

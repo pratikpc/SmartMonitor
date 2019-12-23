@@ -9,26 +9,37 @@ export const Files = Router();
 async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: number, startTime: number, endTime: number) {
   let extension = Path.extname(path).substr(1).toLowerCase(); // Ignores Dot
 
-  let mediaType = RoutesCommon.GetFileMediaType(extension);
+  let mediaType = Models.Files.GetFileMediaType(extension);
   if (!mediaType) throw new Error("Unknown Media Type Error");
 
   let name = Path.basename(path, Path.extname(path));
   const location = Path.dirname(path);
 
-  // Convert to Mp4 x264 For Java compatibility
+  // Convert to WebM libvpx For Java compatibility
   if (mediaType === "VIDEO") {
-    await RoutesCommon.VideoChangeFormatToH264(path);
+    await RoutesCommon.VideoConvertToWebM(path);
     await RoutesCommon.File.RemoveSingle(path);
 
     // We need to Add Video to name as then
-    // We need to also convert MP4 Files to New Format
     // But we can't just write into the original file
     name = name + "video";
-    extension = "mp4";
+    extension = "webm";
     path = Path.join(location, name + "." + extension);
   }
   // Get File Hash
   const fileHash = await RoutesCommon.GetSHA256FromFileAsync(path);
+
+  // Convert Animated GIF to Video
+  if (extension === "gif" && RoutesCommon.GIF.IsAnimated(path)) {
+    showTime = await RoutesCommon.GIF.Duration(path, showTime);
+    await RoutesCommon.GIFConvertToWebM(path);
+    await RoutesCommon.File.RemoveSingle(path);
+
+    mediaType = "VIDEO";
+    name = name + "video";
+    extension = "webm";
+    path = Path.join(location, name + "." + extension);
+  }
 
   const fileSame = await Models.Files.findOne({
     where: { FileHash: fileHash }
@@ -51,10 +62,6 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
       Models.Files.GetThumbnailFileName(path)
     );
     await Models.Mongo.File.UploadSingle(Path.join(location, Models.Files.GetThumbnailFileName(name)), Models.Files.GetThumbnailFileName(fileHash));
-
-    if (extension === "gif") {
-      showTime = await RoutesCommon.GIFDuration(path, showTime);
-    }
   }
 
   const displaysWhereDownload: number[] = [];
@@ -76,7 +83,6 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
             Extension: extension,
             DisplayID: displayId,
             FileHash: fileHash,
-            MediaType: mediaType!
           }
         }
       );
@@ -87,7 +93,6 @@ async function NewFileAtPathAdded(path: string, displayIDs: number[], showTime: 
         Extension: extension,
         DisplayID: displayId,
         FileHash: fileHash,
-        MediaType: mediaType!,
         OnDisplay: true,
         TimeStart: startTime,
         TimeEnd: endTime,
@@ -140,7 +145,7 @@ async function NewFilesAtPathAdded(paths: string[], displayIDs: number[], showTi
 
 Files.post(
   "/upload",
-  RoutesCommon.IsAuthenticated,
+  RoutesCommon.Validate.User,
   upload.array("files"),
   async (req, res) => {
     try {
@@ -193,7 +198,7 @@ async function RemoveFilesNotInDB() {
   await Models.Mongo.File.RemoveMultiple(FilesToRemove);
 }
 
-Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
+Files.delete("/remove", RoutesCommon.Validate.User, async (req, res) => {
   const params = RoutesCommon.GetParameters(req);
   const fileId = Number(params.file);
   const displayId = Number(params.id);
@@ -216,12 +221,12 @@ Files.delete("/remove", RoutesCommon.IsAuthenticated, async (req, res) => {
   return res.json({ success: true });
 });
 
-Files.get("/upload/", RoutesCommon.IsAuthenticated, async (req, res) => {
-  return RoutesCommon.NoCaching(res).render("ImageUpload.html");
+Files.get("/upload/", RoutesCommon.Validate.User, RoutesCommon.NoCaching, (req, res) => {
+  return res.render("ImageUpload.html");
 });
 
 // Controls if File is Hidden or Not
-Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
+Files.put("/shown", RoutesCommon.Validate.User, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
     const fileId = Number(params.file);
@@ -246,7 +251,7 @@ Files.put("/shown", RoutesCommon.IsAuthenticated, async (req, res) => {
   }
 });
 
-Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
+Files.get("/thumbnail", RoutesCommon.Validate.User, async (req, res) => {
   try {
     const params = RoutesCommon.GetParameters(req);
     const fileId = Number(params.file);
@@ -259,7 +264,7 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
 
     if (!(await Models.Mongo.File.Exists(file.ThumbnailName)))
       return res.sendStatus(404);
-    await Models.Mongo.File.Download(res, file.ThumbnailName);
+    await Models.Mongo.File.DownloadSingle(res, file.ThumbnailName);
   } catch (err) {
     console.error(err);
     return res.sendStatus(404);
@@ -268,7 +273,7 @@ Files.get("/thumbnail", RoutesCommon.IsAuthenticated, async (req, res) => {
 
 Files.post(
   "/download/list",
-  RoutesCommon.ValidateActualDisplay,
+  RoutesCommon.Validate.Display,
   async (req, res) => {
     const params = RoutesCommon.GetParameters(req);
     const displayId = Number(params.id);
@@ -286,9 +291,35 @@ Files.post(
   }
 );
 
+async function StreamMedia(res: any, displayId: number, fileId: number) {
+  const file = await Models.Files.findOne({
+    where: { DisplayID: displayId, id: fileId }
+  });
+
+  if (file == null)
+    return res.sendStatus(404);
+
+  const fileName = file.FileName as string;
+
+  if (file.MediaType! === "VIDEO")
+    await Models.Mongo.File.DownloadVideoFromStream(res, fileName);
+  else if (file.MediaType! === "IMAGE") {
+    // await  Models.Mongo.File.AddParamsToStreamResponse(res, fileName);
+    const image = await Models.Mongo.File.Stream.Download(fileName);
+    await RoutesCommon.ConvertImageToVideo(res, image, file.ShowTime);
+  }
+}
+Files.get("/stream/:displayId/:fileId", async (req, res) => {
+  const params = RoutesCommon.GetParameters(req);
+  const displayId = Number(params.displayId);
+  const fileId = Number(params.fileId);
+  await StreamMedia(res, displayId, fileId);
+  console.log(res.getHeaders());
+});
+
 Files.post(
   "/download/file",
-  RoutesCommon.ValidateActualDisplay,
+  RoutesCommon.Validate.Display,
   async (req, res) => {
     const params = RoutesCommon.GetParameters(req);
     const fileId = Number(params.file);
@@ -301,13 +332,13 @@ Files.post(
     if (!file) return res.sendStatus(404);
     if (!(await Models.Mongo.File.Exists(file.FileName)))
       return res.sendStatus(404);
-    await Models.Mongo.File.Download(res, file.FileName);
+    await Models.Mongo.File.DownloadSingle(res, file.FileName);
   }
 );
 
 Files.post(
   "/list/filesFX",
-  RoutesCommon.ValidateActualDisplay,
+  RoutesCommon.Validate.Display,
   async (req, res) => {
     try {
       const params = RoutesCommon.GetParameters(req);
@@ -325,7 +356,7 @@ Files.post(
         order: [["id", "ASC"]]
       });
 
-      for (const file of files)
+      for (const file of files) {
         data.push({
           file: file.id,
           Path: file.FileName,
@@ -334,7 +365,7 @@ Files.post(
           ShowTime: file.ShowTime,
           OnDisplay: file.OnDisplay
         });
-
+      }
       return res.json({ success: true, data: data });
     } catch (err) {
       console.error(err);
@@ -345,3 +376,4 @@ Files.post(
     });
   }
 );
+

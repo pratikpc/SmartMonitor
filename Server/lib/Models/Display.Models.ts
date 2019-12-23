@@ -6,7 +6,8 @@ import {
   DataType,
   CreatedAt,
   ForeignKey,
-  Unique} from "sequelize-typescript";
+  Unique
+} from "sequelize-typescript";
 
 import { Users } from "./Users.Model";
 
@@ -29,5 +30,4 @@ export class Displays extends Model<Displays> {
   @CreatedAt
   @Column
   CreationDate!: Date;
-
 }
