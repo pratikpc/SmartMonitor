@@ -1,9 +1,9 @@
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
+import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
@@ -15,8 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class FXMain extends Application {
-    private final ImageView imageView = new ImageView();
-    private final MediaView mediaView = new MediaView();
+    private MediaView mediaView = new MediaView();
 
     private int CurrentMedium = 0;
     private SQLFiles sqlFiles;
@@ -27,7 +26,7 @@ public class FXMain extends Application {
 
     private MediaPlayer mediaPlayer;
 
-    private volatile Vector<Medium> media;
+    private volatile Vector<String> media;
 
 
     public static void main(String[] args) {
@@ -53,14 +52,8 @@ public class FXMain extends Application {
                 final String msg = mqttMessage.toString();
                 try {
                     // Download Signal Received
-                    if (msg.equals("DN")) {
-                        ServerInteractor.DownloadNewFiles(configuration);
-                        // Update SQL Files List
-                        sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
-                        media = sqlFiles.Load();
-                    }
                     // Update Signal Received
-                    if (msg.equals("UE")) {
+                    if (msg.equals("DN") || msg.equals("UE")) {
                         // Update SQL Files List
                         sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
                         media = sqlFiles.Load();
@@ -99,64 +92,32 @@ public class FXMain extends Application {
         displayThread = new Thread(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
+                    this.media = sqlFiles.Load();
                     if (media.isEmpty()) {
-                        this.imageView.setVisible(false);
-                        this.mediaView.setVisible(false);
                         TimeUnit.SECONDS.sleep(5);
                         continue;
                     }
+                    String mediumUrl = media.elementAt(CurrentMedium);
+                    Media medium = new Media(mediumUrl);
+                    this.mediaPlayer = new MediaPlayer(medium);
+                    mediaView.setMediaPlayer(this.mediaPlayer);
+                    this.mediaPlayer.play();
+
+                    System.out.println("333 " + mediumUrl);
+
+                    CountDownLatch latch = new CountDownLatch(1);
+                    this.mediaPlayer.setOnEndOfMedia(() -> {
+                        System.out.println("33322");
+                        latch.countDown();
+                    });
+                    // Halt till Latch Complete
+                    latch.await();
+
                     // Use this to Iterate over positions
                     if (CurrentMedium >= media.size())
                         CurrentMedium = 0;
                     else
                         CurrentMedium = (CurrentMedium + 1) % media.size();
-                    final Medium medium = media.elementAt(CurrentMedium);
-                    switch (medium.Type) {
-                        case IMAGE:
-                            imageView.setImage(medium.Image);
-                            imageView.setVisible(true);
-                            mediaView.setVisible(false);
-                            mediaView.fitWidthProperty().unbind();
-                            mediaView.fitHeightProperty().unbind();
-                            mediaView.setFitWidth(0);
-                            mediaView.setFitHeight(0);
-                            imageView.fitWidthProperty().bind(stage.widthProperty());
-                            imageView.fitHeightProperty().bind(stage.heightProperty());
-
-                            TimeUnit.SECONDS.sleep(medium.ShowTime);
-                            break;
-                        case VIDEO:
-                            mediaPlayer = new MediaPlayer(medium.Video);
-                            imageView.setImage(null);
-
-                            imageView.fitWidthProperty().unbind();
-                            imageView.fitHeightProperty().unbind();
-                            imageView.setFitWidth(0);
-                            imageView.setFitHeight(0);
-
-                            // Do this to Ensure that Video plays in Same Size as
-                            // MediaView Object
-                            mediaView.fitWidthProperty().bind(stage.widthProperty());
-                            mediaView.fitHeightProperty().bind(stage.heightProperty());
-
-                            mediaView.setMediaPlayer(mediaPlayer);
-                            mediaPlayer.play();
-
-                            imageView.setVisible(false);
-                            mediaView.setVisible(true);
-
-                            CountDownLatch latch = new CountDownLatch(1);
-                            mediaPlayer.setOnEndOfMedia(() -> {
-                                latch.countDown();
-                            });
-                            // Halt till Latch Complete
-                            latch.await();
-                            break;
-                        default:
-                            imageView.setVisible(false);
-                            mediaView.setVisible(false);
-                            break;
-                    }
                 }
                 if (this.mediaPlayer != null) {
                     this.mediaPlayer.stop();
@@ -179,10 +140,8 @@ public class FXMain extends Application {
             SetupMQTT();
             sqlFiles = new SQLFiles(configuration);
             if (ServerInteractor.ValidateDisplay(configuration)) {
-                ServerInteractor.DownloadNewFiles(configuration);
                 // Update SQL Files List
                 sqlFiles.ClearAndInsert(ServerInteractor.GetFileDownloadList(configuration));
-                this.media = sqlFiles.Load();
             } else {
                 this.configuration.Delete();
                 throw new Exception("No such display exists");
@@ -195,14 +154,16 @@ public class FXMain extends Application {
             return;
         }
 
-        imageView.setVisible(false);
-        mediaView.setVisible(false);
-        mediaView.setPreserveRatio(false);
+        // Do this to Ensure that Video plays in Same Size as
+        // MediaView Object
+        mediaView.fitWidthProperty().bind(stage.widthProperty());
+        mediaView.fitHeightProperty().bind(stage.heightProperty());
+
+        mediaView.setVisible(true);
 
         // Create the HBox
         HBox root = new HBox();
         // Add Children to the HBox
-        root.getChildren().add(imageView);
         root.getChildren().add(mediaView);
 
         // Set the size of the HBox
@@ -225,8 +186,8 @@ public class FXMain extends Application {
         stage.setScene(scene);
         stage.setResizable(false);
         // Disable Full Screen during Debugging
-        stage.setFullScreen(true);
-        stage.setMaximized(true);
+        // stage.setFullScreen(true);
+        // stage.setMaximized(true);
         // Set the title of the Stage
         stage.setTitle(Constants.AppName);
         // Display the Stage

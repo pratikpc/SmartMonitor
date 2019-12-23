@@ -55,4 +55,10 @@ public class Configuration {
     public MqttDefaultFilePersistence GetMqttDefaultStorageLocation() {
         return new MqttDefaultFilePersistence(this.GetAbsolutePathFromStorage("paho"));
     }
+
+    public String GetStreamToFileUrl(final int fileId) {
+        String url = GetURL("files/stream/" + this.Id + "/" + fileId);
+        System.out.println(url);
+        return url;
+    }
 }

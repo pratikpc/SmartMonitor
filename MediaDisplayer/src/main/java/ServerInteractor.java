@@ -7,7 +7,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.List;
 import java.util.Properties;
 
@@ -16,50 +15,6 @@ public class ServerInteractor {
             .disableCookieManagement()
             .build();
     private static final Executor executor = Executor.newInstance(client);
-
-    private static void GetDownload(Configuration configuration, int fileId, String fileName) throws Exception {
-        final List<NameValuePair> form = Form.form()
-                .add("id", Integer.toString(configuration.Id))
-                .add("key", configuration.IdentifierKey)
-                .add("file", Integer.toString(fileId))
-                .build();
-
-        executor.execute(Request.Post(configuration.GetURL("files/download/file"))
-                .connectTimeout(1000)
-                .body(Utils.AddToForm(form))
-                .socketTimeout(1000))
-                .saveContent(new File(configuration.GetAbsolutePathFromStorage(fileName)));
-    }
-
-    public static void DownloadNewFiles(Configuration configuration) throws Exception {
-        final List<NameValuePair> form = Form.form()
-                .add("id", Integer.toString(configuration.Id))
-                .add("key", configuration.IdentifierKey)
-                .build();
-
-        final String json = executor.execute(Request.Post(configuration.GetURL("files/download/list"))
-                .connectTimeout(1000)
-                .body(Utils.AddToForm(form))
-                .socketTimeout(1000))
-                .returnContent().asString();
-        final JSONObject obj = new JSONObject(json);
-        if (!obj.optBoolean("success", false))
-            return;
-
-        final SQLFiles sqlFiles = new SQLFiles(configuration);
-        final JSONArray files = obj.getJSONArray("data");
-        for (int i = 0; i < files.length(); ++i) {
-            final JSONObject file = files.getJSONObject(i);
-
-            final int id = file.getInt("id");
-            final String name = file.getString("Name");
-            final String extension = file.getString("Extension");
-            final String fileName = name + "." + extension;
-
-            if (!sqlFiles.IDExists(id))
-                GetDownload(configuration, id, fileName);
-        }
-    }
 
     public static JSONArray GetFileDownloadList(final Configuration configuration) throws Exception {
         final List<NameValuePair> form = Form.form()

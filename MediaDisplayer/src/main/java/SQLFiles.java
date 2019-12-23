@@ -1,3 +1,5 @@
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -40,18 +42,16 @@ public class SQLFiles extends SQLInteractor {
 
         final String tableNew = "CREATE TABLE IF NOT EXISTS " + Constants.DB.FileT + "("
                 + "id INTEGER PRIMARY KEY,"
-                + "path STRING NOT NULL UNIQUE,"
                 + "start INTEGER NOT NULL,"
                 + "end INTEGER NOT NULL,"
-                + "showtime INTEGER NOT NULL,"
                 + "display BOOLEAN NOT NULL"
                 + ");";
         ExecuteSQLStatement(tableNew);
     }
 
-    public Vector<Medium> Load() throws Exception {
-        Vector<Medium> media = new Vector<>();
-        final String select = "SELECT path , showtime from " + Constants.DB.FileT + " WHERE display=? AND (start = end OR (start < ? AND end > ?)) ORDER BY id";
+    public Vector<String> Load() throws Exception {
+        Vector<String> media = new Vector<>();
+        final String select = "SELECT id from " + Constants.DB.FileT + " WHERE display=? AND (start = end OR (start < ? AND end > ?)) ORDER BY id";
         final PreparedStatement preparedStatement = this.connection.prepareStatement(select);
         preparedStatement.setBoolean(1, true);
         final int time = Utils.GetCurrentHourAndMinuteAsInteger();
@@ -59,31 +59,13 @@ public class SQLFiles extends SQLInteractor {
         preparedStatement.setInt(3, time);
         final ResultSet resultSet = preparedStatement.executeQuery();
         while (resultSet.next()) {
-            final String path = resultSet.getString("path");
-            final int showTime = resultSet.getInt("showtime");
-            final Medium medium = new Medium(path, showTime);
-            // Ensure only proper media files get added
-            if (medium.Type == Utils.FileType.UNKNOWN)
-                continue;
+            final int fileId = resultSet.getInt("id");
+            final String medium = this.configuration.GetStreamToFileUrl(fileId);
             media.add(medium);
         }
         preparedStatement.close();
         return media;
     }
-
-    public boolean IDExists(int id) throws Exception {
-        Vector<Medium> media = new Vector<>();
-        final String select = "SELECT COUNT(id) from " + Constants.DB.FileT + " WHERE id=?";
-        final PreparedStatement preparedStatement = this.connection.prepareStatement(select);
-        preparedStatement.setInt(1, id);
-
-        final ResultSet resultSet = preparedStatement.executeQuery();
-        final int count = resultSet.getInt(1);
-
-        preparedStatement.close();
-        return count != 0;
-    }
-
 
     public int Clear() throws SQLException {
         final String sql = "DELETE FROM " + Constants.DB.FileT;
@@ -105,24 +87,19 @@ public class SQLFiles extends SQLInteractor {
 
     public int Insert(final JSONObject jsonObject) throws Exception {
         final int id = jsonObject.getInt("file");
-        final String path = configuration.GetAbsolutePathAsUriFromStorage(jsonObject.getString("Path"));
         final int start = jsonObject.getInt("Start");
         final int end = jsonObject.getInt("End");
         final boolean display = jsonObject.optBoolean("OnDisplay", false);
-        final int showTime = jsonObject.optInt("ShowTime", 10);
-        return Insert(id, path, start, end, showTime, display);
+        return Insert(id, start, end, display);
     }
 
-    public int Insert(int id, String path, int start, int end, int showTime, boolean display) throws SQLException {
-        final String sql = "INSERT OR REPLACE INTO " + Constants.DB.FileT + " VALUES(?,?,?,?,?,?)";
+    public int Insert(int id, int start, int end, boolean display) throws SQLException {
+        final String sql = "INSERT OR REPLACE INTO " + Constants.DB.FileT + " VALUES(?,?,?,?)";
         final PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setInt(1, id);
-        stmt.setString(2, path);
-        stmt.setInt(3, start);
-        stmt.setInt(4, end);
-        int showTimeValidated = Math.max(showTime, 0);
-        stmt.setInt(5, showTimeValidated);
-        stmt.setBoolean(6, display);
+        stmt.setInt(2, start);
+        stmt.setInt(3, end);
+        stmt.setBoolean(4, display);
         int modified = stmt.executeUpdate();
         stmt.close();
         return modified;
