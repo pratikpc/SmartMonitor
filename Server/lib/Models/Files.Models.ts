@@ -6,9 +6,9 @@ import {
   Model,
   ForeignKey,
   CreatedAt,
-  Default
+  Default,
 } from "sequelize-typescript";
-import { Displays } from "./Display.Models";
+import Displays from "./Display.Models";
 import { parse } from "path";
 
 @Table
@@ -18,7 +18,7 @@ export class Files extends Model<Files> {
   Extension!: string;
 
   @AllowNull(false)
-  @ForeignKey(() => Displays)
+  @ForeignKey(() => Displays as any)
   @Column
   DisplayID!: number;
 
@@ -46,15 +46,15 @@ export class Files extends Model<Files> {
   MediaType!: string;
 
   @AllowNull(false)
-  @Column(DataType.NUMERIC)
+  @Column(DataType.DECIMAL)
   TimeStart!: number;
 
   @AllowNull(false)
-  @Column(DataType.NUMERIC)
+  @Column(DataType.DECIMAL)
   TimeEnd!: number;
 
   @AllowNull(false)
-  @Column(DataType.NUMERIC)
+  @Column(DataType.DECIMAL)
   ShowTime!: number;
 
   get FileName() {
@@ -64,9 +64,7 @@ export class Files extends Model<Files> {
   get ThumbnailName() {
     return Files.GetThumbnailFileName(this.FileHash);
   }
-  public static GetThumbnailFileName(
-    Path: string
-  ): string {
+  public static GetThumbnailFileName(Path: string): string {
     const Name = parse(Path).name;
     return "thumb-" + Name + ".png";
   }

@@ -1,18 +1,17 @@
 import ExpressSession, { Store } from "express-session";
-// import * as cookieParser from "cookie-parser";
-import * as Express from "express";
+import { Application } from "express";
 import passport from "passport";
 import * as Config from "../config/session";
 import { Strategy } from "passport-local";
 
-import * as Models from "./Models";
+import * as Models from ".";
 
-export async function PassportModelsGenerate(app: Express.Application) {
+export async function PassportModelsGenerate(app: Application) {
   const SequelizeSessionStore = require("connect-session-sequelize")(Store);
   const sessionStore = new SequelizeSessionStore({
     db: Models.SequelizeSql,
     checkExpirationInterval: 24 * 60 * 60 * 1000,
-    expiration: 10 * 24 * 60 * 60 * 1000
+    expiration: 10 * 24 * 60 * 60 * 1000,
   });
   app.use(
     ExpressSession({
@@ -21,7 +20,7 @@ export async function PassportModelsGenerate(app: Express.Application) {
       resave: Config.Session.resave,
       saveUninitialized: Config.Session.saveUninitialized,
       secret: Config.Session.secret,
-      store: sessionStore
+      store: sessionStore,
     })
   );
 
@@ -37,15 +36,15 @@ export async function PassportModelsGenerate(app: Express.Application) {
       {
         usernameField: "name",
         passwordField: "pass",
-        passReqToCallback: true
+        passReqToCallback: true,
       },
-      async (req, name, password, done) => {
+      async (_req, name, password, done) => {
         try {
           if (!name || !password) return done(null, null);
           const user = await Models.Users.findOne({
             where: {
-              Name: name
-            }
+              Name: name,
+            },
           });
           // As No Such User Found
           // Login Failed
@@ -54,10 +53,7 @@ export async function PassportModelsGenerate(app: Express.Application) {
           // Now Compare Passwords for Matching
           // Using bcrypt for Safety
           const match = await user.ComparePassword(password);
-
           if (!match) return done(null, null);
-
-          const authority: string = user.Authority;
           return done(
             null,
             new Models.UserViewModel(user.id, user.Name, user.Authority)

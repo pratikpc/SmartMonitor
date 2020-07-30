@@ -1,7 +1,6 @@
 # docker-compose.yml
 version: "3.7"
 services:
-
   proxy-frontend:
     container_name: proxy-frontend
     restart: unless-stopped
@@ -24,10 +23,13 @@ services:
       - database
       - mqtt
     env_file:
-      - ./.env
-    environment: 
+      - .\.env
+    environment:
       - APP_IS_DOCKERISED=YES
       - MQTT_URI_CONNECTOR=mqtt
+      - DatabaseHost=database
+      - MongoHost=mongodb
+
     volumes:
       - app_data:/app/uploads
     links:
@@ -41,7 +43,7 @@ services:
     image: postgres:alpine
     restart: unless-stopped
     env_file:
-      - ./.env
+      - .\.env
     environment:
       - POSTGRES_PASSWORD=${DatabasePassword}
       - POSTGRES_USER=${DatabaseUserName}
@@ -55,7 +57,7 @@ services:
     image: mongo:latest
     restart: unless-stopped
     env_file:
-      - ./.env
+      - .\.env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}

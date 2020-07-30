@@ -1,13 +1,12 @@
-import * as config from './config/server'
-import { App } from "./app";
+import * as Server from "./config/server";
+import App from "./app";
 
 App().then((app) => {
-  app.listen(config.Server.Port, config.Server.Name, () => {
-    console.log("Default Login Screen", config.Server.Name + ':' + config.Server.Port);
+  app.listen(Server.Port, Server.Name, () => {
+    console.info("Default Login Screen", Server.Name + ":" + Server.Port);
   });
 
   process.on("SIGINT", function () {
-    console.log("App Shutting Down");
+    console.info("App Shutting Down");
   });
 });
-

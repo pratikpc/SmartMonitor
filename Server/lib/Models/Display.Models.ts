@@ -6,12 +6,13 @@ import {
   DataType,
   CreatedAt,
   ForeignKey,
-  Unique} from "sequelize-typescript";
+  Unique,
+} from "sequelize-typescript";
 
-import { Users } from "./Users.Model";
+import Users from "./Users.Model";
 
 @Table
-export class Displays extends Model<Displays> {
+export default class Displays extends Model<Displays> {
   @AllowNull(false)
   @Unique
   @Column(DataType.TEXT)
@@ -22,12 +23,11 @@ export class Displays extends Model<Displays> {
   IdentifierKey!: string;
 
   @AllowNull(false)
-  @ForeignKey(() => Users)
+  @ForeignKey(() => Users as any)
   @Column
   CreatingUserID!: number;
 
   @CreatedAt
   @Column
   CreationDate!: Date;
-
 }

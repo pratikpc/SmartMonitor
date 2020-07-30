@@ -1,24 +1,24 @@
 import { Request, Response, NextFunction } from "express";
-import * as mqtt from "mqtt";
+import mqtt from "mqtt";
 import { createHash, randomBytes } from "crypto";
-import * as fs from "fs";
+import fs from "fs";
 import { promises as FsPromises } from "fs";
-import * as Models from "../Models/Models";
+import * as Models from "../Models";
 import ffmpeg = require("fluent-ffmpeg");
-import * as multer from "multer";
-import * as mime from "mime";
-import * as sharp from "sharp";
-import * as Config from "../config/Config";
-import * as Path from "path";
-const GIFInfo = require('gif-info');
+import multer from "multer";
+import mime from "mime";
+import sharp from "sharp";
+import * as Config from "../config";
+import Path from "path";
+const GIFInfo = require("gif-info");
 
 const storage = multer.diskStorage({
-  destination: async (request: any, file: any, callback: any) => {
+  destination: async (_request: any, _file: any, callback: any) => {
     const dir = Config.Server.MediaStorage;
     await RoutesCommon.File.DirectoryCreate(dir);
     callback(null, dir);
   },
-  filename: (request: any, file: any, callback: any) => {
+  filename: (_request: any, file: any, callback: any) => {
     let fileName = "";
     while (true) {
       const name = randomBytes(12).toString("hex");
@@ -28,17 +28,16 @@ const storage = multer.diskStorage({
     }
 
     callback(null, fileName);
-  }
+  },
 });
-export const upload = multer.default({
+export const upload = multer({
   storage: storage,
   // Set File Size Limit of 25 MB
-  limits: { fileSize: 1024 * 1024 * 25 }
+  limits: { fileSize: 1024 * 1024 * 25 },
 });
 
 export namespace RoutesCommon {
   export namespace File {
-
     export async function Exists(filepath: string) {
       try {
         await FsPromises.access(filepath);
@@ -52,8 +51,7 @@ export namespace RoutesCommon {
     export async function RemoveSingle(location: string) {
       try {
         await FsPromises.unlink(location);
-      } catch (ex) {
-      }
+      } catch (ex) {}
     }
 
     export async function Read(location: string) {
@@ -77,13 +75,12 @@ export namespace RoutesCommon {
       // If Directory exists, exception thrown
       try {
         await FsPromises.mkdir(location);
-      } catch (ex) {
-      }
+      } catch (ex) {}
     }
 
     export async function DirectoryList(location: string) {
       let paths = await FsPromises.readdir(location);
-      paths = paths.map(path => Path.resolve(location, path));
+      paths = paths.map((path) => Path.resolve(location, path));
       return paths;
     }
   }
@@ -95,14 +92,14 @@ export namespace RoutesCommon {
     export function Publish(topic: string, message: string | Buffer) {
       return new Promise((resolve, reject) => {
         Mqtt.Client.publish(topic, message, (err, result) => {
-          if (err) reject(err)
-          else resolve(result)
-        })
-      })
+          if (err) reject(err);
+          else resolve(result);
+        });
+      });
     }
 
     Mqtt.Client.on("connect", () => {
-      console.log("Mqtt Connected", Mqtt.Client.options.host);
+      console.info("Mqtt Connected", Mqtt.Client.options.host);
     });
     export async function Send(id: number, message: string) {
       if (Mqtt.Client.connected)
@@ -117,14 +114,12 @@ export namespace RoutesCommon {
     }
     export function SendUpdateSignals(ids: number[]) {
       const promises: Promise<void>[] = [];
-      for (const id of ids)
-        promises.push(SendUpdateSignal(id));
+      for (const id of ids) promises.push(SendUpdateSignal(id));
       return Promise.all(promises);
     }
     export function SendDownloadRequests(ids: number[]) {
       const promises: Promise<void>[] = [];
-      for (const id of ids)
-        promises.push(SendDownloadRequest(id));
+      for (const id of ids) promises.push(SendDownloadRequest(id));
       return Promise.all(promises);
     }
   }
@@ -154,8 +149,8 @@ export namespace RoutesCommon {
       return;
     }
     Models.Displays.count({
-      where: { id: id, IdentifierKey: key }
-    }).then(async count => {
+      where: { id: id, IdentifierKey: key },
+    }).then(async (count: number) => {
       if (count !== 0) next();
       else res.json({ success: false });
     });
@@ -173,13 +168,21 @@ export namespace RoutesCommon {
 
   // Check if User is Admin
   export function IsAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && RoutesCommon.GetUser(req).Authority === "ADMIN") return next();
+    if (
+      req.isAuthenticated() &&
+      RoutesCommon.GetUser(req).Authority === "ADMIN"
+    )
+      return next();
     return res.redirect("/");
   }
 
   // Check if User is Not Admin
   export function IsNotAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && RoutesCommon.GetUser(req).Authority !== "ADMIN") return next();
+    if (
+      req.isAuthenticated() &&
+      RoutesCommon.GetUser(req).Authority !== "ADMIN"
+    )
+      return next();
     return res.redirect("/");
   }
 
@@ -188,7 +191,7 @@ export namespace RoutesCommon {
       const hash = createHash("sha256");
       const rs = fs.createReadStream(path);
       rs.on("error", reject);
-      rs.on("data", chunk => hash.update(chunk));
+      rs.on("data", (chunk) => hash.update(chunk));
       rs.on("end", () => resolve(hash.digest("hex")));
     });
   }
@@ -277,21 +280,10 @@ export namespace RoutesCommon {
     height: number = Config.Thumbnail.Height
   ) {
     if (mediaType === "VIDEO")
-      return GenerateThumbnailVideoAsync(
-        path,
-        thumbnailName,
-        width,
-        height
-      );
+      return GenerateThumbnailVideoAsync(path, thumbnailName, width, height);
     if (mediaType === "IMAGE")
-      return GenerateThumbnailImageAsync(
-        path,
-        thumbnailName,
-        width,
-        height
-      );
-    else
-      return null;
+      return GenerateThumbnailImageAsync(path, thumbnailName, width, height);
+    else return null;
   }
 
   function GenerateThumbnailImageAsync(
@@ -300,14 +292,12 @@ export namespace RoutesCommon {
     width: number,
     height: number
   ) {
-
     const destName = Path.join(Path.dirname(sourceName), thumbnailName);
 
-    return sharp
-      .default(sourceName)
+    return sharp(sourceName)
       .resize(width, height, {
         kernel: sharp.kernel.nearest,
-        fit: sharp.fit.fill
+        fit: sharp.fit.fill,
       })
       .toFile(destName);
   }
@@ -321,33 +311,35 @@ export namespace RoutesCommon {
     const wxh = width + "x" + height;
 
     return new Promise<void>((resolve, reject) => {
-      ffmpeg(videoPath).thumbnails({
-        count: 1,
-        filename: thumbnailName,
-        folder: Path.dirname(videoPath),
-        size: wxh,
-        // Take Thumbnail at Half Time
-        timestamps: [moment]
-      })
+      ffmpeg(videoPath)
+        .thumbnails({
+          count: 1,
+          filename: thumbnailName,
+          folder: Path.dirname(videoPath),
+          size: wxh,
+          // Take Thumbnail at Half Time
+          timestamps: [moment],
+        })
         .on("end", () => resolve())
-        .on("error", err => reject(err));
+        .on("error", (err) => reject(err));
     });
   }
 
   export function NoCaching(res: Response) {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
     return res;
   }
 
-  export function VideoChangeFormatToH264(
-    videoSrc: string
-  ) {
+  export function VideoChangeFormatToH264(videoSrc: string) {
     // Append video to Hash of Name
     // Done because
     // For an MP4 file, we can't write into same file
     // Again
     const videoSrcSplit = Path.parse(videoSrc);
-    const videoDest = Path.join(videoSrcSplit.dir, videoSrcSplit.name + "video.mp4");
+    const videoDest = Path.join(
+      videoSrcSplit.dir,
+      videoSrcSplit.name + "video.mp4"
+    );
 
     // Make this given function awaitable
     // This way, the interface becomes easier to implement
@@ -360,7 +352,7 @@ export namespace RoutesCommon {
         .noAudio()
         .output(videoDest)
         .on("end", () => resolve())
-        .on("error", err => reject(err))
+        .on("error", (err) => reject(err))
         .run();
     });
   }

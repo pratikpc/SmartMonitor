@@ -5,10 +5,10 @@ import {
   AllowNull,
   Default,
   Unique,
-  DataType
+  DataType,
 } from "sequelize-typescript";
 
-import * as bcrypt from "bcrypt";
+import bcrypt from "bcrypt";
 
 // Set Authority Based Enummeration
 export type Authority = "NORMAL" | "ADMIN";
@@ -33,7 +33,7 @@ export interface UserAddModel {
 
 // Create the Table to Store Users Data
 @Table
-export class Users extends Model<Users> {
+export default class Users extends Model<Users> {
   @AllowNull(false)
   @Unique
   @Column(DataType.TEXT)
@@ -75,6 +75,6 @@ export class Users extends Model<Users> {
   public static DefaultUser: UserAddModel = {
     Name: "universe",
     Password: "universe",
-    Authority: "ADMIN"
+    Authority: "ADMIN",
   };
 }

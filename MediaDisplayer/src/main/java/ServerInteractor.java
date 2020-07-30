@@ -116,7 +116,7 @@ public class ServerInteractor {
                 .returnContent().asString();
 
         final JSONObject jsonObject = new JSONObject(json);
-        boolean success = jsonObject.optBoolean("success", false) || jsonObject.isNull("data");
+        boolean success = jsonObject.optBoolean("success", false) && !jsonObject.isNull("data");
         if (!success)
             return false;
         final JSONObject data = jsonObject.getJSONObject("data");
