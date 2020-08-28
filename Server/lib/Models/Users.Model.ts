@@ -1,80 +1,73 @@
-import {
-  Table,
-  Column,
-  Model,
-  AllowNull,
-  Default,
-  Unique,
-  DataType,
-} from "sequelize-typescript";
+import { Table, Column, Model, AllowNull, Default, Unique, DataType } from 'sequelize-typescript';
 
-import bcrypt from "bcrypt";
+import bcrypt from 'bcrypt';
 
 // Set Authority Based Enummeration
-export type Authority = "NORMAL" | "ADMIN";
+export type Authority = 'NORMAL' | 'ADMIN';
 
 export class UserViewModel {
-  public id: number;
-  public Name: string;
-  public Authority: string;
+   public id: number;
+   public Name: string;
+   public Authority: string;
 
-  public constructor(id: number, Name: string, Authority: string) {
-    this.id = id;
-    this.Name = Name;
-    this.Authority = Authority;
-  }
+   public constructor(id: number, Name: string, Authority: string) {
+      this.id = id;
+      this.Name = Name;
+      this.Authority = Authority;
+   }
 }
 
 export interface UserAddModel {
-  Name: string;
-  Password: string;
-  Authority: string;
+   Name: string;
+   Password: string;
+   Authority: string;
 }
 
 // Create the Table to Store Users Data
 @Table
 export default class Users extends Model<Users> {
-  @AllowNull(false)
-  @Unique
-  @Column(DataType.TEXT)
-  Name!: string;
+   @AllowNull(false)
+   @Unique
+   @Column(DataType.TEXT)
+   Name!: string;
 
-  @AllowNull(false)
-  @Column(DataType.TEXT)
-  get Password() {
-    return this.getDataValue("Password");
-  }
-  set Password(value: string) {
-    this.EncryptPassword(value);
-  }
+   @AllowNull(false)
+   @Column(DataType.TEXT)
+   get Password() {
+      return this.getDataValue('Password');
+   }
 
-  @Default("NORMAL")
-  @AllowNull(false)
-  @Column(DataType.ENUM("NORMAL", "ADMIN"))
-  Authority!: string;
+   set Password(value: string) {
+      this.EncryptPassword(value);
+   }
 
-  // Perform Password Encryption
-  private EncryptPassword(value: string) {
-    const salt_rounds = 2;
-    const hash = bcrypt.hashSync(value, salt_rounds);
-    this.setDataValue("Password", hash);
-  }
+   @Default('NORMAL')
+   @AllowNull(false)
+   @Column(DataType.ENUM('NORMAL', 'ADMIN'))
+   Authority!: string;
 
-  // Use this to Verify if the Entered Password is same as
-  // Encrypted password
-  public ComparePassword(password: string) {
-    return bcrypt.compare(password, this.Password);
-  }
+   // Perform Password Encryption
+   private EncryptPassword(value: string) {
+      const saltRounds = 2;
+      const hash = bcrypt.hashSync(value, saltRounds);
+      this.setDataValue('Password', hash);
+   }
 
-  public static async InsertIfNotExists(user: UserAddModel) {
-    // Name is the only Parameter that is supposed to be unique among all of these
-    const count = await Users.count({ where: { Name: user.Name } });
-    if (count === 0) await Users.create(user);
-  }
+   // Use this to Verify if the Entered Password is same as
+   // Encrypted password
+   public ComparePassword(password: string) {
+      return bcrypt.compare(password, this.Password);
+   }
 
-  public static DefaultUser: UserAddModel = {
-    Name: "universe",
-    Password: "universe",
-    Authority: "ADMIN",
-  };
+   public static async InsertIfNotExists(user: UserAddModel) {
+      // Name is the only Parameter that is supposed to be unique among all of these
+      const count = await Users.count({ where: { Name: user.Name } });
+      if (count === 0) await Users.create(user);
+   }
+
+   public static DefaultUser: UserAddModel = {
+      Name: 'universe',
+      Password: 'universe',
+      Authority: 'ADMIN'
+   };
 }

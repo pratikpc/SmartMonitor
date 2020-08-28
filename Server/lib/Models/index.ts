@@ -1,6 +1,8 @@
-export { default as Displays } from "./Display.Models";
-export { UserAddModel, UserViewModel } from "./Users.Model";
-export { default as Users } from "./Users.Model";
-export { SequelizeSql } from "./Sequelize";
-export { Files } from "./Files.Models";
-export { Mongo } from "./Mongo.Models";
+import Users from './Users.Model';
+import Files from './Files.Models';
+import Displays from './Display.Models';
+export { UserAddModel, UserViewModel } from './Users.Model';
+export { SequelizeSql } from './Sequelize';
+export { Mongo } from './Mongo.Models';
+
+export { Files, Users, Displays };
