@@ -10,7 +10,7 @@ FROM base as dependencies
 WORKDIR /app
 ## Install build toolchain, install node deps and compile native add-ons
 RUN apk add --no-cache python make g++
-COPY ./package*.json ./
+COPY ./package.json ./
 RUN npm install
 
 FROM dependencies as app-build
