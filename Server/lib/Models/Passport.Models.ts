@@ -5,6 +5,7 @@ import { Strategy } from 'passport-local';
 import * as Config from '../config/session';
 
 import * as Models from '.';
+import { UserViewModel } from './Users.Model';
 
 export default async function PassportModelsGenerate(app: Application) {
    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
@@ -63,8 +64,8 @@ export default async function PassportModelsGenerate(app: Application) {
       )
    );
 
-   passport.serializeUser((user: Models.UserViewModel, done) => {
-      done(null, user.id);
+   passport.serializeUser((user: Express.User, done) => {
+      done(null, (user as UserViewModel).id);
    });
 
    passport.deserializeUser(async (id: number, done) => {

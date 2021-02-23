@@ -25,7 +25,7 @@ export interface UserAddModel {
 
 // Create the Table to Store Users Data
 @Table
-export default class Users extends Model<Users> {
+export default class Users extends Model {
    @AllowNull(false)
    @Unique
    @Column(DataType.TEXT)

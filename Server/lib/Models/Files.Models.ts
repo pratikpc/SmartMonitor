@@ -3,7 +3,7 @@ import { parse } from 'path';
 import Displays from './Display.Models';
 
 @Table
-export default class Files extends Model<Files> {
+export default class Files extends Model {
    @AllowNull(false)
    @Column(DataType.TEXT)
    Extension!: string;

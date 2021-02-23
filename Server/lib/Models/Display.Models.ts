@@ -3,7 +3,7 @@ import { Table, Column, Model, AllowNull, DataType, CreatedAt, ForeignKey, Uniqu
 import Users from './Users.Model';
 
 @Table
-export default class Displays extends Model<Displays> {
+export default class Displays extends Model {
    @AllowNull(false)
    @Unique
    @Column(DataType.TEXT)
