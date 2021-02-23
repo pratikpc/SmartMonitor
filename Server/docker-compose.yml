@@ -1,79 +1,91 @@
 # docker-compose.yml
-version: "3.7"
+version: '3.7'
 services:
-  proxy-frontend:
-    container_name: proxy-frontend
-    restart: unless-stopped
-    build:
-      context: ./
-      dockerfile: App.Dockerfile
-      target: proxy-frontend
-    ports:
-      - 8000:8000
-    links:
-      - app-backend
+   proxy-frontend:
+      container_name: proxy-frontend
+      restart: unless-stopped
+      build:
+         context: ./
+         dockerfile: App.Dockerfile
+         target: proxy-frontend
+      ports:
+         - 8000:8000
+      links:
+         - app-backend
 
-  app-backend:
-    container_name: app-backend
-    build:
-      context: ./
-      dockerfile: App.Dockerfile
-      target: app-backend
-    depends_on:
-      - database
-      - mqtt
-    env_file:
-      - .\.env
-    environment:
-      - APP_IS_DOCKERISED=YES
-      - MQTT_URI_CONNECTOR=mqtt
-      - DatabaseHost=database
-      - MongoHost=mongodb
+   app-backend:
+      container_name: app-backend
+      build:
+         context: ./
+         dockerfile: App.Dockerfile
+         target: app-backend
+      depends_on:
+         - database
+         - mqtt
+         - mongodb
+      env_file:
+         - .\.env
+      environment:
+         - APP_IS_DOCKERISED=YES
+         - MQTT_URI_CONNECTOR=mqtt
+         - DatabaseHost=database
+         - MongoHost=mongodb
 
-    volumes:
-      - app_data:/app/uploads
-    links:
-      - database
-      - mqtt
-      - mongodb
-    command: npm run deploy
+      volumes:
+         - app_data:/app/uploads
+      links:
+         - database
+         - mqtt
+         - mongodb
+      command: npm run deploy
 
-  database:
-    container_name: database
-    image: postgres:alpine
-    restart: unless-stopped
-    env_file:
-      - .\.env
-    environment:
-      - POSTGRES_PASSWORD=${DatabasePassword}
-      - POSTGRES_USER=${DatabaseUserName}
-      - POSTGRES_DB=${DatabaseName}
-      - PGDATA=/var/lib/postgresql/data/db-files/
-    volumes:
-      - db_data:/var/lib/postgresql/data
+   database:
+      container_name: database
+      image: postgres:alpine
+      restart: unless-stopped
+      env_file:
+         - .\.env
+      environment:
+         - POSTGRES_PASSWORD=${DatabasePassword}
+         - POSTGRES_USER=${DatabaseUserName}
+         - POSTGRES_DB=${DatabaseName}
+         - PGDATA=/var/lib/postgresql/data/db-files/
+      volumes:
+         - db_data:/var/lib/postgresql/data
+      healthcheck:
+         test: ['CMD-SHELL', 'pg_isready -U postgres']
+         interval: 10s
+         timeout: 5s
+         retries: 5
 
-  mongodb:
-    container_name: mongodb
-    image: mongo:latest
-    restart: unless-stopped
-    env_file:
-      - .\.env
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-    volumes:
-      - mongo_data:/data/db
+   mongodb:
+      container_name: mongodb
+      image: mongo:latest
+      restart: unless-stopped
+      env_file:
+         - .\.env
+      environment:
+         - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+         - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      volumes:
+         - mongo_data:/data/db
+      healthcheck:
+         test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+         interval: 10s
+         timeout: 10s
+         retries: 5
+         start_period: 40s
 
-  mqtt:
-    container_name: mqtt
-    image: eclipse-mosquitto:latest
-    restart: unless-stopped
-    expose:
-      - "1883"
-    ports:
-      - "1883:1883"
+   mqtt:
+      container_name: mqtt
+      image: eclipse-mosquitto:1.6.12
+      restart: unless-stopped
+      expose:
+         - '1883'
+      ports:
+         - '1883:1883'
 
 volumes:
-  db_data: {}
-  mongo_data: {}
-  app_data: {}
+   db_data: {}
+   mongo_data: {}
+   app_data: {}
