@@ -329,7 +329,7 @@ Files.post('/download/list', RoutesCommon.ValidateActualDisplay, async (req, res
    return res.json({ success: true, data: list });
 });
 
-Files.post('/download/file', RoutesCommon.ValidateActualDisplay, async (req, res) => {
+async function DownloadFile(req, res) {
    const params = RoutesCommon.GetParameters(req);
    const fileId = Number(params.file);
    const displayId = Number(params.id);
@@ -341,7 +341,11 @@ Files.post('/download/file', RoutesCommon.ValidateActualDisplay, async (req, res
    if (!file) res.sendStatus(404);
    else if (!(await Models.Mongo.File.Exists(file.FileName))) res.sendStatus(404);
    else await Models.Mongo.File.Download(res, file.FileName);
-});
+}
+
+Files.post('/download/file', RoutesCommon.ValidateActualDisplay,DownloadFile );
+
+Files.get('/download/file/:id/:file', RoutesCommon.ValidateActualDisplay, DownloadFile);
 
 Files.post('/list/filesFX', RoutesCommon.ValidateActualDisplay, async (req, res) => {
    try {

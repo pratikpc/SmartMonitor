@@ -222,10 +222,7 @@ export namespace RoutesCommon {
    }
 
    export function GetParameters(req: Request) {
-      if (IsNotEmptyAny(req.body)) return req.body;
-      if (IsNotEmptyAny(req.query)) return req.query;
-      if (IsNotEmptyAny(req.params)) return req.params;
-      return null;
+      return {...(req.body || {}) , ...(req.query || {}), ...(req.params || {})};
    }
 
    // Find Multimedia type based on File Extension
