@@ -50,6 +50,7 @@ export namespace Mongo {
 
       export function Download(res: Response, fileName: string) {
          return new Promise<void>(resolve => {
+            res.set('Cache-Control', 'private, max-age=31557600');
             return GridFsBucket.openDownloadStreamByName(fileName)
                .pipe(res)
                .on('error', () => {
