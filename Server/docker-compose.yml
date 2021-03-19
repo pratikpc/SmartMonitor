@@ -78,13 +78,16 @@ services:
 
    mqtt:
       container_name: mqtt
-      image: eclipse-mosquitto:1.6.12
+      image: eclipse-mosquitto
       restart: unless-stopped
       expose:
          - '1883'
+         - '9001'
       ports:
          - '1883:1883'
-
+         - '9001:9001'
+      volumes:
+         - ./Docker:/mosquitto/config:ro
 volumes:
    db_data: {}
    mongo_data: {}
