@@ -1,0 +1,19 @@
+img {
+   text-align: center;
+   width: 100vw;
+   height: 100vh;
+   object-fit: fill;
+}
+
+video {
+   text-align: center;
+   object-fit: fill;
+   width: 100vw;
+   height: 100vh;
+}
+
+body {
+   width: 100vw;
+   height: 100vh;
+   overflow: hidden;
+}
