@@ -39,6 +39,7 @@
       "express-validator": "^6.10.0",
       "fluent-ffmpeg": "^2.1.2",
       "gif-info": "^1.0.1",
+      "http-proxy-middleware": "^1.0.6",
       "jsonwebtoken": "^8.5.1",
       "mime": "^2.5.2",
       "mongodb": "^3.6.4",

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import Path from 'path';
 import multer from 'multer';
 import { randomBytes } from 'crypto';
@@ -59,16 +59,16 @@ async function NewFileAtPathAdded(
    let name = Path.basename(path, Path.extname(path));
    const location = Path.dirname(path);
 
-   // Convert to Mp4 x264 For Java compatibility
+   // Convert to WEBM for Browser
    if (mediaType === 'VIDEO') {
-      await RoutesCommon.VideoChangeFormatToH264(path);
+      await RoutesCommon.VideoChangeFormatToBrowserBest(path);
       await RoutesCommon.File.RemoveSingle(path);
 
       // We need to Add Video to name as then
-      // We need to also convert MP4 Files to New Format
+      // We need to also convert webm Files to New Format
       // But we can't just write into the original file
       name += 'video';
-      extension = 'mp4';
+      extension = 'webm';
       path = Path.join(location, `${name}.${extension}`);
    }
    // Get File Hash
@@ -309,77 +309,42 @@ Files.get('/thumbnail', RoutesCommon.IsAuthenticated, async (req, res) => {
    }
 });
 
-Files.post('/download/list', RoutesCommon.ValidateActualDisplay, async (req, res) => {
-   const params = RoutesCommon.GetParameters(req);
-   const displayId = Number(params.id);
-
-   const files = await Models.Files.findAll({
-      attributes: ['id', 'Extension', 'FileHash'],
-      where: { DisplayID: displayId, Downloaded: false }
-   });
-
-   const list: unknown[] = [];
-   for (const file of files)
-      list.push({
-         id: file.id,
-         Name: file.FileHash,
-         Extension: file.Extension
-      });
-
-   return res.json({ success: true, data: list });
-});
-
-async function DownloadFile(req, res) {
-   const params = RoutesCommon.GetParameters(req);
+Files.get('/download/:file', RoutesCommon.IsDisplay, async (req: Request, res: Response) => {
+   const params = req.params;
    const fileId = Number(params.file);
-   const displayId = Number(params.id);
+
+   const display = RoutesCommon.GetDisplay(req);
 
    const file = await Models.Files.findOne({
-      where: { id: fileId, DisplayID: displayId, Downloaded: false }
+      where: { id: fileId, DisplayID: display.id, Downloaded: false }
    });
 
    if (!file) res.sendStatus(404);
    else if (!(await Models.Mongo.File.Exists(file.FileName))) res.sendStatus(404);
    else await Models.Mongo.File.Download(res, file.FileName);
-}
+});
 
-Files.post('/download/file', RoutesCommon.ValidateActualDisplay,DownloadFile );
-
-Files.get('/download/file/:id/:file', RoutesCommon.ValidateActualDisplay, DownloadFile);
-
-Files.post('/list/filesFX', RoutesCommon.ValidateActualDisplay, async (req, res) => {
+Files.get('/list/', RoutesCommon.IsDisplay, async (req, res) => {
    try {
-      const params = RoutesCommon.GetParameters(req);
+      const display = RoutesCommon.GetDisplay(req);
 
-      if (params == null)
-         return res.json({
-            success: false,
-            data: []
-         });
-      const id = Number(params.id);
-
-      const data: unknown[] = [];
       const files = await Models.Files.findAll({
-         where: { DisplayID: id },
+         where: { DisplayID: display.id },
          order: [['id', 'ASC']]
       });
 
-      for (const file of files)
-         data.push({
+      return res.json(
+         files.map(file => ({
             file: file.id,
             Path: file.FileName,
             Start: file.TimeStart,
             End: file.TimeEnd,
             ShowTime: file.ShowTime,
             OnDisplay: file.OnDisplay
-         });
-
-      return res.json({ success: true, data: data });
+         }))
+      );
    } catch (err) {
       console.error(err);
    }
-   return res.json({
-      success: false,
-      data: []
-   });
+   return res.json([]);
 });

@@ -34,21 +34,33 @@ export default async function App() {
    if (!process.env.APP_IS_DOCKERISED) {
       app.use('/static/', express.static('./Website'));
    }
+   if (!process.env.APP_IS_DOCKERISED) {
+      // Only Load if required
+      const { createProxyMiddleware } = require('http-proxy-middleware');
+      // Add React UI Display Support
+      // Only enable if not Dockerized
+      app.use('/display/ui', createProxyMiddleware({ target: 'http://localhost:3000/' }));
+      app.use('/sockjs-node', createProxyMiddleware({ target: 'http://localhost:3000/sockjs-node' }));
+   }
    await Models.RunSynchronisation();
    await PassportModelsGenerate(app);
 
-   app.use(cors());
-   // middleware for json body parsing
-   app.use(bodyParser.json());
+   app.use(cors({ credentials: true }));
    // middleware for parsing application/x-www-form-urlencoded
    app.use(bodyParser.urlencoded({ extended: true }));
+   app.use(express.urlencoded({ extended: true }));
    // middleware for json body parsing
-   app.use(bodyParser.json({ limit: '20mb' }));
+   app.use(express.json({ limit: '20mb' }));
 
    // Route via this as Path to Users
    app.use('/user', Routes.Users);
    // Route via this as Path for Display
    app.use('/display', Routes.Displays);
+
+   app.get('/is-authed', (req, res) => {
+      res.json({ u: req.user, a: req.isUnauthenticated() });
+   });
+
    // Route via this as path for File Uploading and Downloading
    app.use('/files', Routes.Files);
 

@@ -5,7 +5,6 @@ import { Strategy } from 'passport-local';
 import * as Config from '../config/session';
 
 import * as Models from '.';
-import { UserViewModel } from './Users.Model';
 
 export default async function PassportModelsGenerate(app: Application) {
    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
@@ -64,17 +63,62 @@ export default async function PassportModelsGenerate(app: Application) {
       )
    );
 
-   passport.serializeUser((user: Express.User, done) => {
-      done(null, (user as UserViewModel).id);
+   // New form needed
+   // Username (name)
+   // Password (pass)
+   // Display name (displayName)
+   // All requests send withCredentials in Axios
+   // Note to frontend
+   passport.use(
+      'display',
+      new Strategy(
+         // Name of Parameter Fields
+         {
+            usernameField: 'name',
+            passwordField: 'pass',
+            passReqToCallback: true
+         },
+         async (req, name, password, done) => {
+            try {
+               const displayName = req.body.displayName;
+               if (!name || !password || !displayName) return done(null, false);
+               const user = await Models.Users.findOne({
+                  where: {
+                     Name: name
+                  }
+               });
+               // As No Such User Found
+               // Login Failed
+               if (!user) return done(null, false);
+
+               // Now Compare Passwords for Matching
+               // Using bcrypt for Safety
+               const match = await user.ComparePassword(password);
+               if (!match) return done(null, false);
+
+               const display = await Models.Displays.findOne({
+                  where: {
+                     Name: displayName,
+                     CreatingUserID: user.id
+                  }
+               });
+
+               if (display == null) {
+                  // Not the creator and hence rejected
+                  return done(null, false);
+               }
+
+               return done(null, display);
+            } catch (error) {
+               return done(error, null);
+            }
+         }
+      )
+   );
+
+   passport.serializeUser((user: unknown, done) => {
+      done(null, user);
    });
 
-   passport.deserializeUser(async (id: number, done) => {
-      try {
-         const user = await Models.Users.findByPk(id);
-         if (user == null) done(null, undefined);
-         else done(null, new Models.UserViewModel(user.id, user.Name, user.Authority));
-      } catch (error) {
-         done(error, undefined);
-      }
-   });
+   passport.deserializeUser((user: Express.User, done) => done(null, user));
 }

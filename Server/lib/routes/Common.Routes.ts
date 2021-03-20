@@ -14,9 +14,9 @@ import * as Models from '../Models';
 const GIFInfo = require('gif-info');
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function IsNotEmptyAny(object: any): boolean {
-   return object && Object.keys(object).length !== 0;
-}
+// function IsNotEmptyAny(object: any): boolean {
+//    return object && Object.keys(object).length !== 0;
+// }
 function GenerateThumbnailImageAsync(sourceName: string, thumbnailName: string, width: number, height: number) {
    const destName = Path.join(Path.dirname(sourceName), thumbnailName);
 
@@ -105,7 +105,7 @@ export namespace RoutesCommon {
       }
    }
    export namespace Mqtt {
-      export const Client = mqtt.connect(Config.Mqtt.Url);
+      export const Client = mqtt.connect(Config.Mqtt.Url, { clientId: '22' });
 
       export function Publish(topic: string, message: string | Buffer) {
          return new Promise((resolve, reject) => {
@@ -144,27 +144,9 @@ export namespace RoutesCommon {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return req.user! as Models.UserViewModel;
    }
-
-   export async function ValidateActualDisplay(req: Request, res: Response, next: NextFunction) {
-      const params = RoutesCommon.GetParameters(req);
-
-      if (!params) {
-         res.json({ success: false });
-         return;
-      }
-
-      const id = Number(params.id);
-      const key = String(params.key);
-
-      if (!id || !key) {
-         res.json({ success: false });
-         return;
-      }
-      const count = await Models.Displays.count({
-         where: { id: id, IdentifierKey: key }
-      });
-      if (count !== 0) next();
-      else res.json({ success: false });
+   export function GetDisplay(req: Request) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return req.user! as Models.Displays;
    }
 
    // Check if Authentication is Correct
@@ -172,7 +154,11 @@ export namespace RoutesCommon {
       if (req.isAuthenticated()) return next();
       return res.redirect('/');
    }
-
+   // Check if User is Admin
+   export function IsDisplay(req: Request, res: Response, next: NextFunction) {
+      if (req.isAuthenticated() && (req.user as Models.Displays).CreatingUserID != null) return next();
+      return res.redirect('/');
+   }
    // Check if User is Admin
    export function IsAdmin(req: Request, res: Response, next: NextFunction) {
       if (req.isAuthenticated() && RoutesCommon.GetUser(req).Authority === 'ADMIN') return next();
@@ -222,7 +208,7 @@ export namespace RoutesCommon {
    }
 
    export function GetParameters(req: Request) {
-      return {...(req.body || {}) , ...(req.query || {}), ...(req.params || {})};
+      return { ...(req.body || {}), ...(req.query || {}), ...(req.params || {}) };
    }
 
    // Find Multimedia type based on File Extension
@@ -277,13 +263,13 @@ export namespace RoutesCommon {
       return res;
    }
 
-   export function VideoChangeFormatToH264(videoSrc: string) {
+   export function VideoChangeFormatToBrowserBest(videoSrc: string) {
       // Append video to Hash of Name
       // Done because
-      // For an MP4 file, we can't write into same file
+      // For a WEBM file, we can't write into same file
       // Again
       const videoSrcSplit = Path.parse(videoSrc);
-      const videoDest = Path.join(videoSrcSplit.dir, `${videoSrcSplit.name}video.mp4`);
+      const videoDest = Path.join(videoSrcSplit.dir, `${videoSrcSplit.name}video.webm`);
 
       // Make this given function awaitable
       // This way, the interface becomes easier to implement
@@ -291,9 +277,12 @@ export namespace RoutesCommon {
       // And we can introduce a blocking call
       return new Promise<void>((resolve, reject) => {
          ffmpeg(videoSrc)
-            .format('mp4')
-            .videoCodec('libx264')
+            .format('webm')
+            .videoCodec('libvpx-vp9')
+            // .videoBitrate('1M')
             .noAudio()
+            // .outputOption('-movflags faststart')
+            // .outputOption('-strict -2')
             .output(videoDest)
             .on('end', () => resolve())
             .on('error', err => reject(err))

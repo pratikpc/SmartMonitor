@@ -10,10 +10,6 @@ export default class Displays extends Model {
    Name!: string;
 
    @AllowNull(false)
-   @Column(DataType.TEXT)
-   IdentifierKey!: string;
-
-   @AllowNull(false)
    @ForeignKey(() => Users as never)
    @Column
    CreatingUserID!: number;

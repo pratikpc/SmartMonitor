@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto';
 import { Router } from 'express';
 import passport from 'passport';
 import { RoutesCommon } from './Common.Routes';
@@ -16,6 +15,11 @@ Displays.get('/list', RoutesCommon.IsAuthenticated, (_req, res) => {
    return RoutesCommon.NoCaching(res).render('displist.html');
 });
 
+Displays.get('/id', RoutesCommon.IsDisplay, (req, res) => {
+   const display = RoutesCommon.GetDisplay(req);
+   return res.json(display.id);
+});
+
 Displays.post('/', RoutesCommon.IsAdmin, async (req, res) => {
    const userId = RoutesCommon.GetUser(req).id;
 
@@ -29,8 +33,7 @@ Displays.post('/', RoutesCommon.IsAdmin, async (req, res) => {
 
    const newDisplay = await Models.Displays.create({
       Name: displayName,
-      CreatingUserID: userId,
-      IdentifierKey: randomBytes(20).toString('hex')
+      CreatingUserID: userId
    });
 
    const success = newDisplay != null;
@@ -39,53 +42,8 @@ Displays.post('/', RoutesCommon.IsAdmin, async (req, res) => {
    });
 });
 
-// If Display is Invalid, ValidateActualDisplay returns false
-Displays.post('/validate', RoutesCommon.ValidateActualDisplay, (_req, res) => {
-   return res.json({ success: true });
-});
-
 // Add from Application
-Displays.post('/add/', passport.authenticate('app'), async (req, res) => {
-   if (req.isUnauthenticated())
-      return res.json({
-         success: false,
-         a: false
-      });
-
-   const userId = RoutesCommon.GetUser(req).id;
-
-   const params = RoutesCommon.GetParameters(req);
-   const displayName = String(params.displayname).trim().toLowerCase();
-
-   if (!displayName || !userId)
-      return res.json({
-         success: false,
-         a: true
-      });
-
-   const display = await Models.Displays.findOne({
-      where: {
-         CreatingUserID: userId,
-         Name: displayName
-      }
-   });
-
-   if (display == null)
-      return res.json({
-         success: false,
-         c: false
-      });
-
-   return res.json({
-      success: true,
-      data: {
-         id: display.id,
-         Name: display.Name,
-         CreatingUserID: display.CreatingUserID,
-         IdentifierKey: display.IdentifierKey
-      }
-   });
-});
+Displays.post('/login/', passport.authenticate('display', { failureRedirect: '/', successRedirect: '/display/ui' }));
 
 Displays.put('/', RoutesCommon.IsAdmin, async (req, res) => {
    const userId = Number(RoutesCommon.GetUser(req).id);
@@ -93,7 +51,6 @@ Displays.put('/', RoutesCommon.IsAdmin, async (req, res) => {
    const params = RoutesCommon.GetParameters(req);
 
    const displayId = Number(params.displayid);
-   const displayKey = String(params.displaykey);
    const newDisplayName = String(params.displayname);
 
    const [count] = await Models.Displays.update(
@@ -101,8 +58,7 @@ Displays.put('/', RoutesCommon.IsAdmin, async (req, res) => {
       {
          where: {
             id: displayId,
-            CreatingUserID: userId,
-            IdentifierKey: displayKey
+            CreatingUserID: userId
          }
       }
    );
