@@ -1,6 +1,6 @@
 FROM nginx:alpine as proxy-frontend
-ADD ./Configuration/nginx.conf /etc/nginx/
 COPY ./Website /var/www/html/static/
+COPY ./Configuration/nginx.conf /etc/nginx/
 EXPOSE 8000
 
 FROM node:lts-alpine as base
@@ -23,9 +23,21 @@ RUN npm run build
 FROM base as run-dependencies
 RUN apk add --no-cache ffmpeg
 
+FROM node:lts-alpine as react-builder
+WORKDIR /app
+ENV PATH /app/node_modules/.bin:$PATH
+COPY ./WebDisplayer/package.json ./
+RUN npm i --silent
+COPY ./WebDisplayer/public ./public
+COPY ./WebDisplayer/src ./src
+COPY ./WebDisplayer/tsconfig.json ./
+RUN npm run build
+
 FROM run-dependencies as app-backend
 WORKDIR /app
 COPY --from=app-build /app/node_modules ./node_modules
 COPY --from=app-build /app/dist ./dist
+COPY --from=react-builder /app/build /app/WebUI
 COPY --from=app-build /app/package*.json ./
 COPY ./Views ./Views
+

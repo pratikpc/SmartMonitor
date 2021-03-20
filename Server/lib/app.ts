@@ -41,6 +41,9 @@ export default async function App() {
       // Only enable if not Dockerized
       app.use('/display/ui', createProxyMiddleware({ target: 'http://localhost:3000/' }));
       app.use('/sockjs-node', createProxyMiddleware({ target: 'http://localhost:3000/sockjs-node' }));
+   } else {
+      // Generated within Docker Build
+      app.use('/display/ui', express.static('./WebUI'));
    }
    await Models.RunSynchronisation();
    await PassportModelsGenerate(app);
