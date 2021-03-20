@@ -66,3 +66,6 @@
 ### Display List
 
 ![Displays](docs/Screenshot%20Display%202.png)
+
+### Run Mosquitto in PowerShell in Server directory
+docker run -it --volume ${pwd}/Docker/mosquitto.conf:/mosquitto/config/mosquitto.conf -p 9001:9001 -p 1883:1883 eclipse-mosquitto
