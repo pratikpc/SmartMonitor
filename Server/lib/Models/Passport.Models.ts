@@ -42,7 +42,7 @@ export default async function PassportModelsGenerate(app: Application) {
          },
          async (_req, name, password, done) => {
             try {
-               if (!name || !password) return done(null, null);
+               if (!name || !password) return done(null, false);
                const user = await Models.Users.findOne({
                   where: {
                      Name: name
@@ -50,12 +50,12 @@ export default async function PassportModelsGenerate(app: Application) {
                });
                // As No Such User Found
                // Login Failed
-               if (!user) return done(null, null);
+               if (!user) return done(null, false);
 
                // Now Compare Passwords for Matching
                // Using bcrypt for Safety
                const match = await user.ComparePassword(password);
-               if (!match) return done(null, null);
+               if (!match) return done(null, false);
                return done(null, new Models.UserViewModel(user.id, user.Name, user.Authority));
             } catch (error) {
                return done(error, null);
