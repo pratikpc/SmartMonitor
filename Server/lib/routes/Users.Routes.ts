@@ -14,9 +14,7 @@ Users.get('/login/', (req: Request, res: Response) => {
 // By default when Post Request is Made
 // Authenticate if this is an actual user
 // If not, Perform Redirection
-Users.post('/login/', passport.authenticate('app', { failureRedirect: '/' }), (_req: Request, res: Response) => {
-   return res.redirect('/files/upload');
-});
+Users.post('/login/', passport.authenticate('app', { failureRedirect: '/', successRedirect: '/files/upload' }));
 
 Users.post('/login/json', passport.authenticate('app'), (req: Request, res: Response) => {
    if (req.isAuthenticated()) return res.json({ success: true });
